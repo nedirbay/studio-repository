@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { navItems } from '../../data/products'
 
 const searchQuery = ref('')
-const cartCount = ref(3)
+const searchCategory = ref('all')
 const mobileMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
 
@@ -14,68 +14,80 @@ function toggleDropdown(label: string) {
 function closeDropdown() {
   activeDropdown.value = null
 }
+
+function handleSearch() {
+  console.log('Searching:', searchQuery.value, 'in category:', searchCategory.value)
+}
 </script>
 
 <template>
   <header class="bg-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-center justify-between h-16 gap-4">
+      <div class="flex items-center justify-center h-16 gap-4">
         <!-- Logo -->
-        <a href="#" class="flex items-center gap-2 shrink-0">
+        <router-link to="/" class="flex items-center gap-2 shrink-0">
           <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
             <el-icon class="text-white text-lg"><Monitor /></el-icon>
           </div>
-          <div class="leading-tight">
+          <div class="leading-tight mr-5">
             <div class="text-lg font-bold text-gray-900">Sumbar</div>
             <div class="text-xs text-red-600 font-semibold -mt-0.5 tracking-widest uppercase">Computer</div>
           </div>
-        </a>
+        </router-link>
 
         <!-- Search Bar -->
-        <div class="flex-1 hidden md:flex max-w-xl search-input">
-          <el-input
-            v-model="searchQuery"
-            placeholder="Search products, brands, categories..."
-            size="large"
-            class="flex-1"
-          >
-            <template #prepend>
-              <el-select placeholder="All" style="width: 110px" size="large">
-                <el-option label="All" value="all" />
-                <el-option label="Laptops" value="laptops" />
-                <el-option label="Desktops" value="desktops" />
-                <el-option label="Components" value="components" />
-              </el-select>
-            </template>
-            <template #append>
-              <el-button type="primary" :icon="'Search'" />
-            </template>
-          </el-input>
+        <div class="flex-1 hidden md:flex max-w-2xl">
+          <div class="search-wrapper flex w-full items-center">
+            <el-select 
+              v-model="searchCategory" 
+              placeholder="All" 
+              class="category-select"
+              size="large"
+            >
+              <el-option label="All Categories" value="all" />
+              <el-option label="Laptops" value="laptops" />
+              <el-option label="Desktops" value="desktops" />
+              <el-option label="Components" value="components" />
+              <el-option label="Accessories" value="accessories" />
+              <el-option label="Networking" value="networking" />
+            </el-select>
+            <el-input
+              v-model="searchQuery"
+              placeholder="Search for products, brands and more..."
+              size="large"
+              class="search-field"
+              @keyup.enter="handleSearch"
+            >
+              <template #prefix>
+                <el-icon class="text-gray-400"><Search /></el-icon>
+              </template>
+            </el-input>
+            <el-button 
+              type="primary" 
+              size="large"
+              class="search-btn"
+              @click="handleSearch"
+            >
+              <el-icon class="text-lg"><Search /></el-icon>
+            </el-button>
+          </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-2 shrink-0">
-          <button class="hidden md:flex flex-col items-center p-2 hover:text-red-600 transition-colors text-gray-600">
+        <!-- Nav Actions -->
+        <div class="flex items-center gap-3">
+          <router-link to="/products" class="hidden md:flex items-center gap-1 text-sm text-gray-700 hover:text-red-600 transition-colors">
+            <el-icon><Goods /></el-icon>
+            <span>Products</span>
+          </router-link>
+          <button class="relative p-2 text-gray-600 hover:text-red-600 transition-colors">
+            <el-icon class="text-xl"><ShoppingCart /></el-icon>
+            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">3</span>
+          </button>
+          <button class="p-2 text-gray-600 hover:text-red-600 transition-colors">
             <el-icon class="text-xl"><User /></el-icon>
-            <span class="text-xs mt-0.5">Account</span>
-          </button>
-          <button class="hidden md:flex flex-col items-center p-2 hover:text-red-600 transition-colors text-gray-600">
-            <el-icon class="text-xl"><Star /></el-icon>
-            <span class="text-xs mt-0.5">Wishlist</span>
-          </button>
-          <button class="flex flex-col items-center p-2 hover:text-red-600 transition-colors text-gray-600 relative">
-            <el-badge :value="cartCount" class="cart-badge">
-              <el-icon class="text-xl"><ShoppingCart /></el-icon>
-            </el-badge>
-            <span class="text-xs mt-0.5 hidden md:inline">Cart</span>
-          </button>
-          <button
-            class="md:hidden p-2 text-gray-600 hover:text-red-600"
-            @click="mobileMenuOpen = !mobileMenuOpen"
-          >
-            <el-icon class="text-2xl"><Menu /></el-icon>
           </button>
         </div>
+       
       </div>
     </div>
 
@@ -90,14 +102,14 @@ function closeDropdown() {
             @mouseenter="item.children && toggleDropdown(item.label)"
             @mouseleave="closeDropdown"
           >
-            <a
-              :href="item.href"
+            <router-link
+              :to="item.href"
               class="flex items-center gap-1 px-4 py-3 text-sm font-medium text-gray-200 hover:text-white hover:bg-red-600 transition-all duration-200"
               :class="{ 'bg-red-600 text-white': item.label === 'Home' }"
             >
               {{ item.label }}
               <el-icon v-if="item.children" class="text-xs ml-0.5"><ArrowDown /></el-icon>
-            </a>
+            </router-link>
             <div
               v-if="item.children && activeDropdown === item.label"
               class="absolute top-full left-0 bg-white shadow-xl rounded-b-lg min-w-48 border-t-2 border-red-600 z-50"
@@ -140,16 +152,79 @@ function closeDropdown() {
 </template>
 
 <style scoped>
-:deep(.el-input-group__prepend) {
-  padding: 0;
+/* Search Wrapper - Modern Container */
+.search-wrapper {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-:deep(.el-input-group__append) {
-  background-color: #dc2626;
+
+.search-wrapper:focus-within {
   border-color: #dc2626;
-  color: white;
-  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #fff;
 }
-:deep(.el-input-group__append:hover) {
-  background-color: #b91c1c;
+
+/* Category Select Styling */
+:deep(.category-select) {
+  width: 140px;
+}
+
+:deep(.category-select .el-input__wrapper) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-right: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+:deep(.category-select .el-input__wrapper:hover) {
+  background: rgba(220, 38, 38, 0.04);
+}
+
+:deep(.category-select .el-input__inner) {
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Search Input Field */
+:deep(.search-field .el-input__wrapper) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0 16px;
+}
+
+:deep(.search-field .el-input__inner) {
+  font-size: 14px;
+}
+
+:deep(.search-field .el-input__inner::placeholder) {
+  color: #94a3b8;
+}
+
+/* Search Button */
+.search-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: none;
+  border-radius: 0;
+  padding: 0 20px;
+  min-width: 56px;
+  transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: scale(1.02);
+}
+
+.search-btn:active {
+  transform: scale(0.98);
 }
 </style>

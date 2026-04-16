@@ -4,12 +4,16 @@ export interface Product {
   price: number
   originalPrice?: number
   image: string
+  images?: string[]
   category: string
   badge?: 'new' | 'sale' | 'hot'
   rating: number
   reviews: number
   brand: string
   inStock: boolean
+  description?: string
+  features?: string[]
+  specifications?: Record<string, string>
 }
 
 export interface Category {
@@ -40,4 +44,18 @@ export interface NavItem {
   label: string
   href: string
   children?: NavItem[]
+}
+
+export interface Comment {
+  id: number
+  productId: number
+  userId: number
+  userName: string
+  userAvatar?: string
+  rating: number
+  title: string
+  content: string
+  createdAt: string
+  helpful: number
+  images?: string[]
 }

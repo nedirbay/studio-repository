@@ -9,7 +9,7 @@ function discountPercent(price: number, original: number) {
 </script>
 
 <template>
-  <div class="product-card group cursor-pointer">
+  <router-link :to="`/product/${product.id}`" class="product-card group cursor-pointer block">
     <div class="relative overflow-hidden bg-gray-50">
       <img
         :src="product.image"
@@ -27,10 +27,10 @@ function discountPercent(price: number, original: number) {
         <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Out of Stock</span>
       </div>
       <div class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
           <el-icon class="text-sm"><Star /></el-icon>
         </button>
-        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors">
+        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
           <el-icon class="text-sm"><View /></el-icon>
         </button>
       </div>
@@ -65,11 +65,12 @@ function discountPercent(price: number, original: number) {
         <button
           class="flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="!product.inStock"
+          @click.prevent
         >
           <el-icon><ShoppingCart /></el-icon>
           Add
         </button>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>

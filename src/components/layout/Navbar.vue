@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { navItems } from '../../data/products'
+import NotificationDropdown from '../shared/NotificationDropdown.vue'
 
 const searchQuery = ref('')
 const searchCategory = ref('all')
@@ -79,10 +80,7 @@ function handleSearch() {
             <el-icon><Goods /></el-icon>
             <span>Products</span>
           </router-link>
-          <button class="relative p-2 text-gray-600 hover:text-red-600 transition-colors">
-            <el-icon class="text-xl"><ShoppingCart /></el-icon>
-            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">3</span>
-          </button>
+          <NotificationDropdown />
           <button class="p-2 text-gray-600 hover:text-red-600 transition-colors">
             <el-icon class="text-xl"><User /></el-icon>
           </button>

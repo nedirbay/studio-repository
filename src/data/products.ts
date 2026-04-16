@@ -629,7 +629,7 @@ export const allProducts: Product[] = [
 ]
 
 export const featuredProducts: Product[] = allProducts.slice(0, 8)
-export const dealProducts: Product[] = allProducts.filter(p => p.originalPrice).slice(0, 4)
+export const dealProducts: Product[] = allProducts.filter(p => p.originalPrice).slice(0, 8)
 
 export function getAllProducts(): Product[] {
   return allProducts
@@ -655,7 +655,7 @@ export const navItems: NavItem[] = [
       { label: 'Accessories', href: '/products/accessories' },
     ]
   },
-  { label: 'Deals', href: '/products?sale=true' },
-  { label: 'New Arrivals', href: '/products?new=true' },
-  { label: 'Support', href: '#' },
+  { label: 'Deals', href: '/deals' },
+  { label: 'New Arrivals', href: '/new-arrivals' },
+  { label: 'Support', href: '/support' },
 ]

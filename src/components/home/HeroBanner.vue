@@ -4,7 +4,7 @@ import { banners } from '../../data/products'
 
 <template>
   <section class="w-full">
-    <el-carousel height="420px" :interval="5000" arrow="always" indicator-position="outside">
+    <el-carousel height="550px" :interval="5000" arrow="always" indicator-position="outside">
       <el-carousel-item v-for="banner in banners" :key="banner.id">
         <div class="relative h-full overflow-hidden">
           <img
@@ -19,7 +19,7 @@ import { banners } from '../../data/products'
                 <span class="inline-block bg-red-600 text-white text-xs font-bold px-3 py-1 rounded mb-3 uppercase tracking-wider">
                   {{ banner.subtitle }}
                 </span>
-                <h2 class="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
+                <h2 class="text-5xl md:text-7xl font-extrabold mb-4 leading-tight">
                   {{ banner.title }}
                 </h2>
                 <p class="text-base text-gray-200 mb-6 leading-relaxed">

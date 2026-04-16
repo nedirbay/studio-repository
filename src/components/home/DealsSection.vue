@@ -36,7 +36,7 @@ function pad(n: number) {
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-          <h2 class="section-title">Flash Deals</h2>
+          <h2 class="section-title">Arzanlaşykdaky Harytlar</h2>
           <div class="flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold">
             <el-icon class="mr-1"><Clock /></el-icon>
             {{ pad(hours) }}:{{ pad(minutes) }}:{{ pad(seconds) }}

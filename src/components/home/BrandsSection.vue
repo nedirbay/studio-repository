@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { brands } from '../../data/products'
+import { store } from '../../store'
 </script>
 
 <template>
@@ -8,7 +8,7 @@ import { brands } from '../../data/products'
       <h2 class="section-title mb-6">Esasy brendler</h2>
       <div class="grid grid-cols-4 md:grid-cols-8 gap-3">
         <router-link
-          v-for="brand in brands"
+          v-for="brand in store.brands"
           :key="brand.id"
           :to="{ path: '/products', query: { brand: brand.name } }"
           class="flex items-center justify-center h-14 bg-gray-50 rounded-lg border border-gray-100 hover:border-red-200 hover:bg-red-50 cursor-pointer transition-all duration-200 group no-underline"

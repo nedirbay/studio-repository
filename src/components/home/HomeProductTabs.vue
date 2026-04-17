@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { featuredProducts, dealProducts } from '../../data/products'
+import { store } from '../../store'
 import ProductCard from '../shared/ProductCard.vue'
 
 const activeTab = ref<'featured' | 'deals'>('featured')
@@ -66,14 +66,15 @@ function pad(n: number) {
             </button>
           </div>
           
-          <div v-if="activeTab === 'deals'" class="flex items-center gap-3 animate-fade-in">
+          <div v-if="activeTab === 'deals'" class="flex items-center gap-3 opacity-0 animate-[fade-in_0.4s_ease-out_forwards]">
             <span class="text-xs font-bold text-red-600 uppercase tracking-widest">Wagt galýar:</span>
-            <div class="flex gap-1.5">
-              <span class="countdown-unit">{{ pad(hours) }}</span>
-              <span class="font-bold text-gray-400">:</span>
-              <span class="countdown-unit">{{ pad(minutes) }}</span>
-              <span class="font-bold text-gray-400">:</span>
-              <span class="countdown-unit text-red-600">{{ pad(seconds) }}</span>
+            <div class="flex items-center gap-1">
+              <div v-for="(unit, i) in [pad(hours), pad(minutes), pad(seconds)]" :key="i" class="flex items-center gap-1">
+                <span class="bg-gray-900 text-white min-w-[32px] h-8 flex items-center justify-center rounded-lg font-mono text-sm font-bold shadow-inner">
+                  {{ unit }}
+                </span>
+                <span v-if="i < 2" class="text-gray-900 font-bold">:</span>
+              </div>
             </div>
           </div>
         </div>
@@ -99,10 +100,10 @@ function pad(n: number) {
         >
           <div :key="activeTab" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <ProductCard
-              v-for="product in (activeTab === 'featured' ? featuredProducts : dealProducts)"
+              v-for="product in (activeTab === 'featured' ? store.products.slice(0, 8) : store.products.filter(p => p.originalPrice || p.badge === 'sale').slice(0, 8))"
               :key="product.id"
               :product="product"
-              class="hover-lift"
+              class="transition-transform duration-300 hover:-translate-y-2"
             />
           </div>
         </Transition>
@@ -110,18 +111,3 @@ function pad(n: number) {
     </div>
   </section>
 </template>
-
-<style scoped>
-@reference "../../style.css";
-
-.countdown-unit {
-  @apply bg-gray-900 text-white min-w-[32px] h-8 flex items-center justify-center rounded-lg font-mono text-sm font-bold shadow-inner;
-}
-
-.hover-lift {
-  @apply transition-transform duration-300;
-}
-.hover-lift:hover {
-  transform: translateY(-8px);
-}
-</style>

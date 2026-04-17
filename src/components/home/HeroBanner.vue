@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { banners } from '../../data/products'
+import { store } from '../../store'
 </script>
 
 <template>
   <section class="w-full">
     <el-carousel height="550px" :interval="5000" arrow="always" indicator-position="outside">
-      <el-carousel-item v-for="banner in banners" :key="banner.id">
+      <el-carousel-item v-for="banner in store.banners" :key="banner.id">
         <div class="relative h-full overflow-hidden">
           <img
             :src="banner.image"

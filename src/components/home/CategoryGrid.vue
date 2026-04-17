@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { categories } from '../../data/products'
+import { store } from '../../store'
 </script>
 
 <template>
@@ -13,21 +13,22 @@ import { categories } from '../../data/products'
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div
-          v-for="cat in categories"
-          :key="cat.id"
-          class="category-card group"
+        <router-link
+          v-for="category in store.categories"
+          :key="category.id"
+          :to="`/products/${category.slug}`"
+          class="category-card group no-underline"
         >
           <div class="text-3xl group-hover:scale-110 transition-transform duration-300">
-            {{ cat.icon }}
+            {{ category.icon }}
           </div>
           <div class="text-center">
             <div class="text-sm font-semibold text-gray-800 group-hover:text-red-600 transition-colors">
-              {{ cat.name }}
+              {{ category.name }}
             </div>
-            <div class="text-xs text-gray-400 mt-0.5">{{ cat.count }} sany</div>
+            <div class="text-xs text-gray-400 mt-0.5">{{ category.count }} sany</div>
           </div>
-        </div>
+        </router-link>
       </div>
     </div>
   </section>

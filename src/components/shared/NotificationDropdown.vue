@@ -13,33 +13,33 @@ interface Notification {
 const notifications = ref<Notification[]>([
   {
     id: 1,
-    title: 'New Order Received',
-    description: 'Order #12345 has been placed successfully.',
-    time: '2 mins ago',
+    title: 'Täze sargyt geldi',
+    description: '#12345 belgili sargyt üstünlikli ýerleşdirildi.',
+    time: '2 minut öň',
     type: 'order',
     unread: true
   },
   {
     id: 2,
-    title: 'System Update',
-    description: 'Maintenance scheduled for tonight at 12:00 AM.',
-    time: '1 hour ago',
+    title: 'Ulgam täzelenmesi',
+    description: 'Şu gije sagat 00:00-da tehniki hyzmat meýilleşdirildi.',
+    time: '1 sagat öň',
     type: 'system',
     unread: true
   },
   {
     id: 3,
-    title: 'Special Offer!',
-    description: 'Get 20% off on all accessories this weekend.',
-    time: '3 hours ago',
+    title: 'Ýörite hödürleme!',
+    description: 'Şu dynç günleri ähli aksesuarla 20% arzanladyş alyň.',
+    time: '3 sagat öň',
     type: 'promo',
     unread: false
   },
   {
     id: 4,
-    title: 'Delivery Update',
-    description: 'Your package for order #12340 is out for delivery.',
-    time: '5 hours ago',
+    title: 'Eltip berme täzelenmesi',
+    description: '#12340 belgili sargydyňyz eltilmäge çykdy.',
+    time: '5 sagat öň',
     type: 'order',
     unread: false
   }
@@ -87,12 +87,12 @@ function getIconColor(type: string) {
       <div class="w-80 overflow-hidden rounded-xl shadow-2xl border border-gray-100 bg-white/95 backdrop-blur-md">
         <!-- Header -->
         <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="font-bold text-gray-900 text-sm">Notifications</h3>
+          <h3 class="font-bold text-gray-900 text-sm">Bildirişler</h3>
           <button 
             @click="markAllAsRead"
             class="text-[11px] font-medium text-red-600 hover:text-red-700 transition-colors"
           >
-            Mark all as read
+            Ählisini okalan diýip belle
           </button>
         </div>
 
@@ -100,7 +100,7 @@ function getIconColor(type: string) {
         <div class="max-h-[360px] overflow-y-auto custom-scrollbar">
           <div v-if="notifications.length === 0" class="py-12 text-center text-gray-400">
             <el-icon class="text-4xl mb-2 opacity-20"><Bell /></el-icon>
-            <p class="text-xs">No notifications yet</p>
+            <p class="text-xs">Häzirlikçe bildiriş ýok</p>
           </div>
           
           <div 
@@ -133,7 +133,7 @@ function getIconColor(type: string) {
         <!-- Footer -->
         <div class="p-2 border-t border-gray-100">
           <button class="w-full py-2 text-xs font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
-            View all notifications
+            Ähli bildirişleri gör
           </button>
         </div>
       </div>

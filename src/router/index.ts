@@ -41,6 +41,28 @@ const routes = [
     path: '/support',
     name: 'Support',
     component: SupportPage
+  },
+  {
+    path: '/admin',
+    component: () => import('../components/layout/AdminLayout.vue'),
+    redirect: '/admin/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('../views/admin/AdminDashboard.vue')
+      },
+      {
+        path: 'categories',
+        name: 'AdminCategories',
+        component: () => import('../views/admin/AdminCategories.vue')
+      },
+      {
+        path: 'products',
+        name: 'AdminProducts',
+        component: () => import('../views/admin/AdminProducts.vue')
+      }
+    ]
   }
 ]
 

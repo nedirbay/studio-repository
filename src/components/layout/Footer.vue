@@ -64,7 +64,8 @@ import logo from '../../assets/branding/logo.png'
               { label: 'Kepillik barada maglumat', href: '/warranty' },
               { label: 'Köp soralýan soraglar', href: '/faq' },
               { label: 'Biz bilen habarlaşyň', href: '/support' },
-              { label: 'Hyzmat merkezi', href: '/service' }
+              { label: 'Hyzmat merkezi', href: '/service' },
+              { label: 'Admin Paneli', href: '/admin' }
             ]" :key="link.label">
               <router-link :to="link.href" class="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1">
                 <el-icon class="text-xs"><ArrowRight /></el-icon>

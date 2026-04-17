@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { getAllProducts } from '../data/products'
+import { store } from '../store'
 import { comments as initialComments } from '../data/comments'
-import type { Product, Comment } from '../types'
+import type { Comment } from '../types'
 
 const route = useRoute()
 const productId = computed(() => Number(route.params.id))
-const allProducts = ref<Product[]>(getAllProducts())
 
 const product = computed(() => 
-  allProducts.value.find(p => p.id === productId.value)
+  store.products.find(p => p.id === productId.value)
 )
 
 const comments = ref<Comment[]>(initialComments.filter(c => c.productId === productId.value))

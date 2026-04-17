@@ -164,21 +164,35 @@ function checkWarranty() {
 </template>
 
 <style scoped>
-@reference "../style.css";
-
 .support-search-hero :deep(.el-input__wrapper) {
-  @apply !rounded-2xl h-16 shadow-2xl border-none text-lg bg-white/95 backdrop-blur-sm px-6 transition-all duration-300;
+  border-radius: 1rem !important;
+  height: 4rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: none;
+  font-size: 1.125rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 .support-search-hero :deep(.el-input__wrapper.is-focus) {
-  @apply ring-4 ring-blue-500/20 scale-[1.02];
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  transform: scale(1.02);
 }
 :deep(.el-collapse) {
-  @apply border-none;
+  border: none;
 }
 :deep(.el-collapse-item__header) {
-  @apply font-bold text-gray-700 border-gray-100 h-14 text-sm;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  height: 3.5rem;
+  font-size: 0.875rem;
 }
 :deep(.el-collapse-item__content) {
-  @apply pb-4;
+  padding-bottom: 1rem;
 }
 </style>

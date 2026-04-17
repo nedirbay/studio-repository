@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { allProducts } from '../data/products'
+import { store } from '../store'
 import ProductCard from '../components/shared/ProductCard.vue'
 
 const hours = ref(8)
@@ -30,7 +30,7 @@ onMounted(() => {
 onUnmounted(() => clearInterval(timer))
 
 const dealProducts = computed(() => 
-  allProducts.filter(p => p.originalPrice || p.badge === 'sale')
+  store.products.filter(p => p.originalPrice || p.badge === 'sale')
 )
 
 function pad(n: number) {
@@ -85,11 +85,11 @@ function pad(n: number) {
 
     <!-- Product Grid -->
     <div class="max-w-7xl mx-auto px-4 py-12">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900">Ähli Arzanlaşyklar</h2>
-          <p class="text-gray-500 text-sm mt-1">Söwdada {{ dealProducts.length }} sany haryt tapyldy</p>
-        </div>
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900">Ähli Arzanlaşyklar</h2>
+            <p class="text-gray-500 text-sm mt-1">Söwdada {{ dealProducts.length }} sany haryt tapyldy</p>
+          </div>
         <div class="flex gap-2">
           <!-- Filters (simplified for now) -->
           <el-button round>Baha: Arzandan gymmada</el-button>
@@ -116,9 +116,4 @@ function pad(n: number) {
 </template>
 
 <style scoped>
-@reference "../style.css";
-
-.section-title {
-  @apply text-3xl font-bold text-gray-900;
-}
 </style>

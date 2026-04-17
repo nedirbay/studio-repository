@@ -1,9 +1,23 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { navItems } from '../../data/products'
+import { navItems as staticNavItems } from '../../data/products'
+import { store } from '../../store'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import logo from '../../assets/branding/logo.png'
+
+const navItems = computed(() => {
+  // We can also make navItems dynamic in store later, but for now we'll match categories
+  const items = [...staticNavItems]
+  const catNav = items.find(i => i.label === 'Kategoriýalar')
+  if (catNav) {
+    catNav.children = store.categories.map(c => ({
+      label: c.name,
+      href: `/products/${c.slug}`
+    }))
+  }
+  return items
+})
 
 const route = useRoute()
 
@@ -53,11 +67,12 @@ watch(() => route.path, (newPath) => {
               size="large"
             >
               <el-option label="Ählisi" value="all" />
-              <el-option label="Noutbuklar" value="laptops" />
-              <el-option label="Desktop PK" value="desktops" />
-              <el-option label="Komponentler" value="components" />
-              <el-option label="Aksessuarlar" value="accessories" />
-              <el-option label="Set enjamlary" value="networking" />
+              <el-option 
+                v-for="cat in store.categories" 
+                :key="cat.id" 
+                :label="cat.name" 
+                :value="cat.slug" 
+              />
             </el-select>
             <el-input
               v-model="searchQuery"

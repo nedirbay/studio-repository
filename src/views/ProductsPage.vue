@@ -3,8 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from '../components/shared/ProductCard.vue'
 import FilterPanel from '../components/products/FilterPanel.vue'
-import { getAllProducts, categories } from '../data/products'
-import type { Product } from '../types'
+import { store } from '../store'
 
 const route = useRoute()
 
@@ -26,8 +25,8 @@ const onSaleOnly = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 12
 
-// Get all products
-const allProducts = ref<Product[]>(getAllProducts())
+// Get all products from store
+const allProducts = computed(() => store.products)
 
 // Filtered products
 const filteredProducts = computed(() => {
@@ -167,7 +166,7 @@ function handleRatingChange(ratings: number[]) {
 // Category from route
 watch(() => route.params.category, (category) => {
   if (category) {
-    const cat = categories.find(c => c.slug === category)
+    const cat = store.categories.find(c => c.slug === category)
     if (cat) {
       selectedCategories.value = [cat.name]
     }

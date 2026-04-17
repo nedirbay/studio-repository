@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { allProducts } from '../data/products'
+import { store } from '../store'
 import ProductCard from '../components/shared/ProductCard.vue'
 
 const newProducts = computed(() => 
-  allProducts.filter(p => p.badge === 'new').sort((a, b) => b.id - a.id)
+  store.products.filter(p => p.badge === 'new').sort((a, b) => b.id - a.id)
 )
 </script>
 
@@ -113,12 +113,27 @@ const newProducts = computed(() =>
 </template>
 
 <style scoped>
-@reference "../style.css";
-
+:deep(.el-collapse) {
+  border: none;
+}
+:deep(.el-collapse-item__header) {
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  height: 3.5rem;
+  font-size: 0.875rem;
+}
+:deep(.el-collapse-item__content) {
+  padding-bottom: 1rem;
+}
 :deep(.new-entry-input .el-input__wrapper) {
-  @apply bg-white/10 border-white/20 shadow-none !text-white rounded-xl;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+  color: white !important;
+  border-radius: 0.75rem;
 }
 :deep(.new-entry-input .el-input__inner::placeholder) {
-  @apply text-white/40;
+  color: rgba(255, 255, 255, 0.4);
 }
 </style>

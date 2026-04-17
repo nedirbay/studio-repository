@@ -46,10 +46,10 @@ const brandOptions = computed(() =>
 
 // Rating options
 const ratingOptions = [
-  { value: 4, label: '4 Stars & Up' },
-  { value: 3, label: '3 Stars & Up' },
-  { value: 2, label: '2 Stars & Up' },
-  { value: 1, label: '1 Star & Up' }
+  { value: 4, label: '4 ýyldyz we ýokary' },
+  { value: 3, label: '3 ýyldyz we ýokary' },
+  { value: 2, label: '2 ýyldyz we ýokary' },
+  { value: 1, label: '1 ýyldyz we ýokary' }
 ]
 
 // Expanded sections
@@ -95,13 +95,13 @@ function handleRatingChange(rating: number) {
   <div class="filter-panel">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-      <h3 class="font-semibold text-gray-900">Filters</h3>
+      <h3 class="font-semibold text-gray-900">Filtrler</h3>
       <button
         v-if="activeFiltersCount > 0"
         @click="$emit('clear-all')"
         class="text-sm text-red-600 hover:text-red-700 font-medium"
       >
-        Clear All
+        Ählisini arassala
       </button>
     </div>
 
@@ -111,7 +111,7 @@ function handleRatingChange(rating: number) {
         @click="toggleSection('categories')"
         class="filter-header"
       >
-        <span class="font-medium text-gray-700">Categories</span>
+        <span class="font-medium text-gray-700">Kategoriýalar</span>
         <el-icon :class="['transition-transform', expandedSections.categories && 'rotate-180']">
           <ArrowDown />
         </el-icon>
@@ -141,7 +141,7 @@ function handleRatingChange(rating: number) {
         @click="toggleSection('brands')"
         class="filter-header"
       >
-        <span class="font-medium text-gray-700">Brands</span>
+        <span class="font-medium text-gray-700">Brendler</span>
         <el-icon :class="['transition-transform', expandedSections.brands && 'rotate-180']">
           <ArrowDown />
         </el-icon>
@@ -167,7 +167,7 @@ function handleRatingChange(rating: number) {
         @click="toggleSection('price')"
         class="filter-header"
       >
-        <span class="font-medium text-gray-700">Price Range</span>
+        <span class="font-medium text-gray-700">Baha aralygy</span>
         <el-icon :class="['transition-transform', expandedSections.price && 'rotate-180']">
           <ArrowDown />
         </el-icon>
@@ -213,7 +213,7 @@ function handleRatingChange(rating: number) {
         @click="toggleSection('ratings')"
         class="filter-header"
       >
-        <span class="font-medium text-gray-700">Ratings</span>
+        <span class="font-medium text-gray-700">Reýtingler</span>
         <el-icon :class="['transition-transform', expandedSections.ratings && 'rotate-180']">
           <ArrowDown />
         </el-icon>
@@ -235,7 +235,7 @@ function handleRatingChange(rating: number) {
               :colors="['#f59e0b', '#f59e0b', '#f59e0b']"
               size="small"
             />
-            <span class="text-xs text-gray-500">& up</span>
+            <span class="text-xs text-gray-500">we ýokary</span>
           </div>
         </label>
       </div>
@@ -247,7 +247,7 @@ function handleRatingChange(rating: number) {
         @click="toggleSection('availability')"
         class="filter-header"
       >
-        <span class="font-medium text-gray-700">Availability</span>
+        <span class="font-medium text-gray-700">Elýeterlilik</span>
         <el-icon :class="['transition-transform', expandedSections.availability && 'rotate-180']">
           <ArrowDown />
         </el-icon>
@@ -258,14 +258,14 @@ function handleRatingChange(rating: number) {
             :model-value="inStockOnly"
             @change="(val: boolean) => $emit('update:inStock', val)"
           />
-          <span class="text-sm text-gray-700">In Stock Only</span>
+          <span class="text-sm text-gray-700">Diňe ammarda barlar</span>
         </label>
         <label class="filter-checkbox">
           <el-checkbox
             :model-value="onSaleOnly"
             @change="(val: boolean) => $emit('update:onSale', val)"
           />
-          <span class="text-sm text-gray-700">On Sale</span>
+          <span class="text-sm text-gray-700">Arzanladyşda</span>
         </label>
       </div>
     </div>
@@ -276,7 +276,7 @@ function handleRatingChange(rating: number) {
         @click="$emit('apply')"
         class="w-full btn-primary py-3"
       >
-        Apply Filters
+        Filtrleri ulan
       </button>
     </div>
   </div>

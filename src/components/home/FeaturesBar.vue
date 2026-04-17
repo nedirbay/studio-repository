@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const features = [
-  { icon: 'Van', title: 'Free Delivery', desc: 'On orders over $500' },
-  { icon: 'Refresh', title: 'Easy Returns', desc: '30-day return policy' },
-  { icon: 'Shield', title: 'Warranty', desc: 'Official warranty on all products' },
-  { icon: 'Service', title: 'Expert Support', desc: '24/7 technical assistance' },
+  { icon: 'Van', title: 'Mugt eltip berme', desc: '500$ ýokary sargytlarda' },
+  { icon: 'Refresh', title: 'Aňsat yzyna gaýtarmak', desc: '30 günüň içinde' },
+  { icon: 'Shield', title: 'Kepillik', desc: 'Ähli harytlara resmi kepillik' },
+  { icon: 'Service', title: 'Hünärmen goldawy', desc: '24/7 tehniki kömek' },
 ]
 </script>
 

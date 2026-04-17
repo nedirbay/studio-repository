@@ -178,6 +178,16 @@ watch(() => route.params.category, (category) => {
 watch(searchQuery, () => {
   currentPage.value = 1
 })
+
+// Brand from query
+watch(() => route.query.brand, (brandName) => {
+  if (brandName && typeof brandName === 'string') {
+    // If brand is in query, ensure it's selected
+    if (!selectedBrands.value.includes(brandName)) {
+      selectedBrands.value = [brandName]
+    }
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -187,9 +197,9 @@ watch(searchQuery, () => {
       <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">All Products</h1>
+            <h1 class="text-2xl font-bold text-gray-900">Ähli harytlar</h1>
             <p class="text-sm text-gray-500 mt-1">
-              Showing {{ paginatedProducts.length }} of {{ filteredProducts.length }} products
+              {{ filteredProducts.length }} harytdan {{ paginatedProducts.length }}-sy görkezilýär
             </p>
           </div>
           
@@ -197,7 +207,7 @@ watch(searchQuery, () => {
           <div class="flex-1 max-w-md">
             <el-input
               v-model="searchQuery"
-              placeholder="Search products..."
+              placeholder="Haryt gözle..."
               size="large"
               class="search-box"
               clearable
@@ -244,7 +254,7 @@ watch(searchQuery, () => {
                 class="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
               >
                 <el-icon><Filter /></el-icon>
-                Filters
+                Filtrler
                 <span v-if="activeFiltersCount > 0" class="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
                   {{ activeFiltersCount }}
                 </span>
@@ -252,7 +262,7 @@ watch(searchQuery, () => {
 
               <!-- Active Filters -->
               <div v-if="activeFiltersCount > 0" class="hidden lg:flex items-center gap-2 flex-wrap">
-                <span class="text-sm text-gray-500">Active filters:</span>
+                <span class="text-sm text-gray-500">Aktiw filtrler:</span>
                 <el-tag
                   v-for="cat in selectedCategories"
                   :key="cat"
@@ -272,28 +282,28 @@ watch(searchQuery, () => {
                   {{ brand }}
                 </el-tag>
                 <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="filter-tag">
-                  In Stock
+                  Ammarda bar
                 </el-tag>
                 <el-tag v-if="onSaleOnly" closable @close="onSaleOnly = false" class="filter-tag">
-                  On Sale
+                  Arzanladyşda
                 </el-tag>
                 <button
                   @click="clearAllFilters"
                   class="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  Clear All
+                  Ählisini arassala
                 </button>
               </div>
 
               <div class="flex items-center gap-4 ml-auto">
                 <!-- Sort -->
-                <el-select v-model="sortBy" placeholder="Sort by" size="default" class="sort-select">
-                  <el-option label="Featured" value="featured" />
-                  <el-option label="Newest" value="newest" />
-                  <el-option label="Price: Low to High" value="price-low" />
-                  <el-option label="Price: High to Low" value="price-high" />
-                  <el-option label="Top Rated" value="rating" />
-                  <el-option label="Name A-Z" value="name" />
+                <el-select v-model="sortBy" placeholder="Tertiplemek" size="default" class="sort-select">
+                  <el-option label="Saýlama" value="featured" />
+                  <el-option label="Täzeler" value="newest" />
+                  <el-option label="Baha: Arzandan gymmada" value="price-low" />
+                  <el-option label="Baha: Gymmatdan arzana" value="price-high" />
+                  <el-option label="Iň gowy reýtingli" value="rating" />
+                  <el-option label="Ady boýunça (A-Z)" value="name" />
                 </el-select>
 
                 <!-- View Toggle -->
@@ -318,10 +328,10 @@ watch(searchQuery, () => {
           <!-- No Results -->
           <div v-if="filteredProducts.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
             <el-icon class="text-6xl text-gray-300 mb-4"><Search /></el-icon>
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">No products found</h3>
-            <p class="text-gray-500 mb-4">Try adjusting your search or filters</p>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Haryt tapylmady</h3>
+            <p class="text-gray-500 mb-4">Gözlegiňizi ýa-da filtrleriňizi uýtgedip görüň</p>
             <button @click="clearAllFilters" class="btn-primary">
-              Clear All Filters
+              Ähli filtrleri arassala
             </button>
           </div>
 
@@ -367,13 +377,13 @@ watch(searchQuery, () => {
     >
       <template #header>
         <div class="flex items-center justify-between w-full">
-          <span class="text-lg font-semibold">Filters</span>
+          <span class="text-lg font-semibold">Filtrler</span>
           <button
             v-if="activeFiltersCount > 0"
             @click="clearAllFilters"
             class="text-sm text-red-600 hover:text-red-700"
           >
-            Clear All
+            Ählisini arassala
           </button>
         </div>
       </template>

@@ -15,9 +15,9 @@
         </span>
       </div>
       <div class="flex items-center gap-4">
-        <span>Free delivery on orders over $500</span>
+        <span>500$ -dan ýokary sargytlarda mugt eltip bermek</span>
         <span class="hidden sm:inline">|</span>
-        <span class="hidden sm:inline">Mon–Sat: 9:00–18:00</span>
+        <span class="hidden sm:inline">Duş–Şen: 9:00–18:00</span>
       </div>
     </div>
   </div>

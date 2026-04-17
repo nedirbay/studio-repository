@@ -17,14 +17,14 @@ function discountPercent(price: number, original: number) {
         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
       />
       <div class="absolute top-2 left-2 flex flex-col gap-1">
-        <span v-if="product.badge === 'new'" class="badge-new">NEW</span>
+        <span v-if="product.badge === 'new'" class="badge-new">TÄZE</span>
         <span v-else-if="product.badge === 'sale'" class="badge-sale">
           -{{ discountPercent(product.price, product.originalPrice!) }}%
         </span>
-        <span v-else-if="product.badge === 'hot'" class="badge-hot">HOT</span>
+        <span v-else-if="product.badge === 'hot'" class="badge-hot">GYZGYN</span>
       </div>
       <div v-if="!product.inStock" class="absolute inset-0 bg-black/50 flex items-center justify-center">
-        <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Out of Stock</span>
+        <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Ammarda ýok</span>
       </div>
       <div class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
@@ -68,7 +68,7 @@ function discountPercent(price: number, original: number) {
           @click.prevent
         >
           <el-icon><ShoppingCart /></el-icon>
-          Add
+          Goş
         </button>
       </div>
     </div>

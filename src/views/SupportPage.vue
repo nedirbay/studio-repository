@@ -35,7 +35,7 @@ function checkWarranty() {
 
       <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
         <span class="inline-block bg-blue-600/20 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest border border-blue-500/30">
-          Support Center
+          Goldaw merkezi
         </span>
         <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tight">Size nähili kömek edip bileris?</h1>
         <p class="text-slate-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed">
@@ -65,7 +65,7 @@ function checkWarranty() {
           </div>
           <h3 class="font-bold text-gray-900 mb-2">Draýwerler</h3>
           <p class="text-xs text-gray-500 mb-4">Enjamlaryňyz üçin iň soňky programma üpjünçiligi.</p>
-          <el-button link type="primary">Get Downloads</el-button>
+          <el-button link type="primary">Programmalary al</el-button>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
           <div class="w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mb-4">
@@ -73,7 +73,7 @@ function checkWarranty() {
           </div>
           <h3 class="font-bold text-gray-900 mb-2">Garantiýa</h3>
           <p class="text-xs text-gray-500 mb-4">Harydyňyzyň garantiýa möhletini barlaň.</p>
-          <el-button link type="primary">Check Status</el-button>
+          <el-button link type="primary">Ýagdaýy barla</el-button>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
           <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4">
@@ -81,7 +81,7 @@ function checkWarranty() {
           </div>
           <h3 class="font-bold text-gray-900 mb-2">Canly Söhbet</h3>
           <p class="text-xs text-gray-500 mb-4">Hünärmenlerimiz bilen göni habarlaşyň.</p>
-          <el-button link type="primary">Talk to Us</el-button>
+          <el-button link type="primary">Biz bilen gepleşiň</el-button>
         </div>
       </div>
 
@@ -144,7 +144,7 @@ function checkWarranty() {
                 <el-icon class="text-red-500 text-xl mt-1"><Message /></el-icon>
                 <div>
                   <h4 class="font-bold text-sm">Email</h4>
-                  <p class="text-xs text-gray-400 mt-1">support@sumbar.com.tm</p>
+                  <p class="text-xs text-gray-400 mt-1">support@doganlar.com.tm</p>
                 </div>
               </div>
             </div>
@@ -155,7 +155,7 @@ function checkWarranty() {
           <div class="bg-red-50 rounded-3xl p-8 border border-red-100">
             <h3 class="font-bold text-red-900 mb-2">Tizlikli Hyzmat</h3>
             <p class="text-xs text-red-700 leading-relaxed">Habarlaşyp, öýiňizden harydy aldyryp we garantiýa hyzmatyndan peýdalanyp bilersiňiz.</p>
-            <el-button type="danger" class="w-full mt-4 !rounded-xl">Call Now</el-button>
+            <el-button type="danger" class="w-full mt-4 !rounded-xl">Şindiz jaň et</el-button>
           </div>
         </div>
       </div>

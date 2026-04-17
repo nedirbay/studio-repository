@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { navItems } from '../../data/products'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
+import logo from '../../assets/branding/logo.png'
+
+const route = useRoute()
 
 const searchQuery = ref('')
 const searchCategory = ref('all')
@@ -19,6 +23,11 @@ function closeDropdown() {
 function handleSearch() {
   console.log('Searching:', searchQuery.value, 'in category:', searchCategory.value)
 }
+
+// Persist active route to localStorage
+watch(() => route.path, (newPath) => {
+  localStorage.setItem('last_active_page', newPath)
+}, { immediate: true })
 </script>
 
 <template>
@@ -27,12 +36,10 @@ function handleSearch() {
       <div class="flex items-center justify-center h-16 gap-4">
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-2 shrink-0">
-          <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
-            <el-icon class="text-white text-lg"><Monitor /></el-icon>
-          </div>
+          <img :src="logo" alt="Doganlar foto merkezi" class="h-12 w-auto" />
           <div class="leading-tight mr-5">
-            <div class="text-lg font-bold text-gray-900">Sumbar</div>
-            <div class="text-xs text-red-600 font-semibold -mt-0.5 tracking-widest uppercase">Computer</div>
+            <div class="text-lg font-bold text-gray-900">Doganlar</div>
+            <div class="text-xs text-red-600 font-semibold -mt-0.5 tracking-widest uppercase">foto merkezi</div>
           </div>
         </router-link>
 
@@ -41,20 +48,20 @@ function handleSearch() {
           <div class="search-wrapper flex w-full items-center">
             <el-select 
               v-model="searchCategory" 
-              placeholder="All" 
+              placeholder="Hemmesi" 
               class="category-select"
               size="large"
             >
-              <el-option label="All Categories" value="all" />
-              <el-option label="Laptops" value="laptops" />
-              <el-option label="Desktops" value="desktops" />
-              <el-option label="Components" value="components" />
-              <el-option label="Accessories" value="accessories" />
-              <el-option label="Networking" value="networking" />
+              <el-option label="Ählisi" value="all" />
+              <el-option label="Noutbuklar" value="laptops" />
+              <el-option label="Desktop PK" value="desktops" />
+              <el-option label="Komponentler" value="components" />
+              <el-option label="Aksessuarlar" value="accessories" />
+              <el-option label="Set enjamlary" value="networking" />
             </el-select>
             <el-input
               v-model="searchQuery"
-              placeholder="Search for products, brands and more..."
+              placeholder="Harytlary, markalary we başgalary gözläň..."
               size="large"
               class="search-field"
               @keyup.enter="handleSearch"
@@ -76,10 +83,6 @@ function handleSearch() {
 
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
-          <router-link to="/products" class="hidden md:flex items-center gap-1 text-sm text-gray-700 hover:text-red-600 transition-colors">
-            <el-icon><Goods /></el-icon>
-            <span>Products</span>
-          </router-link>
           <NotificationDropdown />
           <button class="p-2 text-gray-600 hover:text-red-600 transition-colors">
             <el-icon class="text-xl"><User /></el-icon>
@@ -103,7 +106,8 @@ function handleSearch() {
             <router-link
               :to="item.href"
               class="flex items-center gap-1 px-4 py-3 text-sm font-medium text-gray-200 hover:text-white hover:bg-red-600 transition-all duration-200"
-              :class="{ 'bg-red-600 text-white': item.label === 'Home' }"
+              :active-class="item.href === '/' ? '' : 'bg-red-600 text-white'"
+              :exact-active-class="item.href === '/' ? 'bg-red-600 text-white' : ''"
             >
               {{ item.label }}
               <el-icon v-if="item.children" class="text-xs ml-0.5"><ArrowDown /></el-icon>
@@ -112,14 +116,15 @@ function handleSearch() {
               v-if="item.children && activeDropdown === item.label"
               class="absolute top-full left-0 bg-white shadow-xl rounded-b-lg min-w-48 border-t-2 border-red-600 z-50"
             >
-              <a
+              <router-link
                 v-for="child in item.children"
                 :key="child.label"
-                :href="child.href"
+                :to="child.href"
                 class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                active-class="text-red-600 bg-red-50 font-medium"
               >
                 {{ child.label }}
-              </a>
+              </router-link>
             </div>
           </li>
         </ul>
@@ -131,18 +136,19 @@ function handleSearch() {
       <div class="px-4 py-3">
         <el-input
           v-model="searchQuery"
-          placeholder="Search products..."
+          placeholder="Harytlary gözläň..."
           :prefix-icon="'Search'"
         />
       </div>
       <ul class="pb-3">
         <li v-for="item in navItems" :key="item.label">
-          <a
-            :href="item.href"
+          <router-link
+            :to="item.href"
             class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 border-b border-gray-100"
+            active-class="text-red-600 bg-red-50"
           >
             {{ item.label }}
-          </a>
+          </router-link>
         </li>
       </ul>
     </div>

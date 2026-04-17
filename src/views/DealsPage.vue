@@ -50,7 +50,7 @@ function pad(n: number) {
       </div>
       <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
         <span class="inline-block bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest animate-bounce">
-          Super Sales
+          Uly arzanladyş
         </span>
         <h1 class="text-4xl md:text-6xl font-black mb-6">Arzanlaşykdaky Harytlar</h1>
         <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
@@ -63,21 +63,21 @@ function pad(n: number) {
             <div class="bg-white/10 backdrop-blur-md rounded-2xl w-20 h-20 md:w-24 md:h-24 flex items-center justify-center text-3xl md:text-4xl font-bold border border-white/20 mb-2">
               {{ pad(hours) }}
             </div>
-            <span class="text-xs uppercase tracking-widest text-gray-400">Hours</span>
+            <span class="text-xs uppercase tracking-widest text-gray-400">Sagat</span>
           </div>
           <div class="text-3xl font-bold mb-8">:</div>
           <div class="text-center">
             <div class="bg-white/10 backdrop-blur-md rounded-2xl w-20 h-20 md:w-24 md:h-24 flex items-center justify-center text-3xl md:text-4xl font-bold border border-white/20 mb-2">
               {{ pad(minutes) }}
             </div>
-            <span class="text-xs uppercase tracking-widest text-gray-400">Minutes</span>
+            <span class="text-xs uppercase tracking-widest text-gray-400">Minut</span>
           </div>
           <div class="text-3xl font-bold mb-8">:</div>
           <div class="text-center">
             <div class="bg-white/10 backdrop-blur-md rounded-2xl w-20 h-20 md:w-24 md:h-24 flex items-center justify-center text-3xl md:text-4xl font-bold border border-white/20 mb-2 text-red-500">
               {{ pad(seconds) }}
             </div>
-            <span class="text-xs uppercase tracking-widest text-gray-400">Seconds</span>
+            <span class="text-xs uppercase tracking-widest text-gray-400">Sekunt</span>
           </div>
         </div>
       </div>
@@ -88,12 +88,12 @@ function pad(n: number) {
       <div class="flex items-center justify-between mb-8">
         <div>
           <h2 class="text-2xl font-bold text-gray-900">Ähli Arzanlaşyklar</h2>
-          <p class="text-gray-500 text-sm mt-1">Found {{ dealProducts.length }} products on sale</p>
+          <p class="text-gray-500 text-sm mt-1">Söwdada {{ dealProducts.length }} sany haryt tapyldy</p>
         </div>
         <div class="flex gap-2">
           <!-- Filters (simplified for now) -->
-          <el-button round>Price Low to High</el-button>
-          <el-button round type="primary" plain>Highest Discount</el-button>
+          <el-button round>Baha: Arzandan gymmada</el-button>
+          <el-button round type="primary" plain>Iň uly arzanladyş</el-button>
         </div>
       </div>
 

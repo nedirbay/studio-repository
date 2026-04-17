@@ -21,15 +21,15 @@ const newProducts = computed(() =>
       <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="max-w-2xl">
           <span class="inline-block bg-blue-500 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest">
-            Latest Tech
+            Iň soňky tehnologiýalar
           </span>
           <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">Täze Gelen Harytlar</h1>
           <p class="text-xl text-blue-100 mb-8">
-            Dünýäniň iň soňky tehnologiýalaryny ilkinji bolup Sumbar Computer-da tapyň. Ýokary öndürijilik, täze dizaýn.
+            Dünýäniň iň soňky tehnologiýalaryny ilkinji bolup Doganlar foto merkezi-nde tapyň. Ýokary öndürijilik, täze dizaýn.
           </p>
           <div class="flex gap-4">
-            <el-button type="primary" size="large" class="!rounded-xl px-8 font-bold">Explore All</el-button>
-            <el-button size="large" class="!rounded-xl px-8 font-bold !bg-white/10 !text-white !border-white/20 backdrop-blur-md">Pre-orders</el-button>
+            <el-button type="primary" size="large" class="!rounded-xl px-8 font-bold">Ählisini gör</el-button>
+            <el-button size="large" class="!rounded-xl px-8 font-bold !bg-white/10 !text-white !border-white/20 backdrop-blur-md">Öňünden sargytlar</el-button>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ const newProducts = computed(() =>
                 <h3 class="font-bold mb-2">Bize agza boluň!</h3>
                 <p class="text-xs text-gray-400 mb-4">Täze harytlardan ilkinji bolup habardar boluň.</p>
                 <el-input placeholder="Email ýazyň" class="new-entry-input mb-2" />
-                <el-button type="primary" class="w-full !rounded-xl">Subscribe</el-button>
+                <el-button type="primary" class="w-full !rounded-xl">Ýazyl</el-button>
               </div>
               <el-icon class="absolute -bottom-6 -right-6 text-8xl text-white/5 rotate-12"><Pointer /></el-icon>
             </div>
@@ -89,7 +89,7 @@ const newProducts = computed(() =>
           <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
             <h2 class="text-xl font-bold text-gray-900">Iň Soňky Gelenler</h2>
             <div class="flex items-center gap-2 text-sm text-gray-500">
-              Sort by: <span class="text-blue-600 font-bold cursor-pointer">Newest First</span>
+              Tertiplemek: <span class="text-blue-600 font-bold cursor-pointer">Öňürti täzeler</span>
             </div>
           </div>
 

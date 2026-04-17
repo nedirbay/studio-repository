@@ -30,7 +30,7 @@ import { banners } from '../../data/products'
                     {{ banner.ctaText }}
                   </button>
                   <button class="btn-outline text-sm border-white text-white hover:bg-white hover:text-gray-900">
-                    View All
+                    Ählisini gör
                   </button>
                 </div>
               </div>

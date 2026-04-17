@@ -80,7 +80,7 @@ function submitReview() {
     id: Date.now(),
     productId: product.value.id,
     userId: 1,
-    userName: 'You',
+    userName: 'Siz',
     rating: reviewForm.value.rating,
     title: reviewForm.value.title,
     content: reviewForm.value.content,
@@ -110,9 +110,9 @@ function formatDate(dateStr: string) {
     <div class="max-w-7xl mx-auto px-4 py-6" v-if="product">
       <!-- Breadcrumb -->
       <nav class="flex items-center gap-2 text-sm mb-6">
-        <router-link to="/" class="text-gray-500 hover:text-red-600">Home</router-link>
+        <router-link to="/" class="text-gray-500 hover:text-red-600">Baş sahypa</router-link>
         <span class="text-gray-400">/</span>
-        <router-link to="/products" class="text-gray-500 hover:text-red-600">Products</router-link>
+        <router-link to="/products" class="text-gray-500 hover:text-red-600">Harytlar</router-link>
         <span class="text-gray-400">/</span>
         <span class="text-gray-700">{{ product.category }}</span>
         <span class="text-gray-400">/</span>
@@ -131,14 +131,14 @@ function formatDate(dateStr: string) {
                 class="w-full h-full object-cover transition-transform hover:scale-105"
               />
               <div class="absolute top-3 left-3 flex flex-col gap-2">
-                <span v-if="product.badge === 'new'" class="badge-new text-sm px-3 py-1">NEW</span>
+                <span v-if="product.badge === 'new'" class="badge-new text-sm px-3 py-1">TÄZE</span>
                 <span v-else-if="product.badge === 'sale'" class="badge-sale text-sm px-3 py-1">
                   -{{ Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) }}%
                 </span>
-                <span v-else-if="product.badge === 'hot'" class="badge-hot text-sm px-3 py-1">HOT</span>
+                <span v-else-if="product.badge === 'hot'" class="badge-hot text-sm px-3 py-1">GYZGYN</span>
               </div>
               <div v-if="!product.inStock" class="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <span class="text-white font-semibold bg-gray-800 px-4 py-2 rounded">Out of Stock</span>
+                <span class="text-white font-semibold bg-gray-800 px-4 py-2 rounded">Ammarda ýok</span>
               </div>
               <!-- Zoom icon overlay -->
               <div class="absolute bottom-3 right-3 bg-black/50 rounded-full p-2 text-white">
@@ -172,7 +172,7 @@ function formatDate(dateStr: string) {
             <!-- Rating -->
             <div class="flex items-center gap-3">
               <el-rate :model-value="product.rating" disabled show-score text-color="#ff9900" />
-              <span class="text-sm text-gray-500">({{ product.reviews }} reviews)</span>
+              <span class="text-sm text-gray-500">({{ product.reviews }} syn)</span>
             </div>
           </div>
 
@@ -183,19 +183,19 @@ function formatDate(dateStr: string) {
               ${{ product.originalPrice.toLocaleString() }}
             </span>
             <span v-if="product.originalPrice" class="text-sm font-semibold text-green-600">
-              Save ${{ (product.originalPrice - product.price).toLocaleString() }}
+              Tygyşytlaň ${{ (product.originalPrice - product.price).toLocaleString() }}
             </span>
           </div>
 
           <!-- Description -->
           <div v-if="product.description" class="bg-white rounded-xl p-5 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Düşündiriş</h3>
             <p class="text-gray-600 leading-relaxed">{{ product.description }}</p>
           </div>
 
           <!-- Features -->
           <div v-if="product.features && product.features.length > 0" class="bg-white rounded-xl p-5 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Esasy aýratynlyklar</h3>
             <ul class="space-y-2">
               <li v-for="(feature, index) in product.features" :key="index" class="flex items-start gap-2">
                 <el-icon class="text-green-600 mt-1"><CircleCheck /></el-icon>
@@ -233,7 +233,7 @@ function formatDate(dateStr: string) {
               ]"
             >
               <el-icon><ShoppingCart /></el-icon>
-              Add to Cart
+              Sebede goş
             </button>
             
             <button class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition-colors">
@@ -248,7 +248,7 @@ function formatDate(dateStr: string) {
               <CircleClose v-else />
             </el-icon>
             <span :class="product.inStock ? 'text-green-600' : 'text-red-600'" class="font-medium">
-              {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
+              {{ product.inStock ? 'Ammarda bar' : 'Ammarda ýok' }}
             </span>
           </div>
         </div>
@@ -267,7 +267,7 @@ function formatDate(dateStr: string) {
                 : 'text-gray-500 hover:text-gray-700'
             ]"
           >
-            Specifications
+            Tehniki aýratynlyklar
             <span 
               v-if="activeTab === 'specifications'" 
               class="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
@@ -282,7 +282,7 @@ function formatDate(dateStr: string) {
                 : 'text-gray-500 hover:text-gray-700'
             ]"
           >
-            Customer Reviews
+            Müşderi synlary
             <span class="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{{ comments.length }}</span>
             <span 
               v-if="activeTab === 'reviews'" 
@@ -307,7 +307,7 @@ function formatDate(dateStr: string) {
             </div>
             <div v-else class="text-center py-8">
               <el-icon class="text-5xl text-gray-300 mb-3"><Document /></el-icon>
-              <p class="text-gray-500">No specifications available for this product.</p>
+              <p class="text-gray-500">Bu haryt üçin tehniki aýratynlyklar elýeterli däl.</p>
             </div>
           </div>
 
@@ -318,49 +318,49 @@ function formatDate(dateStr: string) {
                 <div class="text-3xl font-bold text-gray-900">{{ product.rating }}</div>
                 <div>
                   <el-rate :model-value="product.rating" disabled size="large" />
-                  <div class="text-sm text-gray-500">{{ product.reviews }} reviews</div>
+                  <div class="text-sm text-gray-500">{{ product.reviews }} syn</div>
                 </div>
               </div>
               <button 
                 @click="showReviewForm = true" 
                 class="btn-primary text-sm"
               >
-                Write a Review
+                Syn ýaz
               </button>
             </div>
 
             <!-- Review Form Modal -->
-            <el-dialog v-model="showReviewForm" title="Write a Review" width="500px">
+            <el-dialog v-model="showReviewForm" title="Syn ýazyň" width="500px">
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Reýting</label>
                   <el-rate v-model="reviewForm.rating" size="large" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <el-input v-model="reviewForm.title" placeholder="Summarize your review" />
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Sözbaşy</label>
+                  <el-input v-model="reviewForm.title" placeholder="Synyňyzy gysgaça beýan ediň" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Review</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Syn</label>
                   <el-input 
                     v-model="reviewForm.content" 
                     type="textarea" 
                     :rows="4" 
-                    placeholder="Share your experience with this product" 
+                    placeholder="Bu haryt baradaky tejribäňiz bilen paýlaşyň" 
                   />
                 </div>
               </div>
               <template #footer>
-                <el-button @click="showReviewForm = false">Cancel</el-button>
-                <el-button type="primary" @click="submitReview">Submit Review</el-button>
+                <el-button @click="showReviewForm = false">Goýbolsun et</el-button>
+                <el-button type="primary" @click="submitReview">Syny ugrat</el-button>
               </template>
             </el-dialog>
 
             <!-- Comments List -->
             <div v-if="comments.length === 0" class="text-center py-8">
               <el-icon class="text-5xl text-gray-300 mb-3"><ChatDotRound /></el-icon>
-              <p class="text-gray-500 mb-4">No reviews yet. Be the first to review this product!</p>
-              <button @click="showReviewForm = true" class="btn-primary">Write a Review</button>
+              <p class="text-gray-500 mb-4">Entek syn ýok. Bu haryt üçin ilkinji syny ýazyň!</p>
+              <button @click="showReviewForm = true" class="btn-primary">Syn ýaz</button>
             </div>
 
             <div v-else class="space-y-6">
@@ -387,7 +387,7 @@ function formatDate(dateStr: string) {
                         class="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors"
                       >
                         <el-icon><ThumbUp /></el-icon>
-                        Helpful ({{ comment.helpful }})
+                        Peýdaly ({{ comment.helpful }})
                       </button>
                     </div>
                   </div>
@@ -402,9 +402,9 @@ function formatDate(dateStr: string) {
     <!-- Product Not Found -->
     <div v-else class="max-w-7xl mx-auto px-4 py-12 text-center">
       <el-icon class="text-6xl text-gray-300 mb-4"><Warning /></el-icon>
-      <h2 class="text-xl font-semibold text-gray-700 mb-2">Product Not Found</h2>
-      <p class="text-gray-500 mb-4">The product you're looking for doesn't exist or has been removed.</p>
-      <router-link to="/products" class="btn-primary">Browse Products</router-link>
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Haryt tapylmady</h2>
+      <p class="text-gray-500 mb-4">Gözleýän harydyňyz ýok ýa-da öçürilipdir.</p>
+      <router-link to="/products" class="btn-primary">Harytlara seret</router-link>
     </div>
 
     <!-- Fullscreen Image Modal -->

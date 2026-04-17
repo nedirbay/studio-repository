@@ -6,9 +6,9 @@ import { categories } from '../../data/products'
   <section class="py-10">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="section-title">Shop by Category</h2>
+        <h2 class="section-title">Kategoriýalar boýunça söwda</h2>
         <a href="#" class="text-sm text-red-600 font-semibold hover:text-red-700 flex items-center gap-1">
-          View All <el-icon><ArrowRight /></el-icon>
+          Ählisini gör <el-icon><ArrowRight /></el-icon>
         </a>
       </div>
 
@@ -25,7 +25,7 @@ import { categories } from '../../data/products'
             <div class="text-sm font-semibold text-gray-800 group-hover:text-red-600 transition-colors">
               {{ cat.name }}
             </div>
-            <div class="text-xs text-gray-400 mt-0.5">{{ cat.count }} items</div>
+            <div class="text-xs text-gray-400 mt-0.5">{{ cat.count }} sany</div>
           </div>
         </div>
       </div>

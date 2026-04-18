@@ -1,6 +1,6 @@
 import { reactive, watch, computed } from 'vue'
 import ServiceGenerate from '../utils/request'
-import type { Product, Category, Banner, Brand, Promo, CartItem, Order } from '../types'
+import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview } from '../types'
 
 const service = ServiceGenerate()
 const STORAGE_KEY = 'doganlar_store_data'
@@ -13,6 +13,7 @@ interface StoreState {
   brands: Brand[]
   cart: CartItem[]
   orders: Order[]
+  reviews: ProductReview[]
   cartDrawerOpen: boolean
   initialized: boolean
   loading: boolean
@@ -29,6 +30,7 @@ export const store = reactive<StoreState>({
   brands: [],
   cart: savedData.cart || [],
   orders: [],
+  reviews: [],
   cartDrawerOpen: false,
   initialized: false,
   loading: false
@@ -229,6 +231,74 @@ export const actions = {
       return res.data
     } catch (error) {
       console.error('Failed to submit order:', error)
+      throw error
+    }
+  },
+
+  // Auth & OTP Actions
+  async register(userData: any) {
+    try {
+      const res = await service.post('/auth/register', userData)
+      return res.data
+    } catch (error) {
+      console.error('Registration failed:', error)
+      throw error
+    }
+  },
+
+  async verifyOtp(otpData: { email: string; code: string }) {
+    try {
+      const res = await service.post('/auth/verify-otp', otpData)
+      if (res.data.jwt) {
+        localStorage.setItem('token', res.data.jwt)
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+      }
+      return res.data
+    } catch (error) {
+      console.error('OTP verification failed:', error)
+      throw error
+    }
+  },
+
+  async resendOtp(email: string) {
+    try {
+      const res = await service.post('/auth/resend-otp', { email })
+      return res.data
+    } catch (error) {
+      console.error('Resend OTP failed:', error)
+      throw error
+    }
+  },
+
+  // Review Actions
+  async fetchReviews(productId: number) {
+    try {
+      const res = await service.get(`/commerce/products/${productId}/reviews`)
+      store.reviews = res.data
+      return res.data
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error)
+    }
+  },
+
+  async submitReview(productId: number, reviewData: any) {
+    try {
+      const res = await service.post(`/commerce/products/${productId}/reviews`, reviewData)
+      // Add new review to top of list
+      store.reviews.unshift(res.data)
+      
+      // Update the local product's rating/review count if it's currently in product list
+      const product = store.products.find(p => p.id === productId)
+      if (product) {
+        product.reviews++
+        // Approximate new rating
+        const totalRating = (product.rating * (product.reviews - 1)) + reviewData.rating
+        product.rating = totalRating / product.reviews
+      }
+      
+      return res.data
+    } catch (error) {
+      console.error('Failed to submit review:', error)
       throw error
     }
   }

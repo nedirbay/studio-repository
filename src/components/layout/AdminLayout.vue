@@ -9,10 +9,19 @@ import {
   User,
   Setting,
   Expand,
-  ShoppingCart
+  ShoppingCart,
+  SwitchButton
 } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
+
+function handleLogout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  router.push('/login')
+}
 
 const menuItems = [
   { id: 'dashboard', label: 'Dolandyryş paneli', path: '/admin/dashboard', icon: Menu },
@@ -76,6 +85,14 @@ const currentTitle = computed(() => {
         </div>
         
         <div class="flex items-center gap-6">
+          <div 
+            class="flex items-center gap-2 text-gray-400 hover:text-red-600 transition-colors cursor-pointer group"
+            @click="handleLogout"
+          >
+            <el-icon class="text-xl group-hover:rotate-180 transition-transform duration-500"><SwitchButton /></el-icon>
+            <span class="text-xs font-bold uppercase tracking-wider hidden sm:inline">Çykyş</span>
+          </div>
+
           <div class="flex items-center gap-2 text-gray-500 hover:text-slate-900 transition-colors cursor-pointer">
             <el-icon class="text-xl"><Setting /></el-icon>
           </div>

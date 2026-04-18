@@ -45,17 +45,19 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/LoginPage.vue')
+    component: () => import('../views/LoginPage.vue'),
+    meta: { hideLayout: true }
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('../views/RegisterPage.vue')
+    component: () => import('../views/RegisterPage.vue'),
+    meta: { hideLayout: true }
   },
   {
     path: '/admin',
     component: () => import('../components/layout/AdminLayout.vue'),
-    redirect: '/admin/dashboard',
+    meta: { requiresAuth: true },
     children: [
       {
         path: 'dashboard',
@@ -84,6 +86,37 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Navigation Guard
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  
+  // Check if it's an admin route
+  const isAdminRoute = to.path.startsWith('/admin')
+
+  if (requiresAuth && !token) {
+    next('/login')
+  } else if (isAdminRoute) {
+    // Basic RBAC check
+    if (user.role_name === 'Admin' || user.is_superuser) {
+      next()
+    } else {
+      ElMessage.warning('Bu sahypa diňe administratorlar üçin')
+      next('/')
+    }
+  } else if (to.path === '/login' && token) {
+    // Redirect already logged in users to appropriate page
+    if (user.role_name === 'Admin' || user.is_superuser) {
+      next('/admin/dashboard')
+    } else {
+      next('/')
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

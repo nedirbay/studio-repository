@@ -1,6 +1,6 @@
-import type { Comment } from '../types'
+import type { ProductReview } from '../types'
 
-export const comments: Comment[] = [
+export const comments: ProductReview[] = [
   // Product 1 - ASUS ROG Strix G15
   {
     id: 1,

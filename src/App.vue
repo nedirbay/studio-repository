@@ -6,14 +6,19 @@ import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 
 const route = useRoute()
-const isAdmin = computed(() => route.path.startsWith('/admin'))
+const shouldShowLayout = computed(() => {
+  // Hide layout for admin pages and routes with hideLayout meta
+  const isAdmin = route.path.startsWith('/admin')
+  const isAuthPage = route.meta.hideLayout === true
+  return !isAdmin && !isAuthPage
+})
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <TopBar v-if="!isAdmin" />
-    <Navbar v-if="!isAdmin" />
-    <router-view />
-    <Footer v-if="!isAdmin" />
+    <TopBar v-if="shouldShowLayout" />
+    <Navbar v-if="shouldShowLayout" />
+    <router-view class="flex-1" />
+    <Footer v-if="shouldShowLayout" />
   </div>
 </template>

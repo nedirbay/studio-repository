@@ -86,8 +86,13 @@ const handleLogin = async () => {
         if (res.data.jwt) {
           localStorage.setItem('token', res.data.jwt)
           localStorage.setItem('user', JSON.stringify(res.data.user))
-          ElMessage.success('Ulgama üstünlikli girildi!')
-          router.push('/')
+          ElMessage.success('Hasabyňyz tassyklanyldy we aktiwleşdirildi!')
+          
+          if (res.data.user.role_name === 'Admin' || res.data.user.is_superuser) {
+            router.push('/admin/dashboard')
+          } else {
+            router.push('/')
+          }
         }
       } catch (error) {
         console.error('Login error:', error)

@@ -1,18 +1,35 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { store, actions } from '../store'
-import { comments as initialComments } from '../data/comments'
-import type { Comment } from '../types'
+import type { ProductReview } from '../types'
+import { ElMessage } from 'element-plus'
+import { 
+  ZoomIn, 
+  CircleCheck, 
+  CircleClose, 
+  Minus, 
+  Plus, 
+  ShoppingCart, 
+  Star, 
+  Document, 
+  ChatDotRound, 
+  CaretTop, 
+  Warning, 
+  Close, 
+  ArrowLeft, 
+  ArrowRight 
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
+const router = useRouter()
 const productId = computed(() => Number(route.params.id))
 
 const product = computed(() => 
   store.products.find(p => p.id === productId.value)
 )
 
-const comments = ref<Comment[]>(initialComments.filter(c => c.productId === productId.value))
+const comments = computed(() => store.reviews)
 
 // Active tab
 const activeTab = ref<'specifications' | 'reviews'>('specifications')
@@ -66,41 +83,63 @@ function decreaseQuantity() {
 
 // Review form
 const showReviewForm = ref(false)
+const isSubmitting = ref(false)
 const reviewForm = ref({
   rating: 5,
   title: '',
   content: ''
 })
 
-function submitReview() {
-  if (!product.value) return
-  
-  const newComment: Comment = {
-    id: Date.now(),
-    productId: product.value.id,
-    userId: 1,
-    userName: 'Siz',
-    rating: reviewForm.value.rating,
-    title: reviewForm.value.title,
-    content: reviewForm.value.content,
-    createdAt: new Date().toISOString().split('T')[0],
-    helpful: 0
+async function submitReview() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage.warning('Teswir ýazmak üçin ilki bilen ulgama giriň')
+    router.push('/login')
+    return
   }
-  
-  comments.value.unshift(newComment)
-  showReviewForm.value = false
-  reviewForm.value = { rating: 5, title: '', content: '' }
+
+  if (!reviewForm.value.content) {
+    ElMessage.warning('Teswir ýazyň')
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    await actions.submitReview(productId.value, {
+      rating: reviewForm.value.rating,
+      title: reviewForm.value.title,
+      content: reviewForm.value.content
+    })
+    ElMessage.success('Synyňyz üstünlikli kabul edildi!')
+    showReviewForm.value = false
+    reviewForm.value = { rating: 5, title: '', content: '' }
+  } catch (error) {
+    ElMessage.error('Syn ugratmakda näsazlyk ýüze çykdy')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
+// Fetch reviews
+async function loadReviews() {
+  if (productId.value) {
+    await actions.fetchReviews(productId.value)
+  }
+}
+
+onMounted(loadReviews)
+watch(productId, loadReviews)
+
 // Helpful votes
-function markHelpful(comment: Comment) {
+function markHelpful(comment: ProductReview) {
   comment.helpful++
 }
 
 // Format date
 function formatDate(dateStr: string) {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  return date.toLocaleDateString('tk-TM', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 </script>
 
@@ -386,7 +425,7 @@ function formatDate(dateStr: string) {
                         @click="markHelpful(comment)" 
                         class="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors"
                       >
-                        <el-icon><ThumbUp /></el-icon>
+                        <el-icon><CaretTop /></el-icon>
                         Peýdaly ({{ comment.helpful }})
                       </button>
                     </div>

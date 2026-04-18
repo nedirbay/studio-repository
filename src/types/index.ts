@@ -57,7 +57,7 @@ export interface NavItem {
   children?: NavItem[]
 }
 
-export interface Comment {
+export interface ProductReview {
   id: number
   productId: number
   userId: number

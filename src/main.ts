@@ -7,7 +7,12 @@ import App from './App.vue'
 import router from './router'
 import VueApexCharts from 'vue3-apexcharts'
 
+import { actions } from './store'
+
 const app = createApp(App)
+
+// Initialize store
+actions.initialize()
 
 app.use(ElementPlus)
 app.use(router)

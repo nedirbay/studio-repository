@@ -8,7 +8,8 @@ import {
   ArrowLeft,
   User,
   Setting,
-  Expand
+  Expand,
+  ShoppingCart
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -17,6 +18,7 @@ const menuItems = [
   { id: 'dashboard', label: 'Dolandyryş paneli', path: '/admin/dashboard', icon: Menu },
   { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
   { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
+  { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
 ]
 
 const currentTitle = computed(() => {

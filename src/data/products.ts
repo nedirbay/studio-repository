@@ -42,16 +42,16 @@ export const categories: Category[] = [
 ]
 
 export const brands: Brand[] = [
-  { id: 1, name: 'ASUS', logo: 'https://via.placeholder.com/100x40?text=ASUS' },
-  { id: 2, name: 'HP', logo: 'https://via.placeholder.com/100x40?text=HP' },
-  { id: 3, name: 'Dell', logo: 'https://via.placeholder.com/100x40?text=Dell' },
-  { id: 4, name: 'Lenovo', logo: 'https://via.placeholder.com/100x40?text=Lenovo' },
-  { id: 5, name: 'Samsung', logo: 'https://via.placeholder.com/100x40?text=Samsung' },
-  { id: 6, name: 'Logitech', logo: 'https://via.placeholder.com/100x40?text=Logitech' },
-  { id: 7, name: 'Sony', logo: 'https://via.placeholder.com/100x40?text=Sony' },
-  { id: 8, name: 'Corsair', logo: 'https://via.placeholder.com/100x40?text=Corsair' },
-  { id: 9, name: 'MSI', logo: 'https://via.placeholder.com/100x40?text=MSI' },
-  { id: 10, name: 'Razer', logo: 'https://via.placeholder.com/100x40?text=Razer' },
+  { id: 1, name: 'ASUS', slug: 'asus', logo_url: 'https://via.placeholder.com/100x40?text=ASUS' },
+  { id: 2, name: 'HP', slug: 'hp', logo_url: 'https://via.placeholder.com/100x40?text=HP' },
+  { id: 3, name: 'Dell', slug: 'dell', logo_url: 'https://via.placeholder.com/100x40?text=Dell' },
+  { id: 4, name: 'Lenovo', slug: 'lenovo', logo_url: 'https://via.placeholder.com/100x40?text=Lenovo' },
+  { id: 5, name: 'Samsung', slug: 'samsung', logo_url: 'https://via.placeholder.com/100x40?text=Samsung' },
+  { id: 6, name: 'Logitech', slug: 'logitech', logo_url: 'https://via.placeholder.com/100x40?text=Logitech' },
+  { id: 7, name: 'Sony', slug: 'sony', logo_url: 'https://via.placeholder.com/100x40?text=Sony' },
+  { id: 8, name: 'Corsair', slug: 'corsair', logo_url: 'https://via.placeholder.com/100x40?text=Corsair' },
+  { id: 9, name: 'MSI', slug: 'msi', logo_url: 'https://via.placeholder.com/100x40?text=MSI' },
+  { id: 10, name: 'Razer', slug: 'razer', logo_url: 'https://via.placeholder.com/100x40?text=Razer' },
 ]
 
 // Helper function to generate multiple images

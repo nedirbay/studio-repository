@@ -37,7 +37,18 @@ export interface Banner {
 export interface Brand {
   id: number
   name: string
-  logo: string
+  slug: string
+  logo_url: string
+}
+
+export interface Promo {
+  id: number
+  title: string
+  subtitle: string
+  badge: string
+  image: string
+  link: string
+  bgGradient: string
 }
 
 export interface NavItem {
@@ -58,4 +69,20 @@ export interface Comment {
   createdAt: string
   helpful: number
   images?: string[]
+}
+
+export interface CartItem {
+  id: string // product.id + some unique key if needed, or just product.id
+  product: Product
+  quantity: number
+}
+
+export interface Order {
+  id: number
+  customer_name: string
+  customer_phone: string
+  total_amount: number
+  paid_amount: number
+  remaining_amount: number
+  created_at: string
 }

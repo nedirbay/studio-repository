@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { actions } from '../../store'
 import type { Product } from '../../types'
 
 defineProps<{ product: Product }>()
@@ -33,6 +34,12 @@ function discountPercent(price: number, original: number) {
         <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
           <el-icon class="text-sm"><View /></el-icon>
         </button>
+        <button 
+          class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" 
+          @click.prevent="actions.addToCart(product)"
+        >
+          <el-icon class="text-sm"><ShoppingCart /></el-icon>
+        </button>
       </div>
     </div>
 
@@ -65,7 +72,7 @@ function discountPercent(price: number, original: number) {
         <button
           class="flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="!product.inStock"
-          @click.prevent
+          @click.prevent="actions.addToCart(product)"
         >
           <el-icon><ShoppingCart /></el-icon>
           Goş

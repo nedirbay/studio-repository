@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { store } from '../store'
+import { store, actions } from '../store'
 import { comments as initialComments } from '../data/comments'
 import type { Comment } from '../types'
 
@@ -224,6 +224,7 @@ function formatDate(dateStr: string) {
             
             <button
               :disabled="!product.inStock"
+              @click="actions.addToCart(product, quantity)"
               :class="[
                 'flex-1 flex items-center justify-center gap-2 font-semibold py-2.5 rounded-lg transition-colors',
                 product.inStock 

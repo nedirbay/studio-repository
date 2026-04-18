@@ -2,8 +2,9 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { navItems as staticNavItems } from '../../data/products'
-import { store } from '../../store'
+import { store, actions, cartCount } from '../../store'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
+import CartDrawer from '../cart/CartDrawer.vue'
 import logo from '../../assets/branding/logo.png'
 
 const navItems = computed(() => {
@@ -98,6 +99,20 @@ watch(() => route.path, (newPath) => {
 
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
+          <!-- Cart Icon -->
+          <button 
+            @click="actions.toggleCartDrawer(true)"
+            class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
+          >
+            <el-icon class="text-2xl"><ShoppingCart /></el-icon>
+            <span 
+              v-if="cartCount > 0"
+              class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white transform translate-x-1 -translate-y-1 shadow-sm group-hover:scale-110 transition-transform"
+            >
+              {{ cartCount }}
+            </span>
+          </button>
+
           <NotificationDropdown />
           <button class="p-2 text-gray-600 hover:text-red-600 transition-colors">
             <el-icon class="text-xl"><User /></el-icon>
@@ -167,6 +182,9 @@ watch(() => route.path, (newPath) => {
         </li>
       </ul>
     </div>
+    
+    <!-- Cart Drawer -->
+    <CartDrawer />
   </header>
 </template>
 

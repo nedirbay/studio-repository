@@ -91,7 +91,15 @@ const router = createRouter({
 // Navigation Guard
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  let user = {}
+  try {
+    const rawUser = localStorage.getItem('user')
+    user = rawUser ? JSON.parse(rawUser) : {}
+  } catch (err) {
+    console.error('Failed to parse user from localStorage', err)
+    user = {}
+  }
+  
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   
   // Check if it's an admin route

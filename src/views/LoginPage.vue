@@ -94,8 +94,10 @@ const handleLogin = async () => {
             router.push('/')
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error)
+        const errorMsg = error.response?.data?.error || 'Ulgama girmekde ýalňyşlyk ýüze çykdy'
+        ElMessage.error(errorMsg)
       } finally {
         loading.value = false
       }

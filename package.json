@@ -12,6 +12,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@tailwindcss/vite": "^4.2.2",
     "apexcharts": "^5.10.6",
+    "axios": "^1.15.0",
     "element-plus": "^2.13.7",
     "tailwindcss": "^4.2.2",
     "vue": "^3.4.38",

@@ -11,7 +11,7 @@
         </span>
         <span class="hidden md:flex items-center gap-1">
           <el-icon><Message /></el-icon>
-          sumbar.computer@gmail.com
+          doganlarfoto.ru
         </span>
       </div>
       <div class="flex items-center gap-4">

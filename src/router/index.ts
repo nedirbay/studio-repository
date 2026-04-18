@@ -43,6 +43,16 @@ const routes = [
     component: SupportPage
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginPage.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/RegisterPage.vue')
+  },
+  {
     path: '/admin',
     component: () => import('../components/layout/AdminLayout.vue'),
     redirect: '/admin/dashboard',

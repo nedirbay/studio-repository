@@ -93,7 +93,7 @@ import logo from '../../assets/branding/logo.png'
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Message /></el-icon>
-              <span class="text-sm text-gray-400">sumbar.computer@gmail.com</span>
+              <span class="text-sm text-gray-400">doganlarfoto.ru</span>
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Clock /></el-icon>

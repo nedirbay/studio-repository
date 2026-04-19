@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { 
   Menu, 
   Files, 
@@ -10,25 +10,37 @@ import {
   Setting,
   Expand,
   ShoppingCart,
-  SwitchButton
+  SwitchButton,
+  Operation,
+  ChatDotRound,
+  Message
 } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import UserDropdown from '../shared/UserDropdown.vue'
 
 const route = useRoute()
 const router = useRouter()
+const isSidebarOpen = ref(false)
 
-function handleLogout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  router.push('/login')
+function toggleSidebar() {
+  isSidebarOpen.value = !isSidebarOpen.value
 }
+
+// Close sidebar on route change (mobile)
+watch(() => route.path, () => {
+  isSidebarOpen.value = false
+})
+
 
 const menuItems = [
   { id: 'dashboard', label: 'Dolandyryş paneli', path: '/admin/dashboard', icon: Menu },
   { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
   { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
+  { id: 'users', label: 'Ulanyjylar', path: '/admin/users', icon: User },
+  { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
+  { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
   { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
 ]
+
 
 const currentTitle = computed(() => {
   const item = menuItems.find(i => route.path.startsWith(i.path))
@@ -37,20 +49,36 @@ const currentTitle = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-gray-50 overflow-hidden font-sans">
+  <div class="flex h-screen bg-gray-50 overflow-hidden font-sans relative">
+    <!-- Sidebar Overlay (Mobile) -->
+    <div 
+      v-if="isSidebarOpen" 
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+      @click="isSidebarOpen = false"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl relative z-30">
-      <div class="p-8 border-b border-white/10 flex items-center gap-3">
-        <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20">
-          <el-icon class="text-xl"><Expand /></el-icon>
+    <aside 
+      class="fixed lg:static inset-y-0 left-0 w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-50 transform transition-transform duration-300 lg:translate-x-0"
+      :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+      <div class="p-8 border-b border-white/10 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20">
+            <el-icon class="text-xl"><Expand /></el-icon>
+          </div>
+          <div>
+            <h1 class="font-black text-xl tracking-tight leading-none">DOGANLAR</h1>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Panel</p>
+          </div>
         </div>
-        <div>
-          <h1 class="font-black text-xl tracking-tight leading-none">DOGANLAR</h1>
-          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Panel</p>
-        </div>
+        <!-- Close button for mobile sidebar -->
+        <button @click="isSidebarOpen = false" class="lg:hidden text-gray-400 hover:text-white p-2">
+          <el-icon class="text-2xl"><Close /></el-icon>
+        </button>
       </div>
 
-      <nav class="flex-1 p-6 space-y-2 mt-4">
+      <nav class="flex-1 p-6 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
         <router-link
           v-for="item in menuItems"
           :key="item.id"
@@ -77,40 +105,27 @@ const currentTitle = computed(() => {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-w-0 bg-gray-100 overflow-hidden">
+    <main class="flex-1 flex flex-col min-w-0 bg-gray-100 overflow-hidden relative">
       <!-- Topbar -->
-      <header class="h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-10 sticky top-0 z-20">
-        <div>
-          <h2 class="text-xl font-black text-slate-900 tracking-tight">{{ currentTitle }}</h2>
+      <header class="h-20 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 sm:px-10 sticky top-0 z-20">
+        <div class="flex items-center gap-4">
+          <!-- Hamburger Menu for Mobile -->
+          <button @click="toggleSidebar" class="lg:hidden p-2 text-slate-900 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all">
+            <el-icon class="text-2xl"><Operation /></el-icon>
+          </button>
+          <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight truncate">{{ currentTitle }}</h2>
         </div>
         
-        <div class="flex items-center gap-6">
-          <div 
-            class="flex items-center gap-2 text-gray-400 hover:text-red-600 transition-colors cursor-pointer group"
-            @click="handleLogout"
-          >
-            <el-icon class="text-xl group-hover:rotate-180 transition-transform duration-500"><SwitchButton /></el-icon>
-            <span class="text-xs font-bold uppercase tracking-wider hidden sm:inline">Çykyş</span>
+        <div class="flex items-center gap-3 sm:gap-6">
+          <div class="hidden sm:flex items-center gap-2 text-gray-500 hover:text-slate-900 transition-colors cursor-pointer pr-2">
+            <!-- <el-icon class="text-xl"><Setting /></el-icon> -->
           </div>
-
-          <div class="flex items-center gap-2 text-gray-500 hover:text-slate-900 transition-colors cursor-pointer">
-            <el-icon class="text-xl"><Setting /></el-icon>
-          </div>
-          <div class="h-8 w-[1px] bg-gray-200"></div>
-          <div class="flex items-center gap-3 group cursor-pointer">
-            <div class="text-right">
-              <p class="text-xs font-black text-slate-900 leading-none">Admin Doganlar</p>
-              <p class="text-[10px] text-gray-400 font-bold mt-1 uppercase">Administrator</p>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-600 transition-all">
-              <el-icon class="text-xl"><User /></el-icon>
-            </div>
-          </div>
+          <UserDropdown />
         </div>
       </header>
 
       <!-- View Area -->
-      <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+      <div class="flex-1 overflow-y-auto p-4 sm:p-10 custom-scrollbar">
         <div class="max-w-6xl mx-auto">
           <router-view v-slot="{ Component }">
             <transition name="fade-slide" mode="out-in">
@@ -139,17 +154,5 @@ const currentTitle = computed(() => {
   transform: translateY(-10px);
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d1d5db; /* gray-300 */
-  border-radius: 9999px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af; /* gray-400 */
-}
+
 </style>

@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { store, actions } from '../../store'
 import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+const windowWidth = ref(window.innerWidth)
+const updateWidth = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', updateWidth))
+onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const searchQuery = ref('')
 const dialogVisible = ref(false)
@@ -161,7 +166,7 @@ const handleDelete = (id: number) => {
     <el-dialog
       v-model="dialogVisible"
       :title="isEditing ? 'Kategoriýany üýtgetmek' : 'Täze kategoriýa goşmak'"
-      width="400px"
+      :width="windowWidth < 640 ? '90%' : '400px'"
       class="admin-dialog"
       align-center
     >

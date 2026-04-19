@@ -102,23 +102,23 @@ const donutChartSeries = computed(() => chartCounts.value)
 </script>
 
 <template>
-  <div class="space-y-10 pb-20 animate-fade-in">
+  <div class="space-y-6 sm:space-y-10 pb-20 animate-fade-in">
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       <div 
         v-for="stat in stats" 
         :key="stat.label"
-        class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 group overflow-hidden relative"
+        class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 group overflow-hidden relative"
       >
         <div class="relative z-10 flex items-center justify-between">
           <div>
             <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 group-hover:text-gray-500 transition-colors">
               {{ stat.label }}
             </p>
-            <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ stat.value }}</h3>
+            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{{ stat.value }}</h3>
           </div>
           <div 
-            class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-lg"
+            class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-lg"
             :class="{
               'bg-blue-50 text-blue-600 shadow-blue-500/10': stat.color === 'blue',
               'bg-purple-50 text-purple-600 shadow-purple-500/10': stat.color === 'purple',
@@ -126,13 +126,13 @@ const donutChartSeries = computed(() => chartCounts.value)
               'bg-green-50 text-green-600 shadow-green-500/10': stat.color === 'green',
             }"
           >
-            <el-icon class="text-2xl"><component :is="stat.icon" /></el-icon>
+            <el-icon class="text-xl sm:text-2xl"><component :is="stat.icon" /></el-icon>
           </div>
         </div>
         
         <!-- Background Decoration -->
         <div 
-          class="absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-[0.03] group-hover:scale-150 transition-transform duration-700"
+          class="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 rounded-full opacity-[0.03] group-hover:scale-150 transition-transform duration-700"
           :class="{
             'bg-blue-600': stat.color === 'blue',
             'bg-purple-600': stat.color === 'purple',
@@ -143,17 +143,17 @@ const donutChartSeries = computed(() => chartCounts.value)
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
       <!-- Main Chart Area -->
-      <div class="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between mb-8">
+      <div class="lg:col-span-2 bg-white rounded-3xl p-4 sm:p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-6 sm:mb-8">
           <div>
-            <h3 class="text-lg font-black text-slate-900 tracking-tight">Kategoriýalar boýunça harytlar</h3>
-            <p class="text-xs text-gray-400 font-bold mt-1">Harytlaryň kategoriýalar arasyna paýlanyşy</p>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Kategoriýalar boýunça harytlar</h3>
+            <p class="text-[10px] sm:text-xs text-gray-400 font-bold mt-1">Harytlaryň kategoriýalar arasyna paýlanyşy</p>
           </div>
         </div>
         
-        <div class="h-[300px]">
+        <div class="h-[250px] sm:h-[300px]">
           <apexchart
             type="bar"
             height="100%"
@@ -164,13 +164,13 @@ const donutChartSeries = computed(() => chartCounts.value)
       </div>
 
       <!-- Distribution Area -->
-      <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col">
-        <div class="mb-8">
-          <h3 class="text-lg font-black text-slate-900 tracking-tight">Paýlanyş</h3>
-          <p class="text-xs text-gray-400 font-bold mt-1">Görünüş boýunça paýlar</p>
+      <div class="bg-white rounded-3xl p-4 sm:p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col">
+        <div class="mb-6 sm:mb-8">
+          <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Paýlanyş</h3>
+          <p class="text-[10px] sm:text-xs text-gray-400 font-bold mt-1">Görünüş boýunça paýlar</p>
         </div>
         
-        <div class="flex-1 flex items-center justify-center">
+        <div class="flex-1 flex items-center justify-center min-h-[250px]">
           <apexchart
             type="donut"
             width="100%"
@@ -181,33 +181,33 @@ const donutChartSeries = computed(() => chartCounts.value)
       </div>
 
       <!-- Quick Actions / Notifications -->
-      <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-        <div class="bg-slate-900 text-white rounded-3xl p-8 shadow-xl shadow-slate-900/20 relative overflow-hidden h-fit">
-          <h3 class="text-lg font-black tracking-tight mb-4 relative z-10">Täze mümkinçilikler</h3>
-          <p class="text-sm text-gray-400 mb-6 relative z-10">Müdirlik paneli arkaly siz dükanyňyzyň ähli harytlaryny we kategoriýalaryny dolandyryp bilersiňiz.</p>
+      <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-2 sm:mt-4">
+        <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-900/20 relative overflow-hidden h-fit">
+          <h3 class="text-base sm:text-lg font-black tracking-tight mb-4 relative z-10">Täze mümkinçilikler</h3>
+          <p class="text-xs sm:text-sm text-gray-400 mb-6 relative z-10">Müdirlik paneli arkaly siz dükanyňyzyň ähli harytlaryny we kategoriýalaryny dolandyryp bilersiňiz.</p>
           <router-link 
             to="/admin/products"
-            class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-red-700 transition-all no-underline shadow-lg shadow-red-600/30 active:scale-95"
+            class="inline-flex items-center gap-2 bg-red-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-bold text-sm hover:bg-red-700 transition-all no-underline shadow-lg shadow-red-600/30 active:scale-95 relative z-10"
           >
             <el-icon><Plus /></el-icon>
             Haryt goş
           </router-link>
-          <el-icon class="absolute -bottom-10 -right-10 text-[180px] text-white/5 -rotate-12"><TrendCharts /></el-icon>
+          <el-icon class="absolute -bottom-10 -right-10 text-[140px] sm:text-[180px] text-white/5 -rotate-12"><TrendCharts /></el-icon>
         </div>
 
-        <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm h-fit">
-          <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Soňky goşulanlar</h4>
-          <div class="space-y-5">
-            <div v-for="product in recentProducts" :key="product.id" class="flex gap-4 items-center">
-              <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 shadow-sm p-1">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-sm h-fit">
+          <h4 class="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Soňky goşulanlar</h4>
+          <div class="space-y-4 sm:space-y-5">
+            <div v-for="product in recentProducts" :key="product.id" class="flex gap-3 sm:gap-4 items-center">
+              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 shadow-sm p-1">
                 <img :src="product.image" class="w-full h-full object-cover rounded-xl" />
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-black text-slate-900 truncate leading-tight">{{ product.name }}</p>
-                <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{{ product.category }}</p>
+                <p class="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight">{{ product.name }}</p>
+                <p class="text-[9px] sm:text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{{ product.category }}</p>
               </div>
               <div class="ml-auto text-right">
-                <p class="text-sm font-black text-red-600">${{ product.price }}</p>
+                <p class="text-xs sm:text-sm font-black text-red-600">${{ product.price }}</p>
               </div>
             </div>
           </div>

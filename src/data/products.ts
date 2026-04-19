@@ -656,5 +656,5 @@ export const navItems: NavItem[] = [
   },
   { label: 'Arzanladyşlar', href: '/deals' },
   { label: 'Täze gelenler', href: '/new-arrivals' },
-  { label: 'Goldaw', href: '/support' },
+  // { label: 'Goldaw', href: '/support' },
 ]

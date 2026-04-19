@@ -1,139 +1,142 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
+import { Bell, SuccessFilled, Warning, InfoFilled, Promotion, Close } from '@element-plus/icons-vue'
+import { store, actions } from '../../store'
 
 interface Notification {
   id: number
   title: string
-  description: string
-  time: string
-  type: 'order' | 'system' | 'promo'
-  unread: boolean
+  message: string
+  created_at: string
+  type: string
+  is_read: boolean
 }
 
-const notifications = ref<Notification[]>([
-  {
-    id: 1,
-    title: 'Täze sargyt geldi',
-    description: '#12345 belgili sargyt üstünlikli ýerleşdirildi.',
-    time: '2 minut öň',
-    type: 'order',
-    unread: true
-  },
-  {
-    id: 2,
-    title: 'Ulgam täzelenmesi',
-    description: 'Şu gije sagat 00:00-da tehniki hyzmat meýilleşdirildi.',
-    time: '1 sagat öň',
-    type: 'system',
-    unread: true
-  },
-  {
-    id: 3,
-    title: 'Ýörite hödürleme!',
-    description: 'Şu dynç günleri ähli aksesuarla 20% arzanladyş alyň.',
-    time: '3 sagat öň',
-    type: 'promo',
-    unread: false
-  },
-  {
-    id: 4,
-    title: 'Eltip berme täzelenmesi',
-    description: '#12340 belgili sargydyňyz eltilmäge çykdy.',
-    time: '5 sagat öň',
-    type: 'order',
-    unread: false
-  }
-])
+const notifications = computed<Notification[]>(() => store.notifications)
 
-const unreadCount = ref(notifications.value.filter(n => n.unread).length)
+const unreadCount = computed(() => notifications.value.filter(n => !n.is_read).length)
+
+onMounted(() => {
+  if (store.isAuthenticated) {
+    actions.fetchNotifications()
+  }
+})
 
 function markAllAsRead() {
-  notifications.value.forEach(n => n.unread = false)
-  unreadCount.value = 0
+  actions.markNotificationsRead()
+}
+
+function removeNotification(id: number) {
+  actions.deleteNotification(id)
 }
 
 function getIcon(type: string) {
   switch (type) {
-    case 'order': return 'Shop'
-    case 'system': return 'Setting'
-    case 'promo': return 'Present'
-    default: return 'Bell'
+    case 'order': return SuccessFilled
+    case 'system': return Warning
+    case 'reply': return InfoFilled
+    case 'promo': return Promotion
+    default: return Bell
   }
 }
 
-function getIconColor(type: string) {
+function getIconBg(type: string) {
   switch (type) {
-    case 'order': return 'text-blue-500'
-    case 'system': return 'text-orange-500'
-    case 'promo': return 'text-purple-500'
-    default: return 'text-gray-500'
+    case 'order': return 'bg-green-100 text-green-600'
+    case 'system': return 'bg-red-100 text-red-600'
+    case 'reply': return 'bg-blue-100 text-blue-600'
+    case 'promo': return 'bg-purple-100 text-purple-600'
+    default: return 'bg-gray-100 text-gray-600'
   }
+}
+
+// Format date
+function formatDate(dateStr: string) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('tk-TM', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })
 }
 </script>
 
 <template>
-  <el-dropdown trigger="click" popper-class="notification-dropdown">
-    <button class="relative p-2 text-gray-600 hover:text-red-600 transition-all duration-300 transform hover:scale-110">
-      <el-icon class="text-2xl"><Bell /></el-icon>
-      <span 
-        v-if="unreadCount > 0" 
-        class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-md animate-pulse"
+  <el-dropdown trigger="click" placement="bottom-end">
+    <div class="relative cursor-pointer hover:bg-gray-100 p-2 rounded-full transition-colors flex items-center group">
+      <el-icon class="text-xl text-gray-700 group-hover:text-red-500 transition-colors">
+        <Bell />
+      </el-icon>
+      <div 
+        v-if="unreadCount > 0"
+        class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
       >
         {{ unreadCount }}
-      </span>
-    </button>
+      </div>
+    </div>
 
     <template #dropdown>
-      <div class="w-80 overflow-hidden rounded-xl shadow-2xl border border-gray-100 bg-white/95 backdrop-blur-md">
+      <div class="w-80 md:w-96 bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
         <!-- Header -->
-        <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="font-bold text-gray-900 text-sm">Bildirişler</h3>
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <h3 class="font-bold text-gray-800">Bildirişler</h3>
           <button 
-            @click="markAllAsRead"
-            class="text-[11px] font-medium text-red-600 hover:text-red-700 transition-colors"
+            v-if="unreadCount > 0"
+            @click="markAllAsRead" 
+            class="text-xs font-semibold text-red-600 hover:text-red-700 transition-colors"
           >
-            Ählisini okalan diýip belle
+            Ählisini okaldy hasapla
           </button>
         </div>
 
-        <!-- List -->
-        <div class="max-h-[360px] overflow-y-auto custom-scrollbar">
-          <div v-if="notifications.length === 0" class="py-12 text-center text-gray-400">
-            <el-icon class="text-4xl mb-2 opacity-20"><Bell /></el-icon>
-            <p class="text-xs">Häzirlikçe bildiriş ýok</p>
+        <!-- Notification List -->
+        <div class="custom-scrollbar max-h-[400px] overflow-y-auto">
+          <div v-if="notifications.length === 0" class="px-6 py-8 text-center">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+              <el-icon class="text-3xl text-gray-300"><Bell /></el-icon>
+            </div>
+            <p class="text-sm text-gray-500 font-medium">Täze bildiriş ýok</p>
           </div>
           
-          <div 
-            v-for="item in notifications" 
-            :key="item.id"
-            class="px-4 py-3 flex gap-3 hover:bg-gray-50 transition-colors cursor-pointer relative"
-          >
+          <div v-else class="divide-y divide-gray-50">
             <div 
-              class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-              :class="getIconColor(item.type).replace('text-', 'bg-').replace('500', '50')"
+              v-for="notification in notifications" 
+              :key="notification.id"
+              :class="[
+                'group/item p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 relative',
+                !notification.is_read ? 'bg-red-50/30' : ''
+              ]"
+              @click="!notification.is_read && markAllAsRead()"
             >
-              <el-icon :class="getIconColor(item.type)" class="text-lg">
-                <component :is="getIcon(item.type)" />
-              </el-icon>
-            </div>
-            
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-1 mb-0.5">
-                <p class="text-sm font-semibold text-gray-900 truncate">{{ item.title }}</p>
-                <span v-if="item.unread" class="w-2 h-2 bg-red-500 rounded-full shrink-0 mt-1.5"></span>
+              <div :class="['w-10 h-10 rounded-full flex items-center justify-center shrink-0', getIconBg(notification.type)]">
+                <el-icon class="text-lg">
+                  <component :is="getIcon(notification.type)" />
+                </el-icon>
               </div>
-              <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-1">
-                {{ item.description }}
-              </p>
-              <span class="text-[10px] text-gray-400 font-medium">{{ item.time }}</span>
+              
+              <div class="flex-1 min-w-0 pr-6 relative">
+                <div class="flex justify-between items-start mb-1">
+                  <h4 :class="['text-sm truncate font-bold', !notification.is_read ? 'text-gray-900' : 'text-gray-700']">
+                    {{ notification.title }}
+                  </h4>
+                  <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap shrink-0">{{ formatDate(notification.created_at) }}</span>
+                </div>
+                <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed">{{ notification.message }}</p>
+              </div>
+              
+              <div v-if="!notification.is_read" class="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+              <button 
+                @click.stop="removeNotification(notification.id)"
+                class="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 flex items-center justify-center p-1.5 hover:bg-red-100 text-gray-400 hover:text-red-600 rounded-full transition-all"
+                title="Aýyr"
+              >
+                <el-icon><Close /></el-icon>
+              </button>
             </div>
           </div>
         </div>
 
         <!-- Footer -->
-        <div class="p-2 border-t border-gray-100">
-          <button class="w-full py-2 text-xs font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
-            Ähli bildirişleri gör
+        <div v-if="notifications.length > 0" class="p-3 border-t border-gray-100 bg-gray-50/50">
+          <button class="w-full text-center text-sm text-gray-600 hover:text-red-600 font-semibold transition-colors">
+            Ählisini gör
           </button>
         </div>
       </div>
@@ -154,17 +157,5 @@ function getIconColor(type: string) {
   overflow: visible !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
-}
+
 </style>

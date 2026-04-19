@@ -18,7 +18,8 @@ import {
   Warning, 
   Close, 
   ArrowLeft, 
-  ArrowRight 
+  ArrowRight,
+  Message 
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -117,6 +118,36 @@ async function submitReview() {
     ElMessage.error('Syn ugratmakda näsazlyk ýüze çykdy')
   } finally {
     isSubmitting.value = false
+  }
+}
+
+// Ask question form
+const showAskQuestion = ref(false)
+const isSubmittingQuestion = ref(false)
+const questionForm = ref({
+  message: ''
+})
+
+async function submitQuestion() {
+  if (!questionForm.value.message) {
+    ElMessage.warning('Soragyňyzy ýazyň')
+    return
+  }
+
+  isSubmittingQuestion.value = true
+  try {
+    await actions.sendMessage({
+      subject: `Haryt soragy: ${product.value?.name}`,
+      message: questionForm.value.message,
+      product: productId.value
+    })
+    ElMessage.success('Soragyňyz üstünlikli ugradyldy! Tizden jogap bereris.')
+    showAskQuestion.value = false
+    questionForm.value.message = ''
+  } catch (error) {
+    ElMessage.error('Sorag ugratmakda näsazlyk ýüze çykdy. Içeri girendigiňizi barlaň.')
+  } finally {
+    isSubmittingQuestion.value = false
   }
 }
 
@@ -279,6 +310,15 @@ function formatDate(dateStr: string) {
               <el-icon><Star /></el-icon>
             </button>
           </div>
+
+          <el-button 
+            @click="showAskQuestion = true" 
+            class="w-full !rounded-xl !h-12 !text-gray-600 border-gray-200 hover:!border-gray-400 hover:!text-gray-900 transition-all shadow-sm" 
+            plain 
+            :icon="Message"
+          >
+            Haryt barada sorag bermek
+          </el-button>
 
           <!-- Availability -->
           <div class="flex items-center gap-2">
@@ -506,6 +546,25 @@ function formatDate(dateStr: string) {
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Ask Question Modal -->
+    <el-dialog v-model="showAskQuestion" title="Haryt barada sorag bermek" width="500px">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Soragyňyz</label>
+          <el-input 
+            v-model="questionForm.message" 
+            type="textarea" 
+            :rows="4" 
+            placeholder="Şu haryt barasynda nähili soragyňyz bar? Bize ýazyň..." 
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showAskQuestion = false">Goýbolsun et</el-button>
+        <el-button type="primary" @click="submitQuestion" :loading="isSubmittingQuestion">Ugrat</el-button>
+      </template>
+    </el-dialog>
   </main>
 </template>
 

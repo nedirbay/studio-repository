@@ -1,6 +1,6 @@
 import { reactive, watch, computed } from 'vue'
 import ServiceGenerate from '../utils/request'
-import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview } from '../types'
+import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview, User } from '../types'
 
 const service = ServiceGenerate()
 const STORAGE_KEY = 'doganlar_store_data'
@@ -14,6 +14,10 @@ interface StoreState {
   cart: CartItem[]
   orders: Order[]
   reviews: ProductReview[]
+  adminReviews: any[]
+  users: User[]
+  adminMessages: any[]
+  notifications: any[]
   cartDrawerOpen: boolean
   initialized: boolean
   loading: boolean
@@ -31,6 +35,10 @@ export const store = reactive<StoreState>({
   cart: savedData.cart || [],
   orders: [],
   reviews: [],
+  adminReviews: [],
+  users: [],
+  adminMessages: [],
+  notifications: [],
   cartDrawerOpen: false,
   initialized: false,
   loading: false
@@ -141,6 +149,153 @@ export const actions = {
       store.orders = res.data
     } catch (error) {
       console.error('Failed to fetch orders:', error)
+    }
+  },
+
+  async fetchUsers() {
+    try {
+      const res = await service.get('/users/')
+      store.users = res.data
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+      throw error 
+    }
+  },
+
+  async addUser(userData: any) {
+    try {
+      const res = await service.post('/users/', userData)
+      await this.fetchUsers() // Refresh list
+      return res.data
+    } catch (error) {
+      console.error('Failed to add user', error)
+      throw error
+    }
+  },
+
+  async updateUser(userId: number, userData: any) {
+    try {
+      const res = await service.put(`/users/${userId}/`, userData)
+      await this.fetchUsers()
+      return res.data
+    } catch (error) {
+      console.error('Failed to update user', error)
+      throw error
+    }
+  },
+
+  async deleteUser(userId: number) {
+    try {
+      const res = await service.delete(`/users/${userId}/`)
+      await this.fetchUsers()
+      return res.data
+    } catch (error) {
+      console.error('Failed to delete user', error)
+      throw error
+    }
+  },
+
+  async fetchAdminReviews() {
+    try {
+      const res = await service.get('/commerce/reviews')
+      store.adminReviews = res.data
+    } catch (error) {
+      console.error('Failed to fetch admin reviews:', error)
+      throw error 
+    }
+  },
+
+  async deleteReview(reviewId: number) {
+    try {
+      const res = await service.delete(`/commerce/reviews/${reviewId}`)
+      await this.fetchAdminReviews()
+      return res.data
+    } catch (error) {
+      console.error('Failed to delete review', error)
+      throw error
+    }
+  },
+
+  async sendMessage(payload: { subject: string, message: string, product?: number }) {
+    try {
+      const res = await service.post('/commerce/messages', payload)
+      return res.data
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      throw error
+    }
+  },
+
+  // Notifications
+  async fetchNotifications() {
+    try {
+      const res = await service.get('/notifications')
+      store.notifications = res.data
+    } catch (e) {
+      console.error('Failed to fetch notifications', e)
+    }
+  },
+  
+  async markNotificationsRead() {
+    try {
+      await service.put('/notifications/read')
+      store.notifications.forEach(n => n.is_read = true)
+    } catch (e) {
+      console.error('Failed to mark internal notifs read', e)
+    }
+  },
+
+  async deleteNotification(id: number) {
+    try {
+      await service.delete(`/notifications/${id}`)
+      store.notifications = store.notifications.filter(n => n.id !== id)
+    } catch (e) {
+      console.error('Failed to delete notification', e)
+    }
+  },
+
+  // Admin Messages
+  async fetchAdminMessages() {
+    try {
+      const res = await service.get('/commerce/messages')
+      store.adminMessages = res.data
+    } catch (e) {
+      console.error('Failed to fetch admin messages', e)
+    }
+  },
+  
+  async replyToMessage(id: number, replyText: string) {
+    try {
+      const res = await service.put(`/commerce/messages/${id}`, { reply: replyText })
+      await this.fetchAdminMessages()
+      return res.data
+    } catch (e) {
+      console.error('Failed to reply to msg', e)
+      throw e
+    }
+  },
+  
+  async deleteMessage(id: number) {
+    try {
+      await service.delete(`/commerce/messages/${id}`)
+      await this.fetchAdminMessages()
+    } catch (e) {
+      console.error('Failed to delete msg', e)
+      throw e
+    }
+  },
+
+  async uploadImage(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await service.post('/commerce/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      return res.data.url // Returns the full URL
+    } catch (e) {
+      console.error('Upload failed', e)
+      throw e
     }
   },
 

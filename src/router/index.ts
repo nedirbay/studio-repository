@@ -5,12 +5,19 @@ import ProductDetailPage from '../views/ProductDetailPage.vue'
 import DealsPage from '../views/DealsPage.vue'
 import NewArrivalsPage from '../views/NewArrivalsPage.vue'
 import SupportPage from '../views/SupportPage.vue'
+import ProfilePage from '../views/ProfilePage.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomePage
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfilePage,
+    meta: { requiresAuth: true }
   },
   {
     path: '/products',
@@ -58,6 +65,7 @@ const routes = [
     path: '/admin',
     component: () => import('../components/layout/AdminLayout.vue'),
     meta: { requiresAuth: true },
+    redirect: '/admin/dashboard',
     children: [
       {
         path: 'dashboard',
@@ -73,6 +81,23 @@ const routes = [
         path: 'products',
         name: 'AdminProducts',
         component: () => import('../views/admin/AdminProducts.vue')
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('../views/admin/AdminUsers.vue')
+      },
+      {
+        path: 'reviews',
+        name: 'AdminReviews',
+        component: () => import('../views/admin/AdminReviews.vue'),
+        meta: { title: 'Teswirler' }
+      },
+      {
+        path: 'messages',
+        name: 'AdminMessages',
+        component: () => import('../views/admin/AdminMessages.vue'),
+        meta: { title: 'Müşderi Hatlary' }
       },
       {
         path: 'orders',
@@ -106,7 +131,7 @@ router.beforeEach((to, _from, next) => {
   const isAdminRoute = to.path.startsWith('/admin')
 
   if (requiresAuth && !token) {
-    next('/login')
+    next({ path: '/login', query: { redirect: to.fullPath } })
   } else if (isAdminRoute) {
     // Basic RBAC check
     if (user.role_name === 'Admin' || user.is_superuser) {
@@ -117,11 +142,8 @@ router.beforeEach((to, _from, next) => {
     }
   } else if (to.path === '/login' && token) {
     // Redirect already logged in users to appropriate page
-    if (user.role_name === 'Admin' || user.is_superuser) {
-      next('/admin/dashboard')
-    } else {
-      next('/')
-    }
+    const redirectPath = to.query.redirect as string || '/'
+    next(redirectPath)
   } else {
     next()
   }

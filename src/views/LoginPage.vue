@@ -54,13 +54,14 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import ServiceGenerate from '../utils/request'
 
 const service = ServiceGenerate()
 const router = useRouter()
+const route = useRoute()
 const loginFormRef = ref()
 const loading = ref(false)
 const rememberMe = ref(false)
@@ -88,11 +89,8 @@ const handleLogin = async () => {
           localStorage.setItem('user', JSON.stringify(res.data.user))
           ElMessage.success('Hasabyňyz tassyklanyldy we aktiwleşdirildi!')
           
-          if (res.data.user.role_name === 'Admin' || res.data.user.is_superuser) {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/')
-          }
+          const redirectPath = route.query.redirect as string || '/'
+          router.push(redirectPath)
         }
       } catch (error: any) {
         console.error('Login error:', error)

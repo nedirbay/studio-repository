@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { store, actions } from '../../store'
 import type { Product } from '../../types'
 import { 
@@ -10,6 +10,11 @@ import {
   Close
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+
+const windowWidth = ref(window.innerWidth)
+const updateWidth = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', updateWidth))
+onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
@@ -32,7 +37,8 @@ const initialForm: Omit<Product, 'id'> = {
   specifications: {}
 }
 
-const form = ref<Product | Omit<Product, 'id'>>({ ...initialForm })
+const form = ref<any>({ ...initialForm })
+const fileList = ref<any []>([])
 
 const filteredProducts = computed(() => {
   return store.products.filter(p => {
@@ -46,30 +52,70 @@ const filteredProducts = computed(() => {
 const openAdd = () => {
   isEditing.value = false
   form.value = { ...initialForm, features: [], specifications: {} }
+  fileList.value = []
   dialogVisible.value = true
 }
 
 const openEdit = (product: any) => {
   isEditing.value = true
   form.value = JSON.parse(JSON.stringify(product))
+  // Initialize fileList from existing media
+  fileList.value = (product.media || []).map((m: any) => ({
+    name: m.url.split('/').pop(),
+    url: m.url
+  }))
   dialogVisible.value = true
 }
 
-const handleSave = () => {
+const handleSave = async () => {
   if (!form.value.name || !form.value.category || !form.value.price) {
     ElMessage.warning('Adyny, kategoriýasyny we bahasyny dolduryň')
     return
   }
 
-  if (isEditing.value) {
-    actions.updateProduct(form.value as Product)
-    ElMessage.success('Haryt täzelendi')
-  } else {
-    actions.addProduct(form.value as Omit<Product, 'id'>)
-    ElMessage.success('Täze haryt goşuldy')
+  // Convert fileList to media array
+  const media = fileList.value.map(file => ({
+    kind: 'image',
+    url: file.url
+  }))
+
+  const payload = {
+    ...form.value,
+    category: store.categories.find(c => c.name === form.value.category)?.id,
+    media: media
   }
-  
-  dialogVisible.value = false
+
+  try {
+    if (isEditing.value) {
+      await actions.updateProduct(payload)
+      ElMessage.success('Haryt täzelendi')
+    } else {
+      await actions.addProduct(payload)
+      ElMessage.success('Täze haryt goşuldy')
+    }
+    dialogVisible.value = false
+  } catch (error) {
+    ElMessage.error('Sazlama wagtynda ýalňyşlyk ýüze çykdy')
+  }
+}
+
+const handleUpload = async (options: any) => {
+  try {
+    const url = await actions.uploadImage(options.file)
+    fileList.value.push({
+      name: options.file.name,
+      url: url
+    })
+  } catch (error) {
+    ElMessage.error('Surat ýüklenmedi')
+  }
+}
+
+const handleRemove = (file: any) => {
+  const index = fileList.value.findIndex(f => f.url === file.url)
+  if (index !== -1) {
+    fileList.value.splice(index, 1)
+  }
 }
 
 const handleDelete = (id: number) => {
@@ -226,7 +272,7 @@ const removeFeature = (index: number) => {
     <el-dialog
       v-model="dialogVisible"
       :title="isEditing ? 'Harydy üýtgetmek' : 'Täze haryt goşmak'"
-      width="800px"
+      :width="windowWidth < 768 ? '95%' : '800px'"
       class="admin-dialog"
       align-center
     >
@@ -259,8 +305,18 @@ const removeFeature = (index: number) => {
             <el-input-number v-model="form.originalPrice" :min="0" class="!w-full" />
           </el-form-item>
           
-          <el-form-item label="Surat URL">
-            <el-input v-model="form.image" placeholder="Suratyň salgysy" />
+          <el-form-item label="Haryt suratlary" class="md:col-span-2">
+            <el-upload
+              action="#"
+              list-type="picture-card"
+              :auto-upload="true"
+              :http-request="handleUpload"
+              :file-list="fileList"
+              :on-remove="handleRemove"
+              multiple
+            >
+              <el-icon><Plus /></el-icon>
+            </el-upload>
           </el-form-item>
           
           <el-form-item label="Badge (Bellik)">
@@ -375,14 +431,5 @@ const removeFeature = (index: number) => {
   padding: 0.5rem;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e5e7eb; /* gray-200 */
-  border-radius: 9999px;
-}
+
 </style>

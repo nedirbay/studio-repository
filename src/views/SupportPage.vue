@@ -1,8 +1,34 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { actions } from '../store'
+import { ElMessage } from 'element-plus'
 
 const warrantySerial = ref('')
 const searchFAQ = ref('')
+
+const contactForm = ref({
+  subject: '',
+  message: ''
+})
+const isSending = ref(false)
+
+async function handleSendMessage() {
+  if (!contactForm.value.subject || !contactForm.value.message) {
+    ElMessage.warning('Tema we hatyňyzy ýazyň')
+    return
+  }
+  isSending.value = true
+  try {
+    await actions.sendMessage(contactForm.value)
+    ElMessage.success('Hatyňyz üstünlikli ugradyldy! Biz tizden jogap bereris.')
+    contactForm.value.subject = ''
+    contactForm.value.message = ''
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.error || 'Hat ugradylmady')
+  } finally {
+    isSending.value = false
+  }
+}
 
 const faqs = [
   { q: 'Kompýuterime nädip draýwer gurnamaly?', a: 'Draýwerler üçin öndürijiniň resmi saýtyna (Asus, HP, Dell) girip, seriýa belgiňiz arkaly iň soňky wersiýalaryny alyp bilersiňiz.' },
@@ -121,8 +147,42 @@ function checkWarranty() {
           </div>
         </div>
 
-        <!-- Contact Info -->
+        <!-- Contact Info & Form -->
         <div class="space-y-6">
+          <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+              <el-icon class="text-blue-500"><Message /></el-icon>
+              Biziň bilen habarlaşyň
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label class="text-[10px] uppercase font-black text-gray-400 tracking-widest pl-1 mb-1 block">Tema</label>
+                <el-input 
+                  v-model="contactForm.subject" 
+                  placeholder="Hatyňyz näme barada?" 
+                  size="large"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] uppercase font-black text-gray-400 tracking-widest pl-1 mb-1 block">Hat</label>
+                <el-input 
+                  v-model="contactForm.message" 
+                  type="textarea"
+                  :rows="4"
+                  placeholder="Bize näme aýtmak isleýärsiňiz..." 
+                />
+              </div>
+              <el-button 
+                type="primary" 
+                class="w-full !rounded-xl !h-12" 
+                @click="handleSendMessage"
+                :loading="isSending"
+              >
+                Haty ugrat
+              </el-button>
+            </div>
+          </div>
+
           <div class="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden">
             <h2 class="text-xl font-bold mb-6 relative z-10">Habarlaşmak üçin</h2>
             <div class="space-y-6 relative z-10">

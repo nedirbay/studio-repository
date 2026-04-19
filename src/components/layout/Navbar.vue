@@ -8,6 +8,7 @@ import CartDrawer from '../cart/CartDrawer.vue'
 import logo from '../../assets/branding/logo.png'
 import { Search, ShoppingCart, User, ArrowDown, Monitor, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import UserDropdown from '../shared/UserDropdown.vue'
 
 const navItems = computed(() => {
   // We can also make navItems dynamic in store later, but for now we'll match categories
@@ -30,19 +31,6 @@ const searchCategory = ref('all')
 const mobileMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
 
-// Auth state
-const isLoggedIn = computed(() => !!localStorage.getItem('token'))
-const currentUser = computed(() => {
-  const user = localStorage.getItem('user')
-  return user ? JSON.parse(user) : null
-})
-
-function handleLogout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  ElMessage.success('Siz sistemasdan üstünlikli çykdyňyz!')
-  router.push('/login')
-}
 
 function toggleDropdown(label: string) {
   activeDropdown.value = activeDropdown.value === label ? null : label
@@ -134,43 +122,7 @@ watch(() => route.path, (newPath) => {
           
           <!-- User Menu -->
           <div class="user-menu-wrapper ml-1">
-            <el-dropdown v-if="isLoggedIn" trigger="click" placement="bottom-end">
-              <button class="flex items-center gap-2 p-1 pl-2 pr-4 bg-gray-50 hover:bg-red-50 rounded-full border border-gray-200 hover:border-red-200 transition-all group">
-                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm shrink-0">
-                  {{ currentUser?.username?.charAt(0).toUpperCase() || 'U' }}
-                </div>
-                <span class="hidden lg:block text-sm font-semibold text-gray-700 group-hover:text-red-600">{{ currentUser?.username }}</span>
-                <el-icon class="text-gray-400 group-hover:text-red-600"><ArrowDown /></el-icon>
-              </button>
-              <template #dropdown>
-                <el-dropdown-menu class="min-w-[180px]">
-                  <div class="px-4 py-3 border-b border-gray-100 mb-1">
-                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Hasap</p>
-                    <p class="text-sm font-semibold text-gray-900 truncate">{{ currentUser?.email }}</p>
-                  </div>
-                  <el-dropdown-item 
-                    v-if="currentUser?.role_name === 'Admin' || currentUser?.is_superuser" 
-                    @click="router.push('/admin/dashboard')"
-                  >
-                    <el-icon><Monitor /></el-icon>
-                    Dolandyryş paneli
-                  </el-dropdown-item>
-                  <el-dropdown-item divided @click="handleLogout" class="text-red-600 hover:text-red-700 hover:bg-red-50">
-                    <el-icon><SwitchButton /></el-icon>
-                    Çykyş
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-
-            <router-link 
-              v-else 
-              to="/login"
-              class="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg active:scale-95"
-            >
-              <el-icon class="text-lg"><User /></el-icon>
-              Giriş
-            </router-link>
+            <UserDropdown />
           </div>
         </div>
        

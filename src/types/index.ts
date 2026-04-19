@@ -16,6 +16,17 @@ export interface Product {
   specifications?: Record<string, string>
 }
 
+export interface User {
+  id: number
+  username: string
+  email: string
+  role_name: string
+  is_superuser: boolean
+  is_active: boolean
+  date_joined?: string
+  password?: string // Used for forms
+}
+
 export interface Category {
   id: number
   name: string

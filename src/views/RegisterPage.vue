@@ -128,12 +128,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { User, Lock, Message, CircleCheck } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { actions } from '../store'
 
 const router = useRouter()
+const route = useRoute()
 const registerFormRef = ref()
 const loading = ref(false)
 const agreeTerms = ref(false)
@@ -232,11 +233,8 @@ const handleVerifyOTP = async () => {
     ElMessage.success('Siziň hasabyňyz üstünlikli tassyklanyldy!')
     
     // Check role from the returned response (res is res.data from store)
-    if (res.user.role_name === 'Admin' || res.user.is_superuser) {
-      router.push('/admin/dashboard')
-    } else {
-      router.push('/')
-    }
+    const redirectPath = route.query.redirect as string || '/'
+    router.push(redirectPath)
   } catch (error: any) {
     ElMessage.error(error.response?.data?.error || 'Kod nädogry ýa-da möwriti öten')
   } finally {

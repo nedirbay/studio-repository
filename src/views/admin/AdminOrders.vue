@@ -53,36 +53,36 @@ function formatDate(dateStr: string) {
 <template>
   <div class="space-y-6 animate-fade-in pb-20">
     <!-- Header Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-          <el-icon class="text-2xl"><ShoppingCart /></el-icon>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+          <el-icon class="text-xl sm:text-2xl"><ShoppingCart /></el-icon>
         </div>
         <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Jemi sargytlar</p>
-          <p class="text-2xl font-black text-slate-900">{{ store.orders.length }}</p>
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Jemi sargytlar</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900">{{ store.orders.length }}</p>
         </div>
       </div>
       
-      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center">
-          <el-icon class="text-2xl"><Money /></el-icon>
+      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center">
+          <el-icon class="text-xl sm:text-2xl"><Money /></el-icon>
         </div>
         <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Jemi söwda</p>
-          <p class="text-2xl font-black text-slate-900">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Jemi söwda</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900">
             ${{ store.orders.reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString() }}
           </p>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
-          <el-icon class="text-2xl"><Calendar /></el-icon>
+      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4 sm:col-span-2 lg:col-span-1">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
+          <el-icon class="text-xl sm:text-2xl"><Calendar /></el-icon>
         </div>
         <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Bugün</p>
-          <p class="text-2xl font-black text-slate-900">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Bugün</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900">
             {{ store.orders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length }}
           </p>
         </div>

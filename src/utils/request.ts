@@ -3,8 +3,8 @@ import { logoutApp } from '../helper'
 import { ElMessage } from 'element-plus'
 import router from '../router'
 
-export const baseURL = 'http://localhost:8000/api'
-export const baseMediaURL = 'http://localhost:8000'
+export const baseURL = '/api'
+export const baseMediaURL = ''
 
 const ServiceGenerate = () => {
   const service = axios.create({

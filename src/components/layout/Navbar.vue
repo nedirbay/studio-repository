@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { navItems as staticNavItems } from '../../data/products'
 import { store, actions, cartCount } from '../../store'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
 import logo from '../../assets/branding/logo.png'
-import { Search, ShoppingCart, User, ArrowDown, Monitor, SwitchButton } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { Search, ShoppingCart, ArrowDown } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
 const navItems = computed(() => {
@@ -24,7 +23,6 @@ const navItems = computed(() => {
 })
 
 const route = useRoute()
-const router = useRouter()
 
 const searchQuery = ref('')
 const searchCategory = ref('all')

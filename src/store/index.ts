@@ -20,6 +20,7 @@ interface StoreState {
   notifications: any[]
   cartDrawerOpen: boolean
   initialized: boolean
+  isAuthenticated: boolean
   loading: boolean
 }
 
@@ -41,6 +42,7 @@ export const store = reactive<StoreState>({
   notifications: [],
   cartDrawerOpen: false,
   initialized: false,
+  isAuthenticated: !!localStorage.getItem('token'),
   loading: false
 })
 

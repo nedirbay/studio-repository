@@ -226,7 +226,7 @@ const handleVerifyOTP = async () => {
 
   loading.value = true
   try {
-    const res = await actions.verifyOtp({
+    await actions.verifyOtp({
       email: registerForm.email,
       code: otpCode.value
     })

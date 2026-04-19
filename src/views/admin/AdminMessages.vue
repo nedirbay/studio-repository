@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { store, actions } from '../../store'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, ChatDotRound, Select, Check, Message } from '@element-plus/icons-vue'
+import { Delete, ChatDotRound, Message } from '@element-plus/icons-vue'
 
 onMounted(() => {
   actions.fetchAdminMessages()
@@ -67,12 +67,7 @@ async function handleReply() {
   }
 }
 
-async function markRead(msg: any) {
-  try {
-    await actions.replyToMessage(msg.id, msg.reply || '')
-    ElMessage.success('Okaldy edildi')
-  } catch(e) {}
-}
+
 
 async function handleDelete(id: number) {
   try {

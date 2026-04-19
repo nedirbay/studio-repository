@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import type { User } from '../types'
 import HomePage from '../views/HomePage.vue'
 import ProductsPage from '../views/ProductsPage.vue'
 import ProductDetailPage from '../views/ProductDetailPage.vue'
@@ -134,7 +136,8 @@ router.beforeEach((to, _from, next) => {
     next({ path: '/login', query: { redirect: to.fullPath } })
   } else if (isAdminRoute) {
     // Basic RBAC check
-    if (user.role_name === 'Admin' || user.is_superuser) {
+    const u = user as User
+    if (u.role_name === 'Admin' || u.is_superuser) {
       next()
     } else {
       ElMessage.warning('Bu sahypa diňe administratorlar üçin')

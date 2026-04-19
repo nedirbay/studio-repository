@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { 
   Menu, 
   Files, 
   Box, 
   ArrowLeft,
   User,
-  Setting,
   Expand,
   ShoppingCart,
-  SwitchButton,
   Operation,
   ChatDotRound,
   Message
@@ -18,7 +16,6 @@ import {
 import UserDropdown from '../shared/UserDropdown.vue'
 
 const route = useRoute()
-const router = useRouter()
 const isSidebarOpen = ref(false)
 
 function toggleSidebar() {

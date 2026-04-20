@@ -83,7 +83,7 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const res = await service.post('/auth/login', loginForm)
+        const res = await service.post('auth/login', loginForm)
         if (res.data.jwt) {
           localStorage.setItem('token', res.data.jwt)
           localStorage.setItem('user', JSON.stringify(res.data.user))

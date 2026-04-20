@@ -26,12 +26,23 @@ import { store } from '../../store'
                   {{ banner.description }}
                 </p>
                 <div class="flex gap-3">
-                  <button class="btn-primary text-sm">
+                  <router-link 
+                    v-if="banner.product_id"
+                    :to="`/product/${banner.product_id}`"
+                  >
+                    <button class="btn-primary text-sm shadow-xl shadow-red-600/30">
+                      {{ banner.ctaText }}
+                    </button>
+                  </router-link>
+                  <button v-else class="btn-primary text-sm shadow-xl shadow-red-600/30">
                     {{ banner.ctaText }}
                   </button>
-                  <button class="btn-outline text-sm border-white text-white hover:bg-white hover:text-gray-900">
-                    Ählisini gör
-                  </button>
+                  
+                  <router-link to="/products">
+                    <button class="btn-outline text-sm border-white text-white hover:bg-white hover:text-gray-900 transition-all font-bold">
+                      Ählisini gör
+                    </button>
+                  </router-link>
                 </div>
               </div>
             </div>

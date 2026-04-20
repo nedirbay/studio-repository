@@ -3,8 +3,14 @@ import { logoutApp } from '../helper'
 import { ElMessage } from 'element-plus'
 import router from '../router'
 
-export const baseURL = '/api'
-export const baseMediaURL = ''
+
+export const baseURL = import.meta.env.PROD
+  ? '/api'
+  : 'http://127.0.0.1:8000/api'
+
+export const baseMediaURL = import.meta.env.PROD
+  ? ''
+  : 'http://127.0.0.1:8000'
 
 const ServiceGenerate = () => {
   const service = axios.create({

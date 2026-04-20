@@ -5,8 +5,8 @@ import { navItems as staticNavItems } from '../../data/products'
 import { store, actions, cartCount } from '../../store'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
-import logo from '../../assets/branding/logo.png'
-import { Search, ShoppingCart, ArrowDown } from '@element-plus/icons-vue'
+import logo from '../../assets/logo1.png'
+import { Search, ShoppingCart, ArrowDown, Menu as MenuIcon, Close } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
 const navItems = computed(() => {
@@ -51,13 +51,22 @@ watch(() => route.path, (newPath) => {
 <template>
   <header class="bg-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-center justify-center h-16 gap-4">
-        <!-- Logo -->
-        <router-link to="/" class="flex items-center gap-2 shrink-0">
-          <img :src="logo" alt="Doganlar foto merkezi" class="h-12 w-auto" />
-          <div class="leading-tight mr-5">
-            <div class="text-lg font-bold text-gray-900">Doganlar</div>
-            <div class="text-xs text-red-600 font-semibold -mt-0.5 tracking-widest uppercase">foto merkezi</div>
+      <div class="flex items-center justify-between h-16 gap-4">
+        <!-- Mobile Menu Toggle -->
+        <button 
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          class="md:hidden p-2 -ml-2 text-gray-600 hover:text-red-600 transition-colors"
+        >
+          <el-icon class="text-3xl">
+            <component :is="mobileMenuOpen ? Close : MenuIcon" />
+          </el-icon>
+        </button>
+
+        <!-- Logo/Branding -->
+        <router-link to="/" class="flex items-center gap-2 group no-underline shrink-0">
+          <div class="leading-tight">
+            <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
+            <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
           </div>
         </router-link>
 
@@ -86,7 +95,7 @@ watch(() => route.path, (newPath) => {
               @keyup.enter="handleSearch"
             >
               <template #prefix>
-                <el-icon class="text-gray-400"><Search /></el-icon>
+                <el-icon class="text-gray-400 text-xl"><Search /></el-icon>
               </template>
             </el-input>
             <el-button 
@@ -95,7 +104,7 @@ watch(() => route.path, (newPath) => {
               class="search-btn"
               @click="handleSearch"
             >
-              <el-icon class="text-lg"><Search /></el-icon>
+              <el-icon class="text-xl"><Search /></el-icon>
             </el-button>
           </div>
         </div>
@@ -107,7 +116,7 @@ watch(() => route.path, (newPath) => {
             @click="actions.toggleCartDrawer(true)"
             class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
           >
-            <el-icon class="text-2xl"><ShoppingCart /></el-icon>
+            <el-icon class="text-4xl"><ShoppingCart /></el-icon>
             <span 
               v-if="cartCount > 0"
               class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white transform translate-x-1 -translate-y-1 shadow-sm group-hover:scale-110 transition-transform"

@@ -75,7 +75,7 @@ const filteredProducts = computed(() => {
 
   // Sale filter
   if (onSaleOnly.value) {
-    products = products.filter(p => p.badge === 'sale' || p.originalPrice)
+    products = products.filter(p => p.badge === 'sale' || (p.originalPrice && p.originalPrice > p.price))
   }
 
   // Sort

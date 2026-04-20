@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { categories, brands } from '../../data/products'
+import { store } from '../../store'
 
 const props = defineProps<{
   selectedCategories: string[]
@@ -26,19 +26,19 @@ const emit = defineEmits<{
 // Local price range for slider
 const localPriceRange = ref<[number, number]>(props.priceRange)
 
-// Category options from data
+// Category options from store
 const categoryOptions = computed(() => 
-  categories.map(c => ({
+  store.categories.map(c => ({
     label: c.name,
     value: c.name,
-    count: c.count,
-    icon: c.icon
+    count: c.count || 0,
+    icon: c.icon || '📦'
   }))
 )
 
-// Brand options
+// Brand options from store
 const brandOptions = computed(() => 
-  brands.map(b => ({
+  store.brands.map(b => ({
     label: b.name,
     value: b.name
   }))

@@ -18,6 +18,9 @@ interface StoreState {
   users: User[]
   adminMessages: any[]
   notifications: any[]
+  blogs: any[]
+  blogTotalCount: number
+  selectedBlog: any | null
   cartDrawerOpen: boolean
   initialized: boolean
   isAuthenticated: boolean
@@ -40,6 +43,9 @@ export const store = reactive<StoreState>({
   users: [],
   adminMessages: [],
   notifications: [],
+  blogs: [],
+  blogTotalCount: 0,
+  selectedBlog: null,
   cartDrawerOpen: false,
   initialized: false,
   isAuthenticated: !!localStorage.getItem('token'),
@@ -74,7 +80,8 @@ export const actions = {
         this.fetchProducts(),
         this.fetchBanners(),
         this.fetchPromos(),
-        this.fetchBrands()
+        this.fetchBrands(),
+        this.fetchBlogs()
       ])
       store.initialized = true
     } catch (error) {
@@ -86,7 +93,7 @@ export const actions = {
 
   async fetchCategories() {
     try {
-      const res = await service.get('/commerce/categories')
+      const res = await service.get('commerce/categories')
       store.categories = res.data
     } catch (error) {
       console.error('Failed to fetch categories:', error)
@@ -95,7 +102,7 @@ export const actions = {
 
   async fetchBrands() {
     try {
-      const res = await service.get('/commerce/brands')
+      const res = await service.get('commerce/brands')
       store.brands = res.data
     } catch (error) {
       console.error('Failed to fetch brands:', error)
@@ -104,7 +111,7 @@ export const actions = {
 
   async fetchBanners() {
     try {
-      const res = await service.get('/main/banners')
+      const res = await service.get('main/banners')
       store.banners = res.data.map((b: any) => ({
         id: b.id,
         title: b.title,
@@ -121,20 +128,51 @@ export const actions = {
 
   async fetchPromos() {
     try {
-      const res = await service.get('/main/promos')
+      const res = await service.get('main/promos')
       store.promos = res.data
     } catch (error) {
       console.error('Failed to fetch promos:', error)
     }
   },
 
+  async addBanner(bannerData: any) {
+    try {
+      await service.post('main/banners', bannerData)
+      this.fetchBanners()
+    } catch (error) {
+      console.error('Failed to add banner:', error)
+      throw error
+    }
+  },
+
+  async updateBanner(bannerData: any) {
+    try {
+      await service.put('main/banners', bannerData)
+      this.fetchBanners()
+    } catch (error) {
+      console.error('Failed to update banner:', error)
+      throw error
+    }
+  },
+
+  async deleteBanner(id: number) {
+    try {
+      await service.delete('main/banners', { data: { id } })
+      this.fetchBanners()
+    } catch (error) {
+      console.error('Failed to delete banner:', error)
+      throw error
+    }
+  },
+
   async fetchProducts() {
     try {
-      const res = await service.get('/commerce/products')
+      const res = await service.get('commerce/products')
       // Map backend fields to frontend types
       store.products = res.data.map((p: any) => ({
         ...p,
         category: p.category_name,
+        brand: p.marka,
         image: p.media.length > 0 ? p.media[0].url : '',
         images: p.media.map((m: any) => m.url),
         inStock: p.instock,
@@ -147,7 +185,7 @@ export const actions = {
 
   async fetchOrders() {
     try {
-      const res = await service.get('/main/orders')
+      const res = await service.get('main/orders')
       store.orders = res.data
     } catch (error) {
       console.error('Failed to fetch orders:', error)
@@ -156,7 +194,7 @@ export const actions = {
 
   async fetchUsers() {
     try {
-      const res = await service.get('/users/')
+      const res = await service.get('users/')
       store.users = res.data
     } catch (error) {
       console.error('Failed to fetch users:', error)
@@ -166,7 +204,7 @@ export const actions = {
 
   async addUser(userData: any) {
     try {
-      const res = await service.post('/users/', userData)
+      const res = await service.post('users/', userData)
       await this.fetchUsers() // Refresh list
       return res.data
     } catch (error) {
@@ -177,7 +215,7 @@ export const actions = {
 
   async updateUser(userId: number, userData: any) {
     try {
-      const res = await service.put(`/users/${userId}/`, userData)
+      const res = await service.put(`users/${userId}/`, userData)
       await this.fetchUsers()
       return res.data
     } catch (error) {
@@ -188,7 +226,7 @@ export const actions = {
 
   async deleteUser(userId: number) {
     try {
-      const res = await service.delete(`/users/${userId}/`)
+      const res = await service.delete(`users/${userId}/`)
       await this.fetchUsers()
       return res.data
     } catch (error) {
@@ -199,7 +237,7 @@ export const actions = {
 
   async fetchAdminReviews() {
     try {
-      const res = await service.get('/commerce/reviews')
+      const res = await service.get('commerce/reviews')
       store.adminReviews = res.data
     } catch (error) {
       console.error('Failed to fetch admin reviews:', error)
@@ -209,7 +247,7 @@ export const actions = {
 
   async deleteReview(reviewId: number) {
     try {
-      const res = await service.delete(`/commerce/reviews/${reviewId}`)
+      const res = await service.delete(`commerce/reviews/${reviewId}`)
       await this.fetchAdminReviews()
       return res.data
     } catch (error) {
@@ -220,7 +258,7 @@ export const actions = {
 
   async sendMessage(payload: { subject: string, message: string, product?: number }) {
     try {
-      const res = await service.post('/commerce/messages', payload)
+      const res = await service.post('commerce/messages', payload)
       return res.data
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -231,7 +269,7 @@ export const actions = {
   // Notifications
   async fetchNotifications() {
     try {
-      const res = await service.get('/notifications')
+      const res = await service.get('notifications')
       store.notifications = res.data
     } catch (e) {
       console.error('Failed to fetch notifications', e)
@@ -240,7 +278,7 @@ export const actions = {
   
   async markNotificationsRead() {
     try {
-      await service.put('/notifications/read')
+      await service.put('notifications/read')
       store.notifications.forEach(n => n.is_read = true)
     } catch (e) {
       console.error('Failed to mark internal notifs read', e)
@@ -249,7 +287,7 @@ export const actions = {
 
   async deleteNotification(id: number) {
     try {
-      await service.delete(`/notifications/${id}`)
+      await service.delete(`notifications/${id}`)
       store.notifications = store.notifications.filter(n => n.id !== id)
     } catch (e) {
       console.error('Failed to delete notification', e)
@@ -259,7 +297,7 @@ export const actions = {
   // Admin Messages
   async fetchAdminMessages() {
     try {
-      const res = await service.get('/commerce/messages')
+      const res = await service.get('commerce/messages')
       store.adminMessages = res.data
     } catch (e) {
       console.error('Failed to fetch admin messages', e)
@@ -268,7 +306,7 @@ export const actions = {
   
   async replyToMessage(id: number, replyText: string) {
     try {
-      const res = await service.put(`/commerce/messages/${id}`, { reply: replyText })
+      const res = await service.put(`commerce/messages/${id}`, { reply: replyText })
       await this.fetchAdminMessages()
       return res.data
     } catch (e) {
@@ -279,7 +317,7 @@ export const actions = {
   
   async deleteMessage(id: number) {
     try {
-      await service.delete(`/commerce/messages/${id}`)
+      await service.delete(`commerce/messages/${id}`)
       await this.fetchAdminMessages()
     } catch (e) {
       console.error('Failed to delete msg', e)
@@ -291,7 +329,7 @@ export const actions = {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await service.post('/commerce/upload', formData, {
+      const res = await service.post('commerce/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       return res.data.url // Returns the full URL
@@ -304,7 +342,7 @@ export const actions = {
   // CRUD Actions
   async addProduct(product: any) {
     try {
-      await service.post('/commerce/products', product)
+      await service.post('commerce/products', product)
       await this.fetchProducts()
     } catch (error) {
       console.error('Failed to add product:', error)
@@ -312,7 +350,7 @@ export const actions = {
   },
   async updateProduct(product: any) {
     try {
-      await service.put(`/commerce/products/${product.id}`, product)
+      await service.put(`commerce/products/${product.id}`, product)
       await this.fetchProducts()
     } catch (error) {
       console.error('Failed to update product:', error)
@@ -320,7 +358,7 @@ export const actions = {
   },
   async deleteProduct(id: number) {
     try {
-      await service.delete(`/commerce/products/${id}`)
+      await service.delete(`commerce/products/${id}`)
       await this.fetchProducts()
     } catch (error) {
       console.error('Failed to delete product:', error)
@@ -329,7 +367,7 @@ export const actions = {
 
   async addCategory(category: any) {
     try {
-      await service.post('/commerce/categories', category)
+      await service.post('commerce/categories', category)
       await this.fetchCategories()
     } catch (error) {
       console.error('Failed to add category:', error)
@@ -379,7 +417,7 @@ export const actions = {
 
   async submitOrder(orderData: any) {
     try {
-      const res = await service.post('/main/orders', {
+      const res = await service.post('main/orders', {
         ...orderData,
         total_amount: cartTotal.value,
         paid_amount: 0 // New order, not yet paid
@@ -395,7 +433,7 @@ export const actions = {
   // Auth & OTP Actions
   async register(userData: any) {
     try {
-      const res = await service.post('/auth/register', userData)
+      const res = await service.post('auth/register', userData)
       return res.data
     } catch (error) {
       console.error('Registration failed:', error)
@@ -405,7 +443,7 @@ export const actions = {
 
   async verifyOtp(otpData: { email: string; code: string }) {
     try {
-      const res = await service.post('/auth/verify-otp', otpData)
+      const res = await service.post('auth/verify-otp', otpData)
       if (res.data.jwt) {
         localStorage.setItem('token', res.data.jwt)
         localStorage.setItem('user', JSON.stringify(res.data.user))
@@ -419,7 +457,7 @@ export const actions = {
 
   async resendOtp(email: string) {
     try {
-      const res = await service.post('/auth/resend-otp', { email })
+      const res = await service.post('auth/resend-otp', { email })
       return res.data
     } catch (error) {
       console.error('Resend OTP failed:', error)
@@ -430,7 +468,7 @@ export const actions = {
   // Review Actions
   async fetchReviews(productId: number) {
     try {
-      const res = await service.get(`/commerce/products/${productId}/reviews`)
+      const res = await service.get(`commerce/products/${productId}/reviews`)
       store.reviews = res.data
       return res.data
     } catch (error) {
@@ -440,7 +478,7 @@ export const actions = {
 
   async submitReview(productId: number, reviewData: any) {
     try {
-      const res = await service.post(`/commerce/products/${productId}/reviews`, reviewData)
+      const res = await service.post(`commerce/products/${productId}/reviews`, reviewData)
       // Add new review to top of list
       store.reviews.unshift(res.data)
       
@@ -456,6 +494,60 @@ export const actions = {
       return res.data
     } catch (error) {
       console.error('Failed to submit review:', error)
+      throw error
+    }
+  },
+
+  // Blog Actions
+  async fetchBlogs(page: number = 1, pageSize: number = 3) {
+    try {
+      const res = await service.get(`blogs?page=${page}&page_size=${pageSize}`)
+      store.blogs = res.data.results
+      store.blogTotalCount = res.data.count
+    } catch (error) {
+      console.error('Failed to fetch blogs:', error)
+    }
+  },
+
+  async fetchBlogBySlug(slug: string) {
+    try {
+      const res = await service.get(`blogs/${slug}`)
+      store.selectedBlog = res.data
+      return res.data
+    } catch (error) {
+      console.error(`Failed to fetch blog ${slug}:`, error)
+      throw error
+    }
+  },
+
+  async createBlogPost(data: any) {
+    try {
+      const res = await service.post('blogs', data)
+      await this.fetchBlogs()
+      return res.data
+    } catch (error) {
+      console.error('Failed to create blog post:', error)
+      throw error
+    }
+  },
+
+  async updateBlogPost(slug: string, data: any) {
+    try {
+      const res = await service.put(`blogs/${slug}`, data)
+      await this.fetchBlogs()
+      return res.data
+    } catch (error) {
+      console.error(`Failed to update blog post ${slug}:`, error)
+      throw error
+    }
+  },
+
+  async deleteBlogPost(slug: string) {
+    try {
+      await service.delete(`blogs/${slug}`)
+      await this.fetchBlogs()
+    } catch (error) {
+      console.error(`Failed to delete blog post ${slug}:`, error)
       throw error
     }
   }

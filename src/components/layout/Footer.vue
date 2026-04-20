@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import logo from '../../assets/branding/logo.png'
+import logo from '../../assets/logo1.png'
 </script>
 
 <template>
@@ -9,11 +9,10 @@ import logo from '../../assets/branding/logo.png'
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <!-- Brand -->
         <div class="lg:col-span-1">
-          <div class="flex items-center gap-2 mb-4">
-            <img :src="logo" alt="Doganlar foto merkezi" class="h-10 w-auto" />
+          <div class="flex items-center gap-3 mb-6">
             <div class="leading-tight">
-              <div class="text-lg font-bold text-white">Doganlar</div>
-              <div class="text-xs text-red-500 font-semibold -mt-0.5 tracking-widest uppercase">foto merkezi</div>
+              <div class="text-xl font-black text-white tracking-tight">Doganlar</div>
+              <div class="text-[10px] text-red-500 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
             </div>
           </div>
           <p class="text-sm text-gray-400 leading-relaxed mb-4">
@@ -81,19 +80,18 @@ import logo from '../../assets/branding/logo.png'
           <ul class="space-y-3">
             <li class="flex items-start gap-3">
               <el-icon class="text-red-500 mt-0.5 shrink-0"><Location /></el-icon>
-              <span class="text-sm text-gray-400">Aşgabat ş., Türkmenistan, Şäher merkezi</span>
+              <span class="text-sm text-gray-400">Mary şäheri, Mollanepes köçesi</span>
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Phone /></el-icon>
               <div class="text-sm text-gray-400">
-                <div>+993 (12) 49-23-43</div>
-                <div>+993 (12) 26-13-69</div>
-                <div>+993 (62) 70-80-45</div>
+                <div>+993 64 30-12-57</div>
+                <div>+993 61 24-69-37</div>
               </div>
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Message /></el-icon>
-              <span class="text-sm text-gray-400">doganlarfoto.ru</span>
+              <span class="text-sm text-gray-400">doganlarfoto@gmail.com</span>
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Clock /></el-icon>

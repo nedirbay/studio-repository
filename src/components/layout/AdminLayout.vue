@@ -11,7 +11,9 @@ import {
   ShoppingCart,
   Operation,
   ChatDotRound,
-  Message
+  Message,
+  Picture,
+  Document
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -36,6 +38,8 @@ const menuItems = [
   { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
   { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
   { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
+  { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
+  { id: 'blogs', label: 'Bloglar', path: '/admin/blogs', icon: Document },
 ]
 
 

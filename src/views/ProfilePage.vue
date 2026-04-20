@@ -62,7 +62,7 @@ async function handleChangePassword() {
       loading.value = true
       try {
         // This endpoint might need to be confirmed with backend, but it's a standard path
-        await service.post('/auth/change-password', {
+        await service.post('auth/change-password', {
           old_password: passwordForm.old_password,
           new_password: passwordForm.new_password
         })

@@ -4,6 +4,17 @@ import { useRoute } from 'vue-router'
 import TopBar from './components/layout/TopBar.vue'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
+import SplashScreen from './components/shared/SplashScreen.vue'
+import { ref, onMounted } from 'vue'
+
+const showSplash = ref(true)
+
+onMounted(() => {
+  // We keep it in DOM for the full 2.5s (2s + 0.5s fade out)
+  setTimeout(() => {
+    showSplash.value = false
+  }, 2500)
+})
 
 const route = useRoute()
 const shouldShowLayout = computed(() => {
@@ -16,6 +27,7 @@ const shouldShowLayout = computed(() => {
 
 <template>
   <div class="min-h-screen flex flex-col">
+    <SplashScreen v-if="showSplash" />
     <TopBar v-if="shouldShowLayout" />
     <Navbar v-if="shouldShowLayout" />
     <router-view class="flex-1" />

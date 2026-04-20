@@ -52,6 +52,21 @@ const routes = [
     component: SupportPage
   },
   {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/AboutPage.vue')
+  },
+  {
+    path: '/blog',
+    name: 'BlogList',
+    component: () => import('../views/BlogListPage.vue')
+  },
+  {
+    path: '/blog/:slug',
+    name: 'BlogDetail',
+    component: () => import('../views/BlogDetailPage.vue')
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/LoginPage.vue'),
@@ -105,6 +120,16 @@ const routes = [
         path: 'orders',
         name: 'AdminOrders',
         component: () => import('../views/admin/AdminOrders.vue')
+      },
+      {
+        path: 'banners',
+        name: 'AdminBanners',
+        component: () => import('../views/admin/AdminBanners.vue')
+      },
+      {
+        path: 'blogs',
+        name: 'AdminBlogs',
+        component: () => import('../views/admin/AdminBlogs.vue')
       }
     ]
   }

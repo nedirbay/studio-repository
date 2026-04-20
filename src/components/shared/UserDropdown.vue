@@ -85,7 +85,7 @@ function handleLogout() {
       to="/login"
       class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-red-600/20 active:scale-95"
     >
-      <el-icon class="text-lg"><User /></el-icon>
+      <el-icon class="text-xl"><User /></el-icon>
       Giriş
     </router-link>
   </div>

@@ -43,6 +43,7 @@ export interface Banner {
   image: string
   ctaText: string
   bgColor: string
+  product_id?: number | null
 }
 
 export interface Brand {

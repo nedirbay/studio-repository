@@ -119,7 +119,8 @@ export const actions = {
         description: b.description,
         image: b.image,
         ctaText: b.ctaText,
-        bgColor: b.bgColor
+        bgColor: b.bgColor,
+        product_id: b.product_id ?? b.productId ?? null
       }))
     } catch (error) {
       console.error('Failed to fetch banners:', error)

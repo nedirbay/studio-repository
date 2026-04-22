@@ -64,6 +64,7 @@ watch(() => route.path, (newPath) => {
 
         <!-- Logo/Branding -->
         <router-link to="/" class="flex items-center gap-2 group no-underline shrink-0">
+          <img :src="logo" alt="Doganlar" class="w-9 h-9 object-contain shrink-0" />
           <div class="leading-tight">
             <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
             <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>

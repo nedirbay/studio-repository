@@ -10,6 +10,7 @@ import logo from '../../assets/logo1.png'
         <!-- Brand -->
         <div class="lg:col-span-1">
           <div class="flex items-center gap-3 mb-6">
+            <img :src="logo" alt="Doganlar" class="w-10 h-10 object-contain shrink-0" />
             <div class="leading-tight">
               <div class="text-xl font-black text-white tracking-tight">Doganlar</div>
               <div class="text-[10px] text-red-500 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>

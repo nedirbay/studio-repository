@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Location, Phone, Message, Camera, VideoCamera, Picture, CircleCheck, StarFilled, Timer } from '@element-plus/icons-vue'
+import { Location, Phone, Message, Camera, VideoCamera, Picture, CircleCheck, StarFilled, Timer, Trophy } from '@element-plus/icons-vue'
 </script>
 
 <template>

@@ -1,6 +1,16 @@
 <template>
   <div class="login-container">
     <div class="login-card">
+      <div class="mb-4">
+        <button
+          type="button"
+          @click="handleBack"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-blue-700 transition-colors"
+        >
+          <el-icon class="text-xl"><ArrowLeft /></el-icon>
+          Yzyna
+        </button>
+      </div>
       <div class="login-header">
         <h1 class="text-3xl font-bold text-gray-800">Hoş geldiňiz!</h1>
         <p class="text-gray-500 mt-2">Ulgama girmek üçin maglumatlaryňyzy giriziň</p>
@@ -40,6 +50,14 @@
         >
           Giriş
         </el-button>
+
+        <div class="my-6 flex items-center gap-3">
+          <div class="h-px bg-gray-200 flex-1"></div>
+          <span class="text-xs text-gray-400 font-semibold">ýa-da</span>
+          <div class="h-px bg-gray-200 flex-1"></div>
+        </div>
+
+        <div ref="googleBtnEl" class="w-full flex justify-center"></div>
         
         <div class="text-center mt-6">
           <p class="text-gray-600">
@@ -53,28 +71,85 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import ServiceGenerate from '../utils/request'
-
-const service = ServiceGenerate()
+import { actions } from '../store'
 const router = useRouter()
 const route = useRoute()
 const loginFormRef = ref()
 const loading = ref(false)
 const rememberMe = ref(false)
+const googleBtnEl = ref<HTMLElement | null>(null)
 
 const loginForm = reactive({
   username: '',
   password: ''
 })
 
+function handleBack() {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  router.push('/')
+}
+
 const rules = {
   username: [{ required: true, message: 'Ulanyjy adyňyzy giriziň', trigger: 'blur' }],
   password: [{ required: true, message: 'Parolyňyzy giriziň', trigger: 'blur' }]
 }
+
+async function handleGoogleCredential(credential: string) {
+  loading.value = true
+  try {
+    const data = await actions.googleLogin(credential)
+    if (data.jwt) {
+      ElMessage.success('Google arkaly üstünlikli girildi!')
+
+      const redirectPath = (route.query.redirect as string) || '/'
+      router.push(redirectPath)
+    }
+  } catch (error: any) {
+    console.error('Google login error:', error)
+    const errorMsg = error.response?.data?.error || 'Google arkaly girmek başartmady'
+    ElMessage.error(errorMsg)
+  } finally {
+    loading.value = false
+  }
+}
+
+function initGoogleButton(attempt = 0) {
+  const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim()
+  if (!clientId) return
+
+  const google = (window as any).google
+  if (!google?.accounts?.id) {
+    if (attempt < 30) setTimeout(() => initGoogleButton(attempt + 1), 200)
+    return
+  }
+
+  if (!googleBtnEl.value) return
+  googleBtnEl.value.innerHTML = ''
+
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: (resp: any) => resp?.credential && handleGoogleCredential(resp.credential),
+  })
+
+  google.accounts.id.renderButton(googleBtnEl.value, {
+    theme: 'outline',
+    size: 'large',
+    width: 360,
+    text: 'signin_with',
+    shape: 'pill',
+  })
+}
+
+onMounted(() => {
+  initGoogleButton()
+})
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
@@ -83,10 +158,8 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const res = await service.post('auth/login', loginForm)
-        if (res.data.jwt) {
-          localStorage.setItem('token', res.data.jwt)
-          localStorage.setItem('user', JSON.stringify(res.data.user))
+        const data = await actions.login(loginForm)
+        if (data.jwt) {
           ElMessage.success('Hasabyňyz tassyklanyldy we aktiwleşdirildi!')
           
           const redirectPath = route.query.redirect as string || '/'

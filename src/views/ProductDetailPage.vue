@@ -92,8 +92,7 @@ const reviewForm = ref({
 })
 
 async function submitReview() {
-  const token = localStorage.getItem('token')
-  if (!token) {
+  if (!store.isAuthenticated) {
     ElMessage.warning('Teswir ýazmak üçin ilki bilen ulgama giriň')
     router.push('/login')
     return
@@ -239,7 +238,7 @@ function formatDate(dateStr: string) {
             <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ product.name }}</h1>
             
             <!-- Rating -->
-            <div class="flex items-center gap-3">
+            <div v-if="product.reviews > 0" class="flex items-center gap-3">
               <el-rate :model-value="product.rating" disabled show-score text-color="#ff9900" />
               <span class="text-sm text-gray-500">({{ product.reviews }} syn)</span>
             </div>
@@ -392,7 +391,7 @@ function formatDate(dateStr: string) {
 
           <!-- Reviews Tab -->
           <div v-if="activeTab === 'reviews'">
-            <div class="flex items-center justify-between mb-6">
+            <div v-if="comments.length > 0" class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-3">
                 <div class="text-3xl font-bold text-gray-900">{{ product.rating }}</div>
                 <div>
@@ -401,6 +400,7 @@ function formatDate(dateStr: string) {
                 </div>
               </div>
               <button 
+                v-if="store.isAuthenticated"
                 @click="showReviewForm = true" 
                 class="btn-primary text-sm"
               >
@@ -439,7 +439,11 @@ function formatDate(dateStr: string) {
             <div v-if="comments.length === 0" class="text-center py-8">
               <el-icon class="text-5xl text-gray-300 mb-3"><ChatDotRound /></el-icon>
               <p class="text-gray-500 mb-4">Entek syn ýok. Bu haryt üçin ilkinji syny ýazyň!</p>
-              <button @click="showReviewForm = true" class="btn-primary">Syn ýaz</button>
+              <div v-if="!store.isAuthenticated" class="flex flex-col items-center gap-3">
+                <p class="text-gray-500 mb-2 font-medium">Syn ýazmak üçin login bolmaly</p>
+                <router-link to="/register" class="btn-primary px-8">Agza bol</router-link>
+              </div>
+              <button v-else @click="showReviewForm = true" class="btn-primary">Syn ýaz</button>
             </div>
 
             <div v-else class="space-y-6">

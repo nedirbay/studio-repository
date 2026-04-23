@@ -76,10 +76,8 @@ const newProducts = computed(() =>
               <div class="relative z-10">
                 <h3 class="font-bold mb-2">Bize agza boluň!</h3>
                 <p class="text-xs text-gray-400 mb-4">Täze harytlardan ilkinji bolup habardar boluň.</p>
-                <el-input placeholder="Email ýazyň" class="new-entry-input mb-2" />
-                <el-button type="primary" class="w-full !rounded-xl">Ýazyl</el-button>
               </div>
-              <el-icon class="absolute -bottom-6 -right-6 text-8xl text-white/5 rotate-12"><Pointer /></el-icon>
+              <el-button type="primary" class="w-full !rounded-xl"><a href="/register">Agza bolmak</a></el-button>
             </div>
           </div>
         </aside>

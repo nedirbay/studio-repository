@@ -9,19 +9,16 @@ import {
   UserFilled
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { store, actions } from '../../store'
 
 const router = useRouter()
 
 // Auth state
-const isLoggedIn = computed(() => !!localStorage.getItem('token'))
-const currentUser = computed(() => {
-  const user = localStorage.getItem('user')
-  return user ? JSON.parse(user) : null
-})
+const isLoggedIn = computed(() => store.isAuthenticated)
+const currentUser = computed(() => store.user)
 
 function handleLogout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+  actions.logout()
   ElMessage.success('Siz sistemadan üstünlikli çykdyňyz!')
   router.push('/login')
 }
@@ -35,13 +32,13 @@ function handleLogout() {
           <template v-if="currentUser?.username">
             {{ currentUser.username.charAt(0).toUpperCase() }}
           </template>
-          <el-icon v-else><UserFilled /></el-icon>
+          <el-icon v-else class="text-xl"><UserFilled /></el-icon>
         </div>
         <div class="hidden lg:block text-left">
           <p class="text-[10px] text-gray-400 font-bold uppercase leading-none mb-0.5">Ulanyjy</p>
           <p class="text-sm font-bold text-gray-700 group-hover:text-red-600 truncate max-w-[100px] leading-none">{{ currentUser?.username }}</p>
         </div>
-        <el-icon class="text-gray-400 group-hover:text-red-600 transition-colors"><ArrowDown /></el-icon>
+        <el-icon class="text-xl text-gray-400 group-hover:text-red-600 transition-colors"><ArrowDown /></el-icon>
       </button>
       
       <template #dropdown>
@@ -85,7 +82,7 @@ function handleLogout() {
       to="/login"
       class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-red-600/20 active:scale-95"
     >
-      <el-icon class="text-xl"><User /></el-icon>
+      <el-icon class="text-2xl"><User /></el-icon>
       Giriş
     </router-link>
   </div>

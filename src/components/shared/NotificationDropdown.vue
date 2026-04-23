@@ -61,7 +61,7 @@ function formatDate(dateStr: string) {
 <template>
   <el-dropdown trigger="click" placement="bottom-end">
     <div class="relative cursor-pointer hover:bg-gray-100 p-2 rounded-full transition-colors flex items-center group">
-      <el-icon class="text-3xl text-gray-700 group-hover:text-red-500 transition-colors">
+      <el-icon class="text-4xl text-gray-700 group-hover:text-red-500 transition-colors">
         <Bell />
       </el-icon>
       <div 

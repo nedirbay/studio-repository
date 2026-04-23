@@ -5,7 +5,6 @@ import { navItems as staticNavItems } from '../../data/products'
 import { store, actions, cartCount } from '../../store'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
-import logo from '../../assets/logo1.png'
 import { Search, ShoppingCart, ArrowDown, Menu as MenuIcon, Close } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -57,14 +56,13 @@ watch(() => route.path, (newPath) => {
           @click="mobileMenuOpen = !mobileMenuOpen"
           class="md:hidden p-2 -ml-2 text-gray-600 hover:text-red-600 transition-colors"
         >
-          <el-icon class="text-3xl">
+          <el-icon class="text-4xl">
             <component :is="mobileMenuOpen ? Close : MenuIcon" />
           </el-icon>
         </button>
 
         <!-- Logo/Branding -->
-        <router-link to="/" class="flex items-center gap-2 group no-underline shrink-0">
-          <img :src="logo" alt="Doganlar" class="w-9 h-9 object-contain shrink-0" />
+        <router-link to="/" class="flex items-center group no-underline shrink-0">
           <div class="leading-tight">
             <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
             <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
@@ -96,7 +94,7 @@ watch(() => route.path, (newPath) => {
               @keyup.enter="handleSearch"
             >
               <template #prefix>
-                <el-icon class="text-gray-400 text-xl"><Search /></el-icon>
+                <el-icon class="text-gray-400 text-2xl"><Search /></el-icon>
               </template>
             </el-input>
             <el-button 
@@ -105,7 +103,7 @@ watch(() => route.path, (newPath) => {
               class="search-btn"
               @click="handleSearch"
             >
-              <el-icon class="text-xl"><Search /></el-icon>
+              <el-icon class="text-2xl"><Search /></el-icon>
             </el-button>
           </div>
         </div>
@@ -117,7 +115,7 @@ watch(() => route.path, (newPath) => {
             @click="actions.toggleCartDrawer(true)"
             class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
           >
-            <el-icon class="text-4xl"><ShoppingCart /></el-icon>
+            <el-icon class="text-5xl"><ShoppingCart /></el-icon>
             <span 
               v-if="cartCount > 0"
               class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white transform translate-x-1 -translate-y-1 shadow-sm group-hover:scale-110 transition-transform"
@@ -155,7 +153,7 @@ watch(() => route.path, (newPath) => {
               :exact-active-class="item.href === '/' ? 'bg-red-600 text-white' : ''"
             >
               {{ item.label }}
-              <el-icon v-if="item.children" class="text-xs ml-0.5"><ArrowDown /></el-icon>
+              <el-icon v-if="item.children" class="text-sm ml-0.5"><ArrowDown /></el-icon>
             </router-link>
             <div
               v-if="item.children && activeDropdown === item.label"

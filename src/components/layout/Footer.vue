@@ -17,7 +17,7 @@ import logo from '../../assets/logo1.png'
             </div>
           </div>
           <p class="text-sm text-gray-400 leading-relaxed mb-4">
-            Aşgabatda we Türkmenistanda siziň ynamly tehnologiýa hyzmatdaşyňyz. Biz iň soňky kompýuterleri, noutbuklary, komponentleri we periferiýa enjamlaryny hödürleýäris.
+            Doganlar foto merkezi Mary şäherinde ýerleşip, foto söýüjiler we professional fotograflar üçin ähli amatlyklary döredýär. Biz diňe bir haryt satman, eýsem siziň durmuşyňyzyň iň dury pursatlaryny bakylyga öwürmekde ýakyndan ýardam berýäris.
           </p>
           <div class="flex gap-3">
             <a href="#" class="w-8 h-8 bg-gray-700 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors">
@@ -29,6 +29,10 @@ import logo from '../../assets/logo1.png'
             <a href="#" class="w-8 h-8 bg-gray-700 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors">
               <el-icon class="text-xs"><VideoCamera /></el-icon>
             </a>
+            <!-- tiktok akkaunta baglanyşdyrmak -->
+            <a href="https://www.tiktok.com/@doganlar.studio" class="w-8 h-8 bg-gray-700 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors">
+              <span class="text-xs font-bold">tk</span>
+            </a>          
           </div>
         </div>
 
@@ -38,11 +42,7 @@ import logo from '../../assets/logo1.png'
           <ul class="space-y-2">
             <li v-for="link in [
               { label: 'Baş sahypa', href: '/' },
-              { label: 'Noutbuklar', href: '/products/laptops' },
-              { label: 'Desktop PK', href: '/products/desktops' },
-              { label: 'Komponentler', href: '/products/components' },
-              { label: 'Monitorlar', href: '/products/monitors' },
-              { label: 'Aksessuarlar', href: '/products/accessories' },
+              { label: 'Harytlar', href: '/products' },
               { label: 'Arzanladyşlar we Teklipler', href: '/deals' }
             ]" :key="link.label">
               <router-link :to="link.href" class="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1">
@@ -58,14 +58,8 @@ import logo from '../../assets/logo1.png'
           <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Müşderi hyzmaty</h4>
           <ul class="space-y-2">
             <li v-for="link in [
-              { label: 'Meniň hasabym', href: '/account' },
-              { label: 'Sargydy yzarla', href: '/track' },
-              { label: 'Yzyna gaýtarmak düzgüni', href: '/returns' },
-              { label: 'Kepillik barada maglumat', href: '/warranty' },
-              { label: 'Köp soralýan soraglar', href: '/faq' },
-              { label: 'Biz bilen habarlaşyň', href: '/support' },
-              { label: 'Hyzmat merkezi', href: '/service' },
-              { label: 'Admin Paneli', href: '/admin' }
+              { label: 'Meniň hasabym', href: '/profile' },
+              { label: 'Habarlar', href: '/blog' },
             ]" :key="link.label">
               <router-link :to="link.href" class="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1">
                 <el-icon class="text-xs"><ArrowRight /></el-icon>
@@ -96,7 +90,7 @@ import logo from '../../assets/logo1.png'
             </li>
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Clock /></el-icon>
-              <span class="text-sm text-gray-400">Duş – Şen: 9:00 – 18:00</span>
+              <span class="text-sm text-gray-400">Iş wagty: 8:00 – 19:00</span>
             </li>
           </ul>
         </div>
@@ -107,13 +101,8 @@ import logo from '../../assets/logo1.png'
     <div class="border-t border-gray-800">
       <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p class="text-xs text-gray-500">
-          © 2024 Doganlar foto merkezi. Ähli hukuklar goralan.
+          © {{ new Date().getFullYear() }} Doganlar foto merkezi. Ähli hukuklar goralan.
         </p>
-        <div class="flex items-center gap-4 text-xs text-gray-500">
-          <a href="#" class="hover:text-gray-300 transition-colors">Gizlinlik syýasaty</a>
-          <a href="#" class="hover:text-gray-300 transition-colors">Ulanyş şertleri</a>
-          <a href="#" class="hover:text-gray-300 transition-colors">Saýt kartasy</a>
-        </div>
       </div>
     </div>
   </footer>

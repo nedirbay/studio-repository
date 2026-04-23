@@ -7,7 +7,7 @@ onMounted(() => {
   // Automatically start fade out after 2 seconds
   setTimeout(() => {
     show.value = false
-  }, 2000)
+  },1500)
 })
 </script>
 

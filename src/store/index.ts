@@ -24,6 +24,7 @@ interface StoreState {
   cartDrawerOpen: boolean
   initialized: boolean
   isAuthenticated: boolean
+  user: User | null
   loading: boolean
 }
 
@@ -49,6 +50,7 @@ export const store = reactive<StoreState>({
   cartDrawerOpen: false,
   initialized: false,
   isAuthenticated: !!localStorage.getItem('token'),
+  user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
   loading: false
 })
 
@@ -432,6 +434,38 @@ export const actions = {
   },
 
   // Auth & OTP Actions
+  async login(loginData: any) {
+    try {
+      const res = await service.post('auth/login', loginData)
+      if (res.data.jwt) {
+        localStorage.setItem('token', res.data.jwt)
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+        store.isAuthenticated = true
+        store.user = res.data.user
+      }
+      return res.data
+    } catch (error) {
+      console.error('Login failed:', error)
+      throw error
+    }
+  },
+
+  async googleLogin(credential: string) {
+    try {
+      const res = await service.post('auth/google', { credential })
+      if (res.data.jwt) {
+        localStorage.setItem('token', res.data.jwt)
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+        store.isAuthenticated = true
+        store.user = res.data.user
+      }
+      return res.data
+    } catch (error) {
+      console.error('Google login failed:', error)
+      throw error
+    }
+  },
+
   async register(userData: any) {
     try {
       const res = await service.post('auth/register', userData)
@@ -448,12 +482,21 @@ export const actions = {
       if (res.data.jwt) {
         localStorage.setItem('token', res.data.jwt)
         localStorage.setItem('user', JSON.stringify(res.data.user))
+        store.isAuthenticated = true
+        store.user = res.data.user
       }
       return res.data
     } catch (error) {
       console.error('OTP verification failed:', error)
       throw error
     }
+  },
+
+  logout() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    store.isAuthenticated = false
+    store.user = null
   },
 
   async resendOtp(email: string) {

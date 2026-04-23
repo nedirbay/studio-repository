@@ -509,6 +509,26 @@ export const actions = {
     }
   },
 
+  async forgotPassword(email: string) {
+    try {
+      const res = await service.post('auth/forgot-password', { email })
+      return res.data
+    } catch (error) {
+      console.error('Forgot password failed:', error)
+      throw error
+    }
+  },
+
+  async resetPassword(payload: any) {
+    try {
+      const res = await service.post('auth/reset-password', payload)
+      return res.data
+    } catch (error) {
+      console.error('Reset password failed:', error)
+      throw error
+    }
+  },
+
   // Review Actions
   async fetchReviews(productId: number) {
     try {

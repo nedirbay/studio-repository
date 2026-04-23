@@ -79,6 +79,12 @@ const routes = [
     meta: { hideLayout: true }
   },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('../views/ForgotPasswordPage.vue'),
+    meta: { hideLayout: true }
+  },
+  {
     path: '/admin',
     component: () => import('../components/layout/AdminLayout.vue'),
     meta: { requiresAuth: true },

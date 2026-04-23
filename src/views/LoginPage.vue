@@ -39,7 +39,7 @@
         
         <div class="flex items-center justify-between mb-6">
           <el-checkbox v-model="rememberMe">Meni ýatda sakla</el-checkbox>
-          <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Paroly ýatdan çykardyňyzmy?</a>
+          <router-link to="/forgot-password" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Paroly ýatdan çykardyňyzmy?</router-link>
         </div>
         
         <el-button 

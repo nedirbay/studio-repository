@@ -640,7 +640,7 @@ export function getProductById(id: number): Product | undefined {
 }
 
 export const navItems: NavItem[] = [
-  { label: 'Baş sahypa', href: '/' },
+  { label: 'Baş sahypa', href: '/home' },
   { 
     label: 'Kategoriýalar', 
     href: '/products',
@@ -656,6 +656,8 @@ export const navItems: NavItem[] = [
   },
   // { label: 'Arzanladyşlar', href: '/deals' },
   { label: 'Täze gelenler', href: '/new-arrivals' },
+  { label: 'FotoStudio', href: '/studio' },
+  { label: 'Sowgatlar', href: '/gifts' },
   { label: 'Biz barada', href: '/about' },
   { label: 'Blog', href: '/blog' },
   // { label: 'Goldaw', href: '/support' },

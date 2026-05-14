@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { User } from '../types'
+import EntryPage from '../views/EntryPage.vue'
 import HomePage from '../views/HomePage.vue'
 import ProductsPage from '../views/ProductsPage.vue'
 import ProductDetailPage from '../views/ProductDetailPage.vue'
@@ -12,8 +13,24 @@ import ProfilePage from '../views/ProfilePage.vue'
 const routes = [
   {
     path: '/',
+    name: 'Entry',
+    component: EntryPage,
+    meta: { hideLayout: true }
+  },
+  {
+    path: '/home',
     name: 'Home',
     component: HomePage
+  },
+  {
+    path: '/studio',
+    name: 'PhotoStudio',
+    component: () => import('../views/PhotoStudioPage.vue')
+  },
+  {
+    path: '/gifts',
+    name: 'Gifts',
+    component: () => import('../views/GiftsPage.vue')
   },
   {
     path: '/profile',

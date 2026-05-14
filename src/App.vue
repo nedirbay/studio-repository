@@ -21,7 +21,8 @@ const shouldShowLayout = computed(() => {
   // Hide layout for admin pages and routes with hideLayout meta
   const isAdmin = route.path.startsWith('/admin')
   const isAuthPage = route.meta.hideLayout === true
-  return !isAdmin && !isAuthPage
+  const isStudioCollectionView = route.path.startsWith('/studio') && typeof route.query.collection === 'string'
+  return !isAdmin && !isAuthPage && !isStudioCollectionView
 })
 </script>
 

@@ -1,6 +1,6 @@
 import { reactive, watch, computed } from 'vue'
 import ServiceGenerate from '../utils/request'
-import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview, User } from '../types'
+import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview, User, PhotoReel, PhotoReelComment, PhotoCollection, Campaign } from '../types'
 
 const service = ServiceGenerate()
 const STORAGE_KEY = 'doganlar_store_data'
@@ -26,6 +26,10 @@ interface StoreState {
   isAuthenticated: boolean
   user: User | null
   loading: boolean
+  reels: PhotoReel[]
+  studioCollections: PhotoCollection[]
+  studioComments: PhotoReelComment[]
+  campaigns: Campaign[]
 }
 
 // Load initial state from localStorage if exists
@@ -51,7 +55,11 @@ export const store = reactive<StoreState>({
   initialized: false,
   isAuthenticated: !!localStorage.getItem('token'),
   user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
-  loading: false
+  loading: false,
+  reels: [],
+  studioCollections: [],
+  studioComments: [],
+  campaigns: []
 })
 
 // Persistence
@@ -113,7 +121,7 @@ export const actions = {
 
   async fetchBanners() {
     try {
-      const res = await service.get('main/banners')
+      const res = await service.get('banners')
       store.banners = res.data.map((b: any) => ({
         id: b.id,
         title: b.title,
@@ -131,7 +139,7 @@ export const actions = {
 
   async fetchPromos() {
     try {
-      const res = await service.get('main/promos')
+      const res = await service.get('promos')
       store.promos = res.data
     } catch (error) {
       console.error('Failed to fetch promos:', error)
@@ -140,7 +148,7 @@ export const actions = {
 
   async addBanner(bannerData: any) {
     try {
-      await service.post('main/banners', bannerData)
+      await service.post('banners', bannerData)
       this.fetchBanners()
     } catch (error) {
       console.error('Failed to add banner:', error)
@@ -150,7 +158,7 @@ export const actions = {
 
   async updateBanner(bannerData: any) {
     try {
-      await service.put('main/banners', bannerData)
+      await service.put('banners', bannerData)
       this.fetchBanners()
     } catch (error) {
       console.error('Failed to update banner:', error)
@@ -160,7 +168,7 @@ export const actions = {
 
   async deleteBanner(id: number) {
     try {
-      await service.delete('main/banners', { data: { id } })
+      await service.delete('banners', { data: { id } })
       this.fetchBanners()
     } catch (error) {
       console.error('Failed to delete banner:', error)
@@ -188,7 +196,7 @@ export const actions = {
 
   async fetchOrders() {
     try {
-      const res = await service.get('main/orders')
+      const res = await service.get('orders')
       store.orders = res.data
     } catch (error) {
       console.error('Failed to fetch orders:', error)
@@ -420,7 +428,7 @@ export const actions = {
 
   async submitOrder(orderData: any) {
     try {
-      const res = await service.post('main/orders', {
+      const res = await service.post('orders', {
         ...orderData,
         total_amount: cartTotal.value,
         paid_amount: 0 // New order, not yet paid
@@ -615,4 +623,161 @@ export const actions = {
       throw error
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// PhotoStudio (Reels) actions
+// ---------------------------------------------------------------------------
+
+export const photoStudioActions = {
+  async fetchCollections(kind?: 'video' | 'image') {
+    try {
+      const params = kind ? { kind } : undefined
+      const res = await service.get('photostudio/collections/', { params })
+      const list: PhotoCollection[] = Array.isArray(res.data) ? res.data : (res.data.results || [])
+      store.studioCollections = list
+      store.reels = list.flatMap(collection => collection.items)
+      return list
+    } catch (error) {
+      console.error('Failed to fetch studio collections:', error)
+      return []
+    }
+  },
+
+  async fetchReels(opts: { append?: boolean; category?: number } = {}) {
+    try {
+      const params: any = {}
+      if (opts.category) params.category = opts.category
+      const res = await service.get('photostudio/reels/', { params })
+      const list: PhotoReel[] = Array.isArray(res.data) ? res.data : (res.data.results || [])
+      if (opts.append) {
+        const existingIds = new Set(store.reels.map(r => r.id))
+        const fresh = list.filter(r => !existingIds.has(r.id))
+        store.reels = [...store.reels, ...fresh]
+      } else {
+        store.reels = list
+      }
+      return list
+    } catch (error) {
+      console.error('Failed to fetch reels:', error)
+      return []
+    }
+  },
+
+  async registerView(reelId: number) {
+    try {
+      await service.post(`photostudio/reels/${reelId}/view/`)
+    } catch (_e) {
+      /* ignore */
+    }
+  },
+
+  async toggleLike(reelId: number) {
+    try {
+      const res = await service.post(`photostudio/reels/${reelId}/like/`)
+      const apply = (reel: PhotoReel) => {
+        reel.liked_by_me = res.data.liked
+        reel.likes_count = res.data.likes_count
+      }
+      const reel = store.reels.find(r => r.id === reelId)
+      if (reel) apply(reel)
+      store.studioCollections.forEach(collection => {
+        const item = collection.items.find(r => r.id === reelId)
+        if (item) apply(item)
+      })
+    } catch (error) {
+      console.error('Failed to toggle like:', error)
+    }
+  },
+
+  async fetchComments(reelId: number) {
+    try {
+      const res = await service.get(`photostudio/reels/${reelId}/comments/`)
+      store.studioComments = res.data
+      return res.data
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      return []
+    }
+  },
+
+  async addComment(reelId: number, text: string, parent: number | null = null) {
+    try {
+      const res = await service.post(`photostudio/reels/${reelId}/comments/`, { text, parent })
+      store.studioComments.unshift(res.data)
+      const apply = (reel: PhotoReel) => {
+        reel.comments_count = (reel.comments_count || 0) + 1
+      }
+      const reel = store.reels.find(r => r.id === reelId)
+      if (reel) apply(reel)
+      store.studioCollections.forEach(collection => {
+        const item = collection.items.find(r => r.id === reelId)
+        if (item) apply(item)
+      })
+      return res.data
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+      throw error
+    }
+  },
+
+  async shareReel(reelId: number, channel: string = '') {
+    try {
+      const res = await service.post(`photostudio/reels/${reelId}/share/`, { channel })
+      const apply = (reel: PhotoReel) => {
+        reel.shares_count = res.data.shares_count
+      }
+      const reel = store.reels.find(r => r.id === reelId)
+      if (reel) apply(reel)
+      store.studioCollections.forEach(collection => {
+        const item = collection.items.find(r => r.id === reelId)
+        if (item) apply(item)
+      })
+    } catch (error) {
+      console.error('Failed to share reel:', error)
+    }
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Gifts / Campaigns actions
+// ---------------------------------------------------------------------------
+
+export const giftsActions = {
+  async fetchCampaigns(filters: { type?: string; status?: string } = {}) {
+    try {
+      const res = await service.get('gifts/campaigns/', { params: filters })
+      const list: Campaign[] = Array.isArray(res.data) ? res.data : (res.data.results || [])
+      store.campaigns = list
+      return list
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error)
+      return []
+    }
+  },
+
+  async joinCampaign(campaignId: number, payload: { full_name: string; phone: string; email?: string; note?: string }) {
+    try {
+      const res = await service.post(`gifts/campaigns/${campaignId}/join/`, payload)
+      const campaign = store.campaigns.find(c => c.id === campaignId)
+      if (campaign) {
+        campaign.joined_by_me = true
+        campaign.participants_count = (campaign.participants_count || 0) + 1
+      }
+      return res.data
+    } catch (error) {
+      console.error('Failed to join campaign:', error)
+      throw error
+    }
+  },
+
+  async fetchFeatured() {
+    try {
+      const res = await service.get('gifts/campaigns/featured/')
+      return res.data
+    } catch (error) {
+      console.error('Failed to fetch featured campaigns:', error)
+      return []
+    }
+  },
 }

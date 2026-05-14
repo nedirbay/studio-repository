@@ -3,14 +3,27 @@ import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { navItems as staticNavItems } from '../../data/products'
 import { store, actions, cartCount } from '../../store'
+import type { NavItem } from '../../types'
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
 import { Search, ShoppingCart, ArrowDown, Menu as MenuIcon, Close } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
-const navItems = computed(() => {
-  // We can also make navItems dynamic in store later, but for now we'll match categories
-  const items = [...staticNavItems]
+const route = useRoute()
+const isStudioRoute = computed(() => route.path.startsWith('/studio'))
+
+const navItems = computed<NavItem[]>(() => {
+  if (isStudioRoute.value) {
+    return [
+      { label: 'Wideolar', href: '/studio?tab=videos' },
+      { label: 'Suratlar', href: '/studio?tab=photos' },
+    ]
+  }
+
+  const items = staticNavItems.map(item => ({
+    ...item,
+    children: item.children ? [...item.children] : undefined,
+  }))
   const catNav = items.find(i => i.label === 'Kategoriýalar')
   if (catNav) {
     catNav.children = store.categories.map(c => ({
@@ -20,8 +33,6 @@ const navItems = computed(() => {
   }
   return items
 })
-
-const route = useRoute()
 
 const searchQuery = ref('')
 const searchCategory = ref('all')
@@ -39,6 +50,13 @@ function closeDropdown() {
 
 function handleSearch() {
   console.log('Searching:', searchQuery.value, 'in category:', searchCategory.value)
+}
+
+function isActiveLink(href: string) {
+  if (href.startsWith('/studio?')) {
+    return route.fullPath === href
+  }
+  return route.path === href
 }
 
 // Persist active route to localStorage
@@ -62,7 +80,7 @@ watch(() => route.path, (newPath) => {
         </button>
 
         <!-- Logo/Branding -->
-        <router-link to="/" class="flex items-center group no-underline shrink-0">
+        <router-link to="/home" class="flex items-center group no-underline shrink-0">
           <div class="leading-tight">
             <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
             <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
@@ -70,7 +88,7 @@ watch(() => route.path, (newPath) => {
         </router-link>
 
         <!-- Search Bar -->
-        <div class="flex-1 hidden md:flex max-w-2xl">
+        <div v-if="!isStudioRoute" class="flex-1 hidden md:flex max-w-2xl">
           <div class="search-wrapper flex w-full items-center">
             <el-select 
               v-model="searchCategory" 
@@ -111,7 +129,8 @@ watch(() => route.path, (newPath) => {
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
           <!-- Cart Icon -->
-          <button 
+          <button
+            v-if="!isStudioRoute"
             @click="actions.toggleCartDrawer(true)"
             class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
           >
@@ -124,7 +143,7 @@ watch(() => route.path, (newPath) => {
             </span>
           </button>
 
-          <NotificationDropdown />
+          <NotificationDropdown v-if="!isStudioRoute" />
           
           <!-- User Menu -->
           <div class="user-menu-wrapper ml-1">
@@ -149,8 +168,7 @@ watch(() => route.path, (newPath) => {
             <router-link
               :to="item.href"
               class="flex items-center gap-1 px-4 py-3 text-sm font-medium text-gray-200 hover:text-white hover:bg-red-600 transition-all duration-200"
-              :active-class="item.href === '/' ? '' : 'bg-red-600 text-white'"
-              :exact-active-class="item.href === '/' ? 'bg-red-600 text-white' : ''"
+              :class="{ 'bg-red-600 text-white': isActiveLink(item.href) }"
             >
               {{ item.label }}
               <el-icon v-if="item.children" class="text-sm ml-0.5"><ArrowDown /></el-icon>
@@ -176,7 +194,7 @@ watch(() => route.path, (newPath) => {
 
     <!-- Mobile Menu -->
     <div v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-200 shadow-lg">
-      <div class="px-4 py-3">
+      <div v-if="!isStudioRoute" class="px-4 py-3">
         <el-input
           v-model="searchQuery"
           placeholder="Harytlary gözläň..."
@@ -188,14 +206,13 @@ watch(() => route.path, (newPath) => {
           <router-link
             :to="item.href"
             class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 border-b border-gray-100"
-            active-class="text-red-600 bg-red-50"
+            :class="{ 'text-red-600 bg-red-50': isActiveLink(item.href) }"
           >
             {{ item.label }}
           </router-link>
         </li>
       </ul>
-    </div>
-    
+    </div>    
     <!-- Cart Drawer -->
     <CartDrawer />
   </header>

@@ -635,11 +635,44 @@ export const photoStudioActions = {
       const params = kind ? { kind } : undefined
       const res = await service.get('photostudio/collections/', { params })
       const list: PhotoCollection[] = Array.isArray(res.data) ? res.data : (res.data.results || [])
-      store.studioCollections = list
-      store.reels = list.flatMap(collection => collection.items)
-      return list
+      store.studioCollections = list.map(c => ({ ...c, items: c.items || [] }))
+      return store.studioCollections
     } catch (error) {
       console.error('Failed to fetch studio collections:', error)
+      return []
+    }
+  },
+
+  resetCollectionItems(collectionId: number) {
+    const collection = store.studioCollections.find(c => c.id === collectionId)
+    if (collection) collection.items = []
+  },
+
+  async fetchCollectionItem(collectionId: number, offset: number = 0, limit: number = 1) {
+    try {
+      const res = await service.get(`photostudio/collections/${collectionId}/items/`, {
+        params: { offset, limit }
+      })
+      const data = res.data
+      const items: PhotoReel[] = Array.isArray(data)
+        ? data
+        : (data.results || data.items || [])
+      const total: number | undefined = data?.count ?? data?.total
+
+      const collection = store.studioCollections.find(c => c.id === collectionId)
+      if (collection) {
+        const existingIds = new Set(collection.items.map(i => i.id))
+        const fresh = items.filter(i => !existingIds.has(i.id))
+        collection.items = [...collection.items, ...fresh]
+        if (typeof total === 'number') collection.items_count = total
+
+        const reelIds = new Set(store.reels.map(r => r.id))
+        const freshReels = fresh.filter(i => !reelIds.has(i.id))
+        if (freshReels.length) store.reels = [...store.reels, ...freshReels]
+      }
+      return items
+    } catch (error) {
+      console.error('Failed to fetch collection item:', error)
       return []
     }
   },

@@ -7,6 +7,10 @@ import App from './App.vue'
 import router from './router'
 import VueApexCharts from 'vue3-apexcharts'
 
+import ServiceGenerate from './utils/request'
+import { setHttpClientFactory } from './repositories/base'
+setHttpClientFactory(() => ServiceGenerate())
+
 import { actions } from './store'
 
 const app = createApp(App)

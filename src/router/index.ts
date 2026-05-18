@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { User } from '../types'
-import EntryPage from '../views/EntryPage.vue'
-import HomePage from '../views/HomePage.vue'
-import ProductsPage from '../views/ProductsPage.vue'
-import ProductDetailPage from '../views/ProductDetailPage.vue'
-import DealsPage from '../views/DealsPage.vue'
-import NewArrivalsPage from '../views/NewArrivalsPage.vue'
-import SupportPage from '../views/SupportPage.vue'
-import ProfilePage from '../views/ProfilePage.vue'
+import EntryPage from '../views/EntryPage/EntryPage.vue'
+import HomePage from '../views/HomePage/HomePage.vue'
+import ProductsPage from '../views/ProductsPage/ProductsPage.vue'
+import ProductDetailPage from '../views/ProductDetailPage/ProductDetailPage.vue'
+import DealsPage from '../views/DealsPage/DealsPage.vue'
+import NewArrivalsPage from '../views/NewArrivalsPage/NewArrivalsPage.vue'
+import SupportPage from '../views/SupportPage/SupportPage.vue'
+import ProfilePage from '../views/ProfilePage/ProfilePage.vue'
 
 const routes = [
   {
@@ -25,12 +25,12 @@ const routes = [
   {
     path: '/studio',
     name: 'PhotoStudio',
-    component: () => import('../views/PhotoStudioPage.vue')
+    component: () => import('../views/PhotoStudioPage/PhotoStudioPage.vue')
   },
   {
     path: '/gifts',
     name: 'Gifts',
-    component: () => import('../views/GiftsPage.vue')
+    component: () => import('../views/GiftsPage/GiftsPage.vue')
   },
   {
     path: '/profile',
@@ -71,34 +71,34 @@ const routes = [
   {
     path: '/about',
     name: 'About',
-    component: () => import('../views/AboutPage.vue')
+    component: () => import('../views/AboutPage/AboutPage.vue')
   },
   {
     path: '/blog',
     name: 'BlogList',
-    component: () => import('../views/BlogListPage.vue')
+    component: () => import('../views/BlogListPage/BlogListPage.vue')
   },
   {
     path: '/blog/:slug',
     name: 'BlogDetail',
-    component: () => import('../views/BlogDetailPage.vue')
+    component: () => import('../views/BlogDetailPage/BlogDetailPage.vue')
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/LoginPage.vue'),
+    component: () => import('../views/LoginPage/LoginPage.vue'),
     meta: { hideLayout: true }
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('../views/RegisterPage.vue'),
+    component: () => import('../views/RegisterPage/RegisterPage.vue'),
     meta: { hideLayout: true }
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
-    component: () => import('../views/ForgotPasswordPage.vue'),
+    component: () => import('../views/ForgotPasswordPage/ForgotPasswordPage.vue'),
     meta: { hideLayout: true }
   },
   {
@@ -110,49 +110,49 @@ const routes = [
       {
         path: 'dashboard',
         name: 'AdminDashboard',
-        component: () => import('../views/admin/AdminDashboard.vue')
+        component: () => import('../views/admin/AdminDashboard/AdminDashboard.vue')
       },
       {
         path: 'categories',
         name: 'AdminCategories',
-        component: () => import('../views/admin/AdminCategories.vue')
+        component: () => import('../views/admin/AdminCategories/AdminCategories.vue')
       },
       {
         path: 'products',
         name: 'AdminProducts',
-        component: () => import('../views/admin/AdminProducts.vue')
+        component: () => import('../views/admin/AdminProducts/AdminProducts.vue')
       },
       {
         path: 'users',
         name: 'AdminUsers',
-        component: () => import('../views/admin/AdminUsers.vue')
+        component: () => import('../views/admin/AdminUsers/AdminUsers.vue')
       },
       {
         path: 'reviews',
         name: 'AdminReviews',
-        component: () => import('../views/admin/AdminReviews.vue'),
+        component: () => import('../views/admin/AdminReviews/AdminReviews.vue'),
         meta: { title: 'Teswirler' }
       },
       {
         path: 'messages',
         name: 'AdminMessages',
-        component: () => import('../views/admin/AdminMessages.vue'),
+        component: () => import('../views/admin/AdminMessages/AdminMessages.vue'),
         meta: { title: 'Müşderi Hatlary' }
       },
       {
         path: 'orders',
         name: 'AdminOrders',
-        component: () => import('../views/admin/AdminOrders.vue')
+        component: () => import('../views/admin/AdminOrders/AdminOrders.vue')
       },
       {
         path: 'banners',
         name: 'AdminBanners',
-        component: () => import('../views/admin/AdminBanners.vue')
+        component: () => import('../views/admin/AdminBanners/AdminBanners.vue')
       },
       {
         path: 'blogs',
         name: 'AdminBlogs',
-        component: () => import('../views/admin/AdminBlogs.vue')
+        component: () => import('../views/admin/AdminBlogs/AdminBlogs.vue')
       }
     ]
   }
@@ -163,7 +163,6 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
   let user = {}
@@ -174,16 +173,13 @@ router.beforeEach((to, _from, next) => {
     console.error('Failed to parse user from localStorage', err)
     user = {}
   }
-  
+
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  
-  // Check if it's an admin route
   const isAdminRoute = to.path.startsWith('/admin')
 
   if (requiresAuth && !token) {
     next({ path: '/login', query: { redirect: to.fullPath } })
   } else if (isAdminRoute) {
-    // Basic RBAC check
     const u = user as User
     if (u.role_name === 'Admin' || u.is_superuser) {
       next()
@@ -192,7 +188,6 @@ router.beforeEach((to, _from, next) => {
       next('/')
     }
   } else if (to.path === '/login' && token) {
-    // Redirect already logged in users to appropriate page
     const redirectPath = to.query.redirect as string || '/'
     next(redirectPath)
   } else {

@@ -6,59 +6,75 @@ import {
   CaretTop,
   CaretBottom,
   Star,
-  StarFilled,
-  ChatDotRound,
   Share,
   VideoPause,
   VideoPlay,
   Microphone,
   ArrowLeft,
-  Promotion,
 } from '@element-plus/icons-vue'
-import { store, photoStudioActions } from '../../store'
-import type { PhotoCollection, PhotoReel } from '../../types'
-import { baseMediaURL } from '../../utils/request'
+import ServiceGenerate, { baseMediaURL } from '../../utils/request'
+
+type StudioTab = 'videos' | 'photos'
+type HlsStatus = 'pending' | 'processing' | 'ready' | 'failed'
+
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+interface StudioMediaItem {
+  id: number
+  title: string
+  description?: string
+  thumbnail_image?: string
+  thumbnail_image_url?: string | null
+  video?: string
+  video_url?: string | null
+  hls_url?: string | null
+  hls_status?: HlsStatus
+  hls_error?: string
+  image?: string
+  image_url?: string | null
+  create_at?: string
+}
 
 const route = useRoute()
 const router = useRouter()
+const service = ServiceGenerate()
 const containerRef = ref<HTMLElement | null>(null)
 const currentIndex = ref(0)
 const currentListPage = ref(1)
 const pageSize = 16
 const videoRefs = ref<Record<number, HTMLVideoElement | null>>({})
 const muted = ref(true)
-const showComments = ref(false)
-const commentText = ref('')
-const sendingComment = ref(false)
+const mediaItems = ref<StudioMediaItem[]>([])
+const selectedMedia = ref<StudioMediaItem | null>(null)
+const totalListItems = ref(0)
+const listNextUrl = ref<string | null>(null)
+const listLoading = ref(false)
 const loadingMore = ref(false)
 
-const activeTab = computed<'videos' | 'photos'>(() => route.query.tab === 'photos' ? 'photos' : 'videos')
-const activeKind = computed<'video' | 'image'>(() => activeTab.value === 'videos' ? 'video' : 'image')
-const selectedCollectionId = computed(() => {
-  const raw = route.query.collection
+const activeTab = computed<StudioTab>(() => route.query.tab === 'photos' ? 'photos' : 'videos')
+const activeEndpoint = computed(() => activeTab.value === 'videos' ? 'photostudio/videos/' : 'photostudio/images/')
+const selectedMediaId = computed(() => {
+  const raw = route.query.item
   if (typeof raw !== 'string') return null
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : null
 })
-const collections = computed(() => store.studioCollections.filter(item => item.kind === activeKind.value))
-const totalListItems = computed(() => collections.value.length)
-const paginatedCollections = computed(() => {
-  const start = (currentListPage.value - 1) * pageSize
-  return collections.value.slice(start, start + pageSize)
-})
-const activeCollection = computed<PhotoCollection | null>(() =>
-  collections.value.find(item => item.id === selectedCollectionId.value) || null
-)
-const viewerItems = computed<PhotoReel[]>(() => activeCollection.value?.items || [])
-const showViewer = computed(() => activeCollection.value !== null)
-const activeReel = computed(() => viewerItems.value[currentIndex.value])
-const hasMoreItems = computed(() => {
-  const col = activeCollection.value
-  if (!col) return false
-  return col.items.length < (col.items_count || 0)
-})
+const viewerItems = computed(() => mediaItems.value)
+const showViewer = computed(() => selectedMediaId.value !== null)
+const activeReel = computed(() => viewerItems.value[currentIndex.value] || selectedMedia.value)
+const hasMoreItems = computed(() => Boolean(listNextUrl.value))
 
-function resolveMedia(url?: string) {
+function selectTab(tab: StudioTab) {
+  if (activeTab.value === tab) return
+  router.replace({ path: '/studio', query: { tab } })
+}
+
+function resolveMedia(url?: string | null) {
   if (!url) return ''
   if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url
   return baseMediaURL + url
@@ -69,46 +85,72 @@ function setVideoRef(el: unknown, id: number) {
 }
 
 function syncViewerIndex() {
-  currentIndex.value = 0
+  const id = selectedMediaId.value
+  const index = id == null ? -1 : viewerItems.value.findIndex(item => item.id === id)
+  currentIndex.value = index >= 0 ? index : 0
+}
+
+async function fetchMediaList(page = currentListPage.value, append = false) {
+  listLoading.value = !append
+  try {
+    const response = await service.get<PaginatedResponse<StudioMediaItem>>(activeEndpoint.value, {
+      params: { page, page_size: pageSize },
+    })
+    totalListItems.value = response.data.count
+    listNextUrl.value = response.data.next
+    mediaItems.value = append ? [...mediaItems.value, ...response.data.results] : response.data.results
+    currentListPage.value = page
+  } catch (_err) {
+    ElMessage.error('Media sanawy ýüklenmedi')
+  } finally {
+    listLoading.value = false
+  }
+}
+
+async function fetchMediaDetail(id: number) {
+  const response = await service.get<StudioMediaItem>(`${activeEndpoint.value}${id}/`)
+  selectedMedia.value = response.data
+  const index = mediaItems.value.findIndex(item => item.id === id)
+  if (index >= 0) {
+    mediaItems.value[index] = response.data
+  } else {
+    mediaItems.value = [response.data, ...mediaItems.value]
+  }
 }
 
 async function loadNextItem() {
-  const collection = activeCollection.value
-  if (!collection) return
-  if (loadingMore.value) return
-  if (!hasMoreItems.value) return
+  if (loadingMore.value || !hasMoreItems.value) return
   loadingMore.value = true
   try {
-    await photoStudioActions.fetchCollectionItem(collection.id, collection.items.length, 1)
+    await fetchMediaList(currentListPage.value + 1, true)
   } finally {
     loadingMore.value = false
   }
 }
 
-async function initCollectionViewer() {
-  const id = selectedCollectionId.value
+async function initMediaViewer() {
+  const id = selectedMediaId.value
   if (id == null) return
-  photoStudioActions.resetCollectionItems(id)
+  await fetchMediaDetail(id)
   syncViewerIndex()
-  await photoStudioActions.fetchCollectionItem(id, 0, 1)
   await nextTick()
-  if (containerRef.value) containerRef.value.scrollTop = 0
+  if (containerRef.value) {
+    containerRef.value.scrollTop = currentIndex.value * containerRef.value.clientHeight
+  }
   playCurrent()
-  if (hasMoreItems.value) loadNextItem()
 }
 
 async function playCurrent() {
   if (!showViewer.value || activeTab.value !== 'videos') return
   await nextTick()
-  for (const reel of viewerItems.value) {
-    const video = videoRefs.value[reel.id]
+  for (const item of viewerItems.value) {
+    const video = videoRefs.value[item.id]
     if (!video) continue
-    if (reel.id === activeReel.value?.id) {
+    if (item.id === activeReel.value?.id) {
       try {
         video.currentTime = 0
         video.muted = muted.value
         await video.play()
-        photoStudioActions.registerView(reel.id)
       } catch (_err) {
         /* autoplay blocked */
       }
@@ -160,73 +202,40 @@ function toggleMute() {
 
 function togglePlay() {
   if (!showViewer.value || activeTab.value !== 'videos') return
-  const video = videoRefs.value[activeReel.value?.id]
+  const video = videoRefs.value[activeReel.value?.id || 0]
   if (!video) return
   if (video.paused) video.play()
   else video.pause()
 }
 
-async function toggleLike() {
-  const reel = activeReel.value
-  if (!reel) return
-  if (!store.isAuthenticated) {
-    ElMessage.warning('Like üçin ulgama giriň')
-    return
-  }
-  await photoStudioActions.toggleLike(reel.id)
-}
-
-async function openComments() {
-  showComments.value = true
-  if (activeReel.value) {
-    await photoStudioActions.fetchComments(activeReel.value.id)
-  }
-}
-
-async function submitComment() {
-  if (!commentText.value.trim() || !activeReel.value) return
-  if (!store.isAuthenticated) {
-    ElMessage.warning('Teswir ýazmak üçin ulgama giriň')
-    return
-  }
-  sendingComment.value = true
-  try {
-    await photoStudioActions.addComment(activeReel.value.id, commentText.value.trim())
-    commentText.value = ''
-  } finally {
-    sendingComment.value = false
-  }
-}
-
 async function share() {
-  const reel = activeReel.value
-  if (!reel) return
-  const shareUrl = window.location.origin + `/studio?tab=${activeTab.value}&collection=${activeCollection.value?.id}`
+  const item = activeReel.value
+  if (!item) return
+  const shareUrl = window.location.origin + `/studio?tab=${activeTab.value}&item=${item.id}`
   const nativeShareAvailable = typeof navigator.share === 'function'
   try {
     if (nativeShareAvailable) {
-      await navigator.share({ title: activeCollection.value?.title || 'Doganlar Studio', url: shareUrl })
+      await navigator.share({ title: item.title || 'Doganlar Studio', url: shareUrl })
     } else {
       await navigator.clipboard.writeText(shareUrl)
       ElMessage.success('Link kopirlendi')
     }
-    photoStudioActions.shareReel(reel.id, nativeShareAvailable ? 'native' : 'clipboard')
   } catch (_e) {
     /* ignore */
   }
 }
 
-function openCollection(collectionId: number) {
-  router.replace({ path: '/studio', query: { tab: activeTab.value, collection: String(collectionId) } })
+function openMedia(itemId: number) {
+  router.replace({ path: '/studio', query: { tab: activeTab.value, item: String(itemId) } })
 }
 
 function closeViewer() {
-  showComments.value = false
+  selectedMedia.value = null
   router.replace({ path: '/studio', query: { tab: activeTab.value } })
 }
 
 function onKey(e: KeyboardEvent) {
-  if (!showViewer.value || showComments.value) return
+  if (!showViewer.value) return
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     next()
@@ -238,21 +247,28 @@ function onKey(e: KeyboardEvent) {
     togglePlay()
   } else if (e.key.toLowerCase() === 'm') {
     toggleMute()
-  } else if (e.key.toLowerCase() === 'l') {
-    toggleLike()
   } else if (e.key === 'Escape') {
     closeViewer()
   }
 }
 
-async function loadCollections() {
-  await photoStudioActions.fetchCollections(activeKind.value)
+function videoSource(item: StudioMediaItem) {
+  if (item.hls_status === 'ready' && item.hls_url) return item.hls_url
+  return item.video_url || item.video || ''
+}
+
+function imageSource(item: StudioMediaItem) {
+  return item.image_url || item.image || item.thumbnail_image_url || item.thumbnail_image || ''
+}
+
+function thumbSource(item: StudioMediaItem) {
+  return item.thumbnail_image_url || item.thumbnail_image || imageSource(item)
 }
 
 onMounted(async () => {
-  await loadCollections()
+  await fetchMediaList(1)
   if (showViewer.value) {
-    await initCollectionViewer()
+    await initMediaViewer()
   }
   window.addEventListener('keydown', onKey)
 })
@@ -264,19 +280,22 @@ onBeforeUnmount(() => {
 
 watch(activeTab, async () => {
   currentListPage.value = 1
-  await loadCollections()
+  selectedMedia.value = null
+  await fetchMediaList(1)
 })
 
-watch(selectedCollectionId, async (id) => {
+watch(currentListPage, async (page) => {
+  if (!showViewer.value) {
+    await fetchMediaList(page)
+  }
+})
+
+watch(selectedMediaId, async (id) => {
   if (id == null) {
     syncViewerIndex()
     return
   }
-  await initCollectionViewer()
-})
-
-watch(currentIndex, () => {
-  if (showComments.value) showComments.value = false
+  await initMediaViewer()
 })
 
 </script>
@@ -286,46 +305,66 @@ watch(currentIndex, () => {
     <section v-if="!showViewer" class="studio-listing">
       <div class="listing-head">
         <p class="eyebrow">Doganlar FotoStudio</p>
+        <div class="studio-tabs">
+          <button
+            class="studio-tab"
+            :class="{ active: activeTab === 'videos' }"
+            @click="selectTab('videos')"
+          >
+            Wideolar
+          </button>
+          <button
+            class="studio-tab"
+            :class="{ active: activeTab === 'photos' }"
+            @click="selectTab('photos')"
+          >
+            Suratlar
+          </button>
+        </div>
         <h1 class="listing-title">{{ activeTab === 'videos' ? 'Wideolar' : 'Suratlar' }}</h1>
         <p class="listing-subtitle">
           {{ activeTab === 'videos'
-            ? 'Her kart bir bölüm. Içine girip şol bölümdäki ähli wideolary görmek bolýar.'
-            : 'Her kart bir albom. Içine girip şol albomdaky ähli suratlary görmek bolýar.' }}
+            ? 'Wideolary saýlap uly ekranda görmek we öňki/indiki wideolara geçmek bolýar.'
+            : 'Suratlary saýlap uly ekranda görmek we öňki/indiki surata geçmek bolýar.' }}
         </p>
       </div>
 
       <div class="media-grid">
         <button
-          v-for="collection in paginatedCollections"
-          :key="collection.id"
+          v-for="item in mediaItems"
+          :key="item.id"
           class="media-card"
-          @click="openCollection(collection.id)"
+          @click="openMedia(item.id)"
         >
           <div class="media-thumb">
             <img
-              :src="resolveMedia(collection.cover_url || collection.items[0]?.thumbnail_url || collection.items[0]?.media_url)"
-              :alt="collection.title"
+              :src="resolveMedia(thumbSource(item))"
+              :alt="item.title"
               class="media-preview"
             />
             <div class="media-overlay">
-              <span class="play-chip">{{ collection.items_count }} element</span>
+              <span class="play-chip">{{ activeTab === 'videos' ? 'Wideo' : 'Surat' }}</span>
             </div>
           </div>
           <div class="media-meta">
-            <h3>{{ collection.title }}</h3>
-            <p>{{ collection.description || 'Studio bölümi' }}</p>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.description || 'Studio media' }}</p>
             <div class="meta-row">
-              <span v-if="collection.category_name">{{ collection.category_name }}</span>
-              <span>{{ collection.items_count }} media</span>
+              <span>{{ activeTab === 'videos' ? 'Video' : 'Image' }}</span>
+              <span v-if="activeTab === 'videos' && item.hls_status">{{ item.hls_status }}</span>
+              <span v-else>{{ item.create_at ? new Date(item.create_at).toLocaleDateString() : 'Täze' }}</span>
             </div>
           </div>
         </button>
-        <div v-if="!collections.length" class="empty-state light">
-          <p>{{ activeTab === 'videos' ? 'Häzirlikçe bölüm ýok' : 'Häzirlikçe albom ýok' }}</p>
+        <div v-if="listLoading" class="empty-state light">
+          <p>Ýüklenýär...</p>
+        </div>
+        <div v-else-if="!mediaItems.length" class="empty-state light">
+          <p>{{ activeTab === 'videos' ? 'Häzirlikçe wideo ýok' : 'Häzirlikçe surat ýok' }}</p>
         </div>
       </div>
 
-      <div v-if="totalListItems > pageSize" class="pagination-wrap">
+      <div v-if="totalListItems > pageSize && !listLoading" class="pagination-wrap">
         <el-pagination
           v-model:current-page="currentListPage"
           :page-size="pageSize"
@@ -342,7 +381,7 @@ watch(currentIndex, () => {
           <el-icon><ArrowLeft /></el-icon>
         </button>
         <div class="studio-title">
-          <span class="brand">{{ activeCollection?.title }}</span>
+          <span class="brand">{{ activeReel?.title }}</span>
           <span class="brand-sub">{{ activeTab === 'videos' ? 'Video Collection' : 'Photo Collection' }}</span>
         </div>
         <button v-if="activeTab === 'videos'" class="mute-btn" @click="toggleMute" :title="muted ? 'Sesi aç' : 'Sesi öçür'">
@@ -364,8 +403,8 @@ watch(currentIndex, () => {
             <video
               v-if="activeTab === 'videos'"
               :ref="(el) => setVideoRef(el, reel.id)"
-              :src="resolveMedia(reel.stream_url || reel.media_url)"
-              :poster="resolveMedia(reel.thumbnail_url)"
+              :src="resolveMedia(videoSource(reel))"
+              :poster="resolveMedia(thumbSource(reel))"
               :muted="muted"
               loop
               playsinline
@@ -374,7 +413,7 @@ watch(currentIndex, () => {
             />
             <img
               v-else
-              :src="resolveMedia(reel.media_url)"
+              :src="resolveMedia(imageSource(reel))"
               :alt="reel.title"
               class="reel-image"
             />
@@ -382,28 +421,11 @@ watch(currentIndex, () => {
           </div>
 
           <aside class="reel-actions">
-            <button class="action-btn" @click="toggleLike">
-              <div class="icon-circle" :class="{ liked: reel.liked_by_me }">
-                <el-icon>
-                  <StarFilled v-if="reel.liked_by_me" />
-                  <Star v-else />
-                </el-icon>
-              </div>
-              <span class="count">{{ reel.likes_count || 0 }}</span>
-            </button>
-
-            <button class="action-btn" @click="openComments">
-              <div class="icon-circle">
-                <el-icon><ChatDotRound /></el-icon>
-              </div>
-              <span class="count">{{ reel.comments_count || 0 }}</span>
-            </button>
-
             <button class="action-btn" @click="share">
               <div class="icon-circle">
                 <el-icon><Share /></el-icon>
               </div>
-              <span class="count">{{ reel.shares_count || 0 }}</span>
+              <span class="count">Paýlaş</span>
             </button>
 
             <button v-if="activeTab === 'videos'" class="action-btn" @click="toggleMute">
@@ -411,27 +433,28 @@ watch(currentIndex, () => {
                 <el-icon><VideoPlay v-if="muted" /><Microphone v-else /></el-icon>
               </div>
             </button>
+
+            <button class="action-btn" disabled>
+              <div class="icon-circle">
+                <el-icon><Star /></el-icon>
+              </div>
+            </button>
           </aside>
 
           <div class="reel-info">
             <div class="author-row">
               <div class="avatar">
-                <img v-if="reel.author_avatar" :src="resolveMedia(reel.author_avatar)" />
-                <span v-else>{{ (reel.author_name || 'D')[0].toUpperCase() }}</span>
+                <span>{{ (reel.title || 'D')[0].toUpperCase() }}</span>
               </div>
               <div class="author-meta">
-                <div class="author-name">@{{ reel.author_name || 'doganlar_studio' }}</div>
-                <div v-if="reel.category_name" class="author-cat">{{ reel.category_name }}</div>
+                <div class="author-name">@doganlar_studio</div>
+                <div class="author-cat">{{ activeTab === 'videos' ? 'Video' : 'Surat' }}</div>
               </div>
             </div>
             <h3 v-if="reel.title" class="reel-title">{{ reel.title }}</h3>
             <p v-if="reel.description" class="reel-desc">{{ reel.description }}</p>
-            <div v-if="reel.tags?.length" class="reel-tags">
-              <span v-for="t in reel.tags" :key="t.id">#{{ t.name }}</span>
-            </div>
-            <div v-if="reel.music_title" class="reel-music">
-              <el-icon><Promotion /></el-icon>
-              <span class="music-marquee">{{ reel.music_title }}</span>
+            <div v-if="activeTab === 'videos' && reel.hls_status" class="reel-tags">
+              <span>#{{ reel.hls_status }}</span>
             </div>
           </div>
         </div>
@@ -449,33 +472,6 @@ watch(currentIndex, () => {
           <el-icon><CaretBottom /></el-icon>
         </button>
       </div>
-
-      <transition name="slide-up">
-        <div v-if="showComments" class="comments-drawer">
-          <header class="comments-header">
-            <div class="title">{{ store.studioComments.length }} teswir</div>
-            <button class="close-btn" @click="showComments = false">
-              <span>×</span>
-            </button>
-          </header>
-          <div class="comments-list">
-            <div v-if="!store.studioComments.length" class="comments-empty">
-              Henizçe teswir ýok. Ilki teswir ýazyň!
-            </div>
-            <div v-for="c in store.studioComments" :key="c.id" class="comment-item">
-              <div class="avatar small">{{ (c.user_name || 'U')[0].toUpperCase() }}</div>
-              <div class="bubble">
-                <div class="name">{{ c.user_name }}</div>
-                <div class="text">{{ c.text }}</div>
-              </div>
-            </div>
-          </div>
-          <footer class="comments-input">
-            <input v-model="commentText" placeholder="Teswir ýazyň..." @keyup.enter="submitComment" />
-            <button :disabled="sendingComment || !commentText.trim()" @click="submitComment">Iber</button>
-          </footer>
-        </div>
-      </transition>
     </section>
   </div>
 </template>
@@ -501,6 +497,33 @@ watch(currentIndex, () => {
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: #dc2626;
+}
+.studio-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+  background: #f1f5f9;
+  border-radius: 12px;
+}
+.studio-tab {
+  border: none;
+  background: transparent;
+  padding: 8px 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.studio-tab:hover {
+  color: #dc2626;
+}
+.studio-tab.active {
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
 }
 .listing-title {
   margin: 0;

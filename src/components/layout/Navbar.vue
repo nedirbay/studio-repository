@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { navItems as staticNavItems } from '../../data/products'
 import { store, actions, cartCount } from '../../store'
 import type { NavItem } from '../../types'
+
+// Navigation menu structure. The "Kategoriýalar" children are populated
+// at runtime from API-fetched store.categories.
+const baseNavItems: NavItem[] = [
+  { label: 'Baş sahypa', href: '/home' },
+  { label: 'Kategoriýalar', href: '/products', children: [] },
+  { label: 'Täze gelenler', href: '/new-arrivals' },
+  { label: 'FotoStudio', href: '/studio' },
+  { label: 'Sowgatlar', href: '/gifts' },
+  { label: 'Biz barada', href: '/about' },
+  { label: 'Blog', href: '/blog' },
+]
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
 import { Search, ShoppingCart, ArrowDown, Menu as MenuIcon, Close } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
 const route = useRoute()
-const isStudioRoute = computed(() => route.path.startsWith('/studio'))
 
 const navItems = computed<NavItem[]>(() => {
-  if (isStudioRoute.value) {
-    return [
-      { label: 'Wideolar', href: '/studio?tab=videos' },
-      { label: 'Suratlar', href: '/studio?tab=photos' },
-    ]
-  }
-
-  const items = staticNavItems.map(item => ({
+  const items = baseNavItems.map(item => ({
     ...item,
     children: item.children ? [...item.children] : undefined,
   }))
@@ -53,9 +56,6 @@ function handleSearch() {
 }
 
 function isActiveLink(href: string) {
-  if (href.startsWith('/studio?')) {
-    return route.fullPath === href
-  }
   return route.path === href
 }
 
@@ -88,7 +88,7 @@ watch(() => route.path, (newPath) => {
         </router-link>
 
         <!-- Search Bar -->
-        <div v-if="!isStudioRoute" class="flex-1 hidden md:flex max-w-2xl">
+        <div class="flex-1 hidden md:flex max-w-2xl">
           <div class="search-wrapper flex w-full items-center">
             <el-select 
               v-model="searchCategory" 
@@ -130,7 +130,6 @@ watch(() => route.path, (newPath) => {
         <div class="flex items-center gap-3">
           <!-- Cart Icon -->
           <button
-            v-if="!isStudioRoute"
             @click="actions.toggleCartDrawer(true)"
             class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
           >
@@ -143,7 +142,7 @@ watch(() => route.path, (newPath) => {
             </span>
           </button>
 
-          <NotificationDropdown v-if="!isStudioRoute" />
+          <NotificationDropdown />
           
           <!-- User Menu -->
           <div class="user-menu-wrapper ml-1">
@@ -194,7 +193,7 @@ watch(() => route.path, (newPath) => {
 
     <!-- Mobile Menu -->
     <div v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-200 shadow-lg">
-      <div v-if="!isStudioRoute" class="px-4 py-3">
+      <div class="px-4 py-3">
         <el-input
           v-model="searchQuery"
           placeholder="Harytlary gözläň..."

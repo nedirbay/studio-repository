@@ -11,6 +11,7 @@ const baseNavItems: NavItem[] = [
   { label: 'Kategoriýalar', href: '/products', children: [] },
   { label: 'Täze gelenler', href: '/new-arrivals' },
   { label: 'FotoStudio', href: '/studio' },
+  { label: 'Studio Sargyt', href: '/studio-order' },
   { label: 'Sowgatlar', href: '/gifts' },
   { label: 'Biz barada', href: '/about' },
   { label: 'Blog', href: '/blog' },

@@ -28,6 +28,12 @@ const routes = [
     component: () => import('../views/PhotoStudioPage/PhotoStudioPage.vue')
   },
   {
+    path: '/studio-order',
+    name: 'StudioOrder',
+    component: () => import('../views/StudioOrderPage/StudioOrderPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/gifts',
     name: 'Gifts',
     component: () => import('../views/GiftsPage/GiftsPage.vue')
@@ -153,6 +159,18 @@ const routes = [
         path: 'blogs',
         name: 'AdminBlogs',
         component: () => import('../views/admin/AdminBlogs/AdminBlogs.vue')
+      },
+      {
+        path: 'studio-orders',
+        name: 'AdminStudioOrders',
+        component: () => import('../views/admin/AdminStudioOrders/AdminStudioOrders.vue'),
+        meta: { title: 'Studio Sargytlary' }
+      },
+      {
+        path: 'photo-studio',
+        name: 'AdminPhotoStudio',
+        component: () => import('../views/admin/AdminPhotoStudio/AdminPhotoStudio.vue'),
+        meta: { title: 'Foto Studiýa' }
       }
     ]
   }

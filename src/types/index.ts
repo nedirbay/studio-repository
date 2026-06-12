@@ -164,6 +164,100 @@ export interface PhotoCollection {
 }
 
 // ---------------------------------------------------------------------------
+// Studio order types (mirror the backend `management` app — the same data
+// shape the Flutter `news_app` syncs in `services/sync_service.dart`)
+// ---------------------------------------------------------------------------
+
+export interface ManagementEquipment {
+  id: number
+  name: string
+  count: number
+}
+
+export interface ManagementService {
+  id: number
+  name: string
+}
+
+export interface ManagementOrderType {
+  id: number
+  name: string
+}
+
+/** A single equipment/service picked for an order day (with a quantity). */
+export interface StudioOrderEquipmentSelection {
+  equipment_id: number
+  count: number
+}
+
+export interface StudioOrderServiceSelection {
+  service_id: number
+  count: number
+}
+
+export interface StudioOrderDay {
+  date: string
+  time?: string | null
+  address: string
+  daily_price: number
+  equipments: StudioOrderEquipmentSelection[]
+  services: StudioOrderServiceSelection[]
+}
+
+export interface StudioOrderStaff {
+  user_id: number
+  equipments?: StudioOrderEquipmentSelection[]
+}
+
+/** Request body for `POST/PUT /api/management/orders`. */
+export interface StudioOrderPayload {
+  customer_name: string
+  customer_phone: string
+  order_type_id?: number | null
+  total_amount: number
+  paid_amount: number
+  days: StudioOrderDay[]
+  staff: StudioOrderStaff[]
+}
+
+/** Approval lifecycle of a studio order. */
+export type StudioOrderStatus = 'pending' | 'approved' | 'rejected' | 'completed'
+
+/** Response shape from `GET /api/management/orders`. */
+export interface StudioOrder {
+  id: number
+  customer_name: string
+  customer_phone: string
+  total_amount: number
+  paid_amount: number
+  remaining_amount: number
+  order_type_id: number | null
+  created_at: string
+  /**
+   * Approval state set by management. The contract (şertnama) PDF can only be
+   * produced once the order is approved. Optional because older backends may
+   * not return it yet; treat a missing value as "pending".
+   */
+  status?: StudioOrderStatus | string | null
+  is_approved?: boolean
+  days: Array<{
+    id: number
+    date: string
+    address: string
+    daily_price: number
+    time: string | null
+    equipments: Array<{ id: number; equipment_id: number; equipment_name: string; count: number }>
+    services: Array<{ id: number; service_id: number; service_name: string; count: number }>
+  }>
+  staff: Array<{
+    id: number
+    user_id: number
+    user_name: string
+    equipments: Array<{ id: number; equipment_id: number; equipment_name: string; count: number }>
+  }>
+}
+
+// ---------------------------------------------------------------------------
 // Gifts / Campaigns types
 // ---------------------------------------------------------------------------
 

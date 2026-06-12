@@ -1,5 +1,5 @@
 import { BaseRepository } from '../../utils/http'
-import type { PhotoCollection, PhotoReel, PhotoReelComment } from '../types'
+import type { PhotoCollection, PhotoReel, PhotoReelComment } from '../../types'
 
 export interface ReelListOptions {
   category?: number
@@ -58,5 +58,37 @@ export class PhotoStudioRepository extends BaseRepository {
   async shareReel(reelId: number, channel: string = '') {
     const res = await this.client.post(`photostudio/reels/${reelId}/share/`, { channel })
     return res.data
+  }
+
+  // --- Admin management (create / update / delete) -----------------------
+  async createReel(payload: Partial<PhotoReel>): Promise<PhotoReel> {
+    const res = await this.client.post('photostudio/reels/', payload)
+    return res.data
+  }
+
+  async updateReel(reelId: number, payload: Partial<PhotoReel>): Promise<PhotoReel> {
+    const res = await this.client.patch(`photostudio/reels/${reelId}/`, payload)
+    return res.data
+  }
+
+  async deleteReel(reelId: number): Promise<void> {
+    await this.client.delete(`photostudio/reels/${reelId}/`)
+  }
+
+  async createCollection(payload: Partial<PhotoCollection>): Promise<PhotoCollection> {
+    const res = await this.client.post('photostudio/collections/', payload)
+    return res.data
+  }
+
+  async updateCollection(
+    collectionId: number,
+    payload: Partial<PhotoCollection>,
+  ): Promise<PhotoCollection> {
+    const res = await this.client.patch(`photostudio/collections/${collectionId}/`, payload)
+    return res.data
+  }
+
+  async deleteCollection(collectionId: number): Promise<void> {
+    await this.client.delete(`photostudio/collections/${collectionId}/`)
   }
 }

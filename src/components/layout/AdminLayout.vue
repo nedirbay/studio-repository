@@ -13,7 +13,9 @@ import {
   ChatDotRound,
   Message,
   Picture,
-  Document
+  Document,
+  Camera,
+  VideoCamera
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -38,6 +40,8 @@ const menuItems = [
   { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
   { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
   { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
+  { id: 'studio-orders', label: 'Studio Sargytlary', path: '/admin/studio-orders', icon: Camera },
+  { id: 'photo-studio', label: 'Foto Studiýa', path: '/admin/photo-studio', icon: VideoCamera },
   { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
   { id: 'blogs', label: 'Bloglar', path: '/admin/blogs', icon: Document },
 ]
@@ -156,4 +160,18 @@ const currentTitle = computed(() => {
 }
 
 
+</style>
+
+<!-- Global: cap teleported dialog width on desktop, near-full on phones.
+     Shared by the admin studio-orders / photo-studio management dialogs. -->
+<style>
+.studio-order-dialog {
+  max-width: 900px;
+}
+@media (max-width: 640px) {
+  .studio-order-dialog {
+    width: 96% !important;
+    --el-dialog-padding-primary: 14px;
+  }
+}
 </style>

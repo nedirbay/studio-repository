@@ -5,13 +5,9 @@ import { ElMessage } from 'element-plus'
 import {
   CaretTop,
   CaretBottom,
-  Star,
-  Share,
-  VideoPause,
-  VideoPlay,
-  Microphone,
   ArrowLeft,
 } from '@element-plus/icons-vue'
+import Hls from 'hls.js'
 import ServiceGenerate, { baseMediaURL } from '../../utils/request'
 
 type StudioTab = 'videos' | 'photos'
@@ -45,16 +41,26 @@ const router = useRouter()
 const service = ServiceGenerate()
 const containerRef = ref<HTMLElement | null>(null)
 const currentIndex = ref(0)
-const currentListPage = ref(1)
-const pageSize = 16
+const pageSize = 12
 const videoRefs = ref<Record<number, HTMLVideoElement | null>>({})
+const hlsInstances = ref<Record<number, Hls>>({})
 const muted = ref(true)
-const mediaItems = ref<StudioMediaItem[]>([])
 const selectedMedia = ref<StudioMediaItem | null>(null)
-const totalListItems = ref(0)
-const listNextUrl = ref<string | null>(null)
-const listLoading = ref(false)
 const loadingMore = ref(false)
+
+// Independent states for Videos
+const videosPage = ref(1)
+const videosItems = ref<StudioMediaItem[]>([])
+const totalVideos = ref(0)
+const videosNextUrl = ref<string | null>(null)
+const videosLoading = ref(false)
+
+// Independent states for Photos
+const photosPage = ref(1)
+const photosItems = ref<StudioMediaItem[]>([])
+const totalPhotos = ref(0)
+const photosNextUrl = ref<string | null>(null)
+const photosLoading = ref(false)
 
 const activeTab = computed<StudioTab>(() => route.query.tab === 'photos' ? 'photos' : 'videos')
 const activeEndpoint = computed(() => activeTab.value === 'videos' ? 'photostudio/videos/' : 'photostudio/images/')
@@ -64,6 +70,23 @@ const selectedMediaId = computed(() => {
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : null
 })
+
+// Writable computed properties to map to active tab state
+const mediaItems = computed(() => activeTab.value === 'videos' ? videosItems.value : photosItems.value)
+const currentListPage = computed({
+  get: () => activeTab.value === 'videos' ? videosPage.value : photosPage.value,
+  set: (val) => {
+    if (activeTab.value === 'videos') {
+      videosPage.value = val
+    } else {
+      photosPage.value = val
+    }
+  }
+})
+const totalListItems = computed(() => activeTab.value === 'videos' ? totalVideos.value : totalPhotos.value)
+const listLoading = computed(() => activeTab.value === 'videos' ? videosLoading.value : photosLoading.value)
+const listNextUrl = computed(() => activeTab.value === 'videos' ? videosNextUrl.value : photosNextUrl.value)
+
 const viewerItems = computed(() => mediaItems.value)
 const showViewer = computed(() => selectedMediaId.value !== null)
 const activeReel = computed(() => viewerItems.value[currentIndex.value] || selectedMedia.value)
@@ -90,31 +113,52 @@ function syncViewerIndex() {
   currentIndex.value = index >= 0 ? index : 0
 }
 
-async function fetchMediaList(page = currentListPage.value, append = false) {
-  listLoading.value = !append
+async function fetchMediaList(type: StudioTab, page: number, append = false) {
+  const endpoint = type === 'videos' ? 'photostudio/videos/' : 'photostudio/images/'
+  if (type === 'videos') {
+    videosLoading.value = !append
+  } else {
+    photosLoading.value = !append
+  }
   try {
-    const response = await service.get<PaginatedResponse<StudioMediaItem>>(activeEndpoint.value, {
+    const response = await service.get<PaginatedResponse<StudioMediaItem>>(endpoint, {
       params: { page, page_size: pageSize },
     })
-    totalListItems.value = response.data.count
-    listNextUrl.value = response.data.next
-    mediaItems.value = append ? [...mediaItems.value, ...response.data.results] : response.data.results
-    currentListPage.value = page
+    if (type === 'videos') {
+      totalVideos.value = response.data.count
+      videosNextUrl.value = response.data.next
+      videosItems.value = append ? [...videosItems.value, ...response.data.results] : response.data.results
+      videosPage.value = page
+    } else {
+      totalPhotos.value = response.data.count
+      photosNextUrl.value = response.data.next
+      photosItems.value = append ? [...photosItems.value, ...response.data.results] : response.data.results
+      photosPage.value = page
+    }
   } catch (_err) {
-    ElMessage.error('Media sanawy ýüklenmedi')
+    ElMessage.error(type === 'videos' ? 'Wideolar ýüklenmedi' : 'Suratlar ýüklenmedi')
   } finally {
-    listLoading.value = false
+    if (type === 'videos') {
+      videosLoading.value = false
+    } else {
+      photosLoading.value = false
+    }
   }
 }
 
 async function fetchMediaDetail(id: number) {
   const response = await service.get<StudioMediaItem>(`${activeEndpoint.value}${id}/`)
   selectedMedia.value = response.data
-  const index = mediaItems.value.findIndex(item => item.id === id)
+  const items = activeTab.value === 'videos' ? videosItems.value : photosItems.value
+  const index = items.findIndex(item => item.id === id)
   if (index >= 0) {
-    mediaItems.value[index] = response.data
+    items[index] = response.data
   } else {
-    mediaItems.value = [response.data, ...mediaItems.value]
+    if (activeTab.value === 'videos') {
+      videosItems.value = [response.data, ...videosItems.value]
+    } else {
+      photosItems.value = [response.data, ...photosItems.value]
+    }
   }
 }
 
@@ -122,7 +166,8 @@ async function loadNextItem() {
   if (loadingMore.value || !hasMoreItems.value) return
   loadingMore.value = true
   try {
-    await fetchMediaList(currentListPage.value + 1, true)
+    const currentPageVal = activeTab.value === 'videos' ? videosPage.value : photosPage.value
+    await fetchMediaList(activeTab.value, currentPageVal + 1, true)
   } finally {
     loadingMore.value = false
   }
@@ -147,6 +192,29 @@ async function playCurrent() {
     const video = videoRefs.value[item.id]
     if (!video) continue
     if (item.id === activeReel.value?.id) {
+      const src = resolveMedia(videoSource(item))
+      if (src.endsWith('.m3u8')) {
+        if (Hls.isSupported()) {
+          let hls = hlsInstances.value[item.id]
+          if (!hls) {
+            hls = new Hls({
+              enableWorker: true,
+              lowLatencyMode: true,
+            })
+            hls.attachMedia(video)
+            hlsInstances.value[item.id] = hls
+          }
+          hls.loadSource(src)
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          if (video.src !== src) {
+            video.src = src
+          }
+        }
+      } else {
+        if (video.src !== src) {
+          video.src = src
+        }
+      }
       try {
         video.currentTime = 0
         video.muted = muted.value
@@ -208,22 +276,6 @@ function togglePlay() {
   else video.pause()
 }
 
-async function share() {
-  const item = activeReel.value
-  if (!item) return
-  const shareUrl = window.location.origin + `/studio?tab=${activeTab.value}&item=${item.id}`
-  const nativeShareAvailable = typeof navigator.share === 'function'
-  try {
-    if (nativeShareAvailable) {
-      await navigator.share({ title: item.title || 'Doganlar Studio', url: shareUrl })
-    } else {
-      await navigator.clipboard.writeText(shareUrl)
-      ElMessage.success('Link kopirlendi')
-    }
-  } catch (_e) {
-    /* ignore */
-  }
-}
 
 function openMedia(itemId: number) {
   router.replace({ path: '/studio', query: { tab: activeTab.value, item: String(itemId) } })
@@ -266,7 +318,7 @@ function thumbSource(item: StudioMediaItem) {
 }
 
 onMounted(async () => {
-  await fetchMediaList(1)
+  await fetchMediaList(activeTab.value, 1)
   if (showViewer.value) {
     await initMediaViewer()
   }
@@ -276,22 +328,37 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
   Object.values(videoRefs.value).forEach(video => video?.pause())
+  Object.values(hlsInstances.value).forEach(hls => hls.destroy())
+  hlsInstances.value = {}
 })
 
-watch(activeTab, async () => {
-  currentListPage.value = 1
+// Watch activeTab to clear current view and fetch data if it hasn't been loaded yet
+watch(activeTab, async (newTab) => {
   selectedMedia.value = null
-  await fetchMediaList(1)
+  const items = newTab === 'videos' ? videosItems.value : photosItems.value
+  const page = newTab === 'videos' ? videosPage.value : photosPage.value
+  if (items.length === 0) {
+    await fetchMediaList(newTab, page)
+  }
 })
 
-watch(currentListPage, async (page) => {
-  if (!showViewer.value) {
-    await fetchMediaList(page)
+// Watch pages independently to handle pagination clicks without double-fetching on tab changes
+watch(videosPage, async (page) => {
+  if (!showViewer.value && activeTab.value === 'videos') {
+    await fetchMediaList('videos', page)
+  }
+})
+
+watch(photosPage, async (page) => {
+  if (!showViewer.value && activeTab.value === 'photos') {
+    await fetchMediaList('photos', page)
   }
 })
 
 watch(selectedMediaId, async (id) => {
   if (id == null) {
+    Object.values(hlsInstances.value).forEach(hls => hls.destroy())
+    hlsInstances.value = {}
     syncViewerIndex()
     return
   }
@@ -321,12 +388,7 @@ watch(selectedMediaId, async (id) => {
             Suratlar
           </button>
         </div>
-        <h1 class="listing-title">{{ activeTab === 'videos' ? 'Wideolar' : 'Suratlar' }}</h1>
-        <p class="listing-subtitle">
-          {{ activeTab === 'videos'
-            ? 'Wideolary saýlap uly ekranda görmek we öňki/indiki wideolara geçmek bolýar.'
-            : 'Suratlary saýlap uly ekranda görmek we öňki/indiki surata geçmek bolýar.' }}
-        </p>
+       
       </div>
 
       <div class="media-grid">
@@ -350,9 +412,8 @@ watch(selectedMediaId, async (id) => {
             <h3>{{ item.title }}</h3>
             <p>{{ item.description || 'Studio media' }}</p>
             <div class="meta-row">
-              <span>{{ activeTab === 'videos' ? 'Video' : 'Image' }}</span>
-              <span v-if="activeTab === 'videos' && item.hls_status">{{ item.hls_status }}</span>
-              <span v-else>{{ item.create_at ? new Date(item.create_at).toLocaleDateString() : 'Täze' }}</span>
+              <span>{{ activeTab === 'videos' ? 'Video' : 'Surat' }}</span>
+              <span>{{ item.create_at ? new Date(item.create_at).toLocaleDateString() : 'Täze' }}</span>
             </div>
           </div>
         </button>
@@ -380,13 +441,6 @@ watch(selectedMediaId, async (id) => {
         <button class="back-btn" title="Yza gaýt" @click="closeViewer">
           <el-icon><ArrowLeft /></el-icon>
         </button>
-        <div class="studio-title">
-          <span class="brand">{{ activeReel?.title }}</span>
-          <span class="brand-sub">{{ activeTab === 'videos' ? 'Video Collection' : 'Photo Collection' }}</span>
-        </div>
-        <button v-if="activeTab === 'videos'" class="mute-btn" @click="toggleMute" :title="muted ? 'Sesi aç' : 'Sesi öçür'">
-          <el-icon><Microphone v-if="!muted" /><VideoPause v-else /></el-icon>
-        </button>
       </header>
 
       <div ref="containerRef" class="reels-feed" @scroll.passive="onScroll">
@@ -403,7 +457,6 @@ watch(selectedMediaId, async (id) => {
             <video
               v-if="activeTab === 'videos'"
               :ref="(el) => setVideoRef(el, reel.id)"
-              :src="resolveMedia(videoSource(reel))"
               :poster="resolveMedia(thumbSource(reel))"
               :muted="muted"
               loop
@@ -418,44 +471,6 @@ watch(selectedMediaId, async (id) => {
               class="reel-image"
             />
             <div v-if="idx === currentIndex" class="play-overlay" />
-          </div>
-
-          <aside class="reel-actions">
-            <button class="action-btn" @click="share">
-              <div class="icon-circle">
-                <el-icon><Share /></el-icon>
-              </div>
-              <span class="count">Paýlaş</span>
-            </button>
-
-            <button v-if="activeTab === 'videos'" class="action-btn" @click="toggleMute">
-              <div class="icon-circle">
-                <el-icon><VideoPlay v-if="muted" /><Microphone v-else /></el-icon>
-              </div>
-            </button>
-
-            <button class="action-btn" disabled>
-              <div class="icon-circle">
-                <el-icon><Star /></el-icon>
-              </div>
-            </button>
-          </aside>
-
-          <div class="reel-info">
-            <div class="author-row">
-              <div class="avatar">
-                <span>{{ (reel.title || 'D')[0].toUpperCase() }}</span>
-              </div>
-              <div class="author-meta">
-                <div class="author-name">@doganlar_studio</div>
-                <div class="author-cat">{{ activeTab === 'videos' ? 'Video' : 'Surat' }}</div>
-              </div>
-            </div>
-            <h3 v-if="reel.title" class="reel-title">{{ reel.title }}</h3>
-            <p v-if="reel.description" class="reel-desc">{{ reel.description }}</p>
-            <div v-if="activeTab === 'videos' && reel.hls_status" class="reel-tags">
-              <span>#{{ reel.hls_status }}</span>
-            </div>
           </div>
         </div>
         <div v-if="viewerItems.length && loadingMore" class="reel-item reel-loader">
@@ -563,12 +578,17 @@ watch(selectedMediaId, async (id) => {
   aspect-ratio: 5 / 4;
   background: #0f172a;
 }
-.media-preview,
+.media-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .reel-video,
 .reel-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 .media-overlay {
@@ -637,8 +657,11 @@ watch(selectedMediaId, async (id) => {
   background-color: #dc2626;
 }
 .viewer-shell {
-  position: relative;
-  height: calc(100vh - 144px);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  height: 100vh;
+  width: 100vw;
   background: #000;
   color: #fff;
   overflow: hidden;
@@ -659,17 +682,29 @@ watch(selectedMediaId, async (id) => {
 .studio-topbar > * { pointer-events: auto; }
 .back-btn,
 .mute-btn {
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(10px);
   border-radius: 999px;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   cursor: pointer;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+.back-btn:hover,
+.mute-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
+}
+.back-btn:active,
+.mute-btn:active {
+  transform: scale(0.95);
 }
 .studio-title {
   display: flex;
@@ -695,7 +730,7 @@ watch(selectedMediaId, async (id) => {
 .reels-feed::-webkit-scrollbar { display: none; }
 .reel-item {
   position: relative;
-  height: calc(100vh - 144px);
+  height: 100vh;
   width: 100%;
   scroll-snap-align: start;
   display: flex;
@@ -817,17 +852,35 @@ watch(selectedMediaId, async (id) => {
   gap: 10px;
   z-index: 25;
 }
+@media (min-width: 769px) {
+  .nav-arrows {
+    right: auto;
+    left: min(calc(83% + 280px), calc(100% - 32px));
+    transform: translate(-50%, -50%);
+  }
+}
 .nav-arrow {
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 22px;
+  transition: all 0.2s ease;
+}
+.nav-arrow:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
+}
+.nav-arrow:active {
+  transform: scale(0.95);
 }
 .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
 .reel-loader {
@@ -942,9 +995,6 @@ watch(selectedMediaId, async (id) => {
 }
 @media (max-width: 768px) {
   .studio-page { min-height: calc(100vh - 128px); }
-  .viewer-shell,
-  .reel-item { height: calc(100vh - 128px); }
-  .nav-arrows { display: none; }
   .media-grid { grid-template-columns: 1fr; }
 }
 </style>

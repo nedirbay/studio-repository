@@ -45,7 +45,7 @@ import { Location, Phone, Message, Camera, VideoCamera, Picture, CircleCheck, St
             <el-icon><VideoCamera /></el-icon>
           </div>
           <h3 class="text-2xl font-bold mb-3">Gurluşlar we Enjamlar</h3>
-          <p class="text-gray-500">Obýektiwler, ştiwitler, yşyklandyryş enjamlary we ähli görnüşli foto-aksessuarlar.</p>
+          <p class="text-gray-500">Obýektiwler, ştatiwler, yşyklandyryş enjamlary we ähli görnüşli foto-aksessuarlar.</p>
         </div>
 
         <div class="service-card group">
@@ -53,7 +53,7 @@ import { Location, Phone, Message, Camera, VideoCamera, Picture, CircleCheck, St
             <el-icon><Picture /></el-icon>
           </div>
           <h3 class="text-2xl font-bold mb-3">Surat hyzmatlary</h3>
-          <p class="text-gray-500">Professional studio suratlary, dabaralaryň we dürli ýatdan çykmajak pursatlaryň surata düşürilmegi.</p>
+          <p class="text-gray-500">Professional studio suratlary, toý-dabaralaryň we dürli ýatdan çykmajak pursatlaryň surata düşürilmegi.</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@ import { Location, Phone, Message, Camera, VideoCamera, Picture, CircleCheck, St
           </div>
           
           <p class="text-lg text-gray-600 leading-relaxed">
-            Doganlar foto merkezi Mary şäherinde ýerleşip, foto söýüjiler we professional fotograflar üçin ähli amatlyklary döredýär. Biz diňe bir haryt satman, eýsem siziň durmuşyňyzyň iň dury pursatlaryny bakylyga öwürmekde ýakyndan ýardam berýäris.
+            Doganlar foto merkezi Mary şäherinde ýerleşip, foto söýüjiler we professional fotograflar üçin ähli amatlyklary döredýär. Biz diňe bir haryt satman, eýsem siziň durmuşyňyzyň iň ýatdan çykmajak pursatlaryny bakylyga öwürmekde ýakyndan ýardam berýäris.
           </p>
 
           <div class="space-y-6">

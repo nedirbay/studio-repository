@@ -22,7 +22,11 @@ const shouldShowLayout = computed(() => {
   const isAdmin = route.path.startsWith('/admin')
   const isAuthPage = route.meta.hideLayout === true
   const isStudioCollectionView = route.path.startsWith('/studio') && typeof route.query.collection === 'string'
-  return !isAdmin && !isAuthPage && !isStudioCollectionView
+  
+  // Hide layout when fullscreen player/reels view is open on studio or blog pages
+  const isFullscreenReel = (route.path.startsWith('/studio') || route.path.startsWith('/blog')) && route.query.item !== undefined
+  
+  return !isAdmin && !isAuthPage && !isStudioCollectionView && !isFullscreenReel
 })
 </script>
 

@@ -63,6 +63,7 @@ function isActiveLink(href: string) {
 // Persist active route to localStorage
 watch(() => route.path, (newPath) => {
   localStorage.setItem('last_active_page', newPath)
+  mobileMenuOpen.value = false
 }, { immediate: true })
 </script>
 
@@ -81,7 +82,7 @@ watch(() => route.path, (newPath) => {
         </button>
 
         <!-- Logo/Branding -->
-        <router-link to="/home" class="flex items-center group no-underline shrink-0">
+        <router-link to="/home" @click="mobileMenuOpen = false" class="flex items-center group no-underline shrink-0">
           <div class="leading-tight">
             <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
             <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
@@ -205,6 +206,7 @@ watch(() => route.path, (newPath) => {
         <li v-for="item in navItems" :key="item.label">
           <router-link
             :to="item.href"
+            @click="mobileMenuOpen = false"
             class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 border-b border-gray-100"
             :class="{ 'text-red-600 bg-red-50': isActiveLink(item.href) }"
           >

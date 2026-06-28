@@ -1,4 +1,5 @@
 import { reactive, watch, computed } from 'vue'
+import { ElNotification } from 'element-plus'
 import ServiceGenerate from '../utils/request'
 import type { Product, Category, Banner, Brand, Promo, CartItem, Order, ProductReview, User, PhotoReel, PhotoReelComment, PhotoCollection, Campaign } from '../types'
 
@@ -15,7 +16,9 @@ interface StoreState {
   orders: Order[]
   reviews: ProductReview[]
   adminReviews: any[]
+  reviewTotalCount: number
   users: User[]
+  userTotalCount: number
   adminMessages: any[]
   notifications: any[]
   blogs: any[]
@@ -30,6 +33,7 @@ interface StoreState {
   studioCollections: PhotoCollection[]
   studioComments: PhotoReelComment[]
   campaigns: Campaign[]
+  latestOrderAlert: any | null
 }
 
 // Load initial state from localStorage if exists
@@ -45,7 +49,9 @@ export const store = reactive<StoreState>({
   orders: [],
   reviews: [],
   adminReviews: [],
+  reviewTotalCount: 0,
   users: [],
+  userTotalCount: 0,
   adminMessages: [],
   notifications: [],
   blogs: [],
@@ -59,7 +65,8 @@ export const store = reactive<StoreState>({
   reels: [],
   studioCollections: [],
   studioComments: [],
-  campaigns: []
+  campaigns: [],
+  latestOrderAlert: null
 })
 
 // Persistence
@@ -194,8 +201,8 @@ export const actions = {
         ...p,
         category: p.category_name,
         brand: p.marka,
-        image: p.media.length > 0 ? p.media[0].url : '',
-        images: p.media.map((m: any) => m.url),
+        image: p.image || (p.media && p.media.length > 0 ? p.media[0].url : ''),
+        images: p.media ? p.media.map((m: any) => m.url) : (p.image ? [p.image] : []),
         inStock: p.instock,
         originalPrice: p.original_price
       }))
@@ -204,19 +211,47 @@ export const actions = {
     }
   },
 
+  async fetchProductBySlug(slug: string) {
+    try {
+      const res = await service.get(`commerce/products/${slug}`)
+      return {
+        ...res.data,
+        category: res.data.category_name,
+        brand: res.data.marka,
+        image: res.data.media && res.data.media.length > 0 ? res.data.media[0].url : '',
+        images: res.data.media ? res.data.media.map((m: any) => m.url) : [],
+        inStock: res.data.instock,
+        originalPrice: res.data.original_price
+      }
+    } catch (error) {
+      console.error(`Failed to fetch product by slug ${slug}:`, error)
+      throw error
+    }
+  },
+
   async fetchOrders() {
     try {
-      const res = await service.get('orders')
-      store.orders = res.data
+      const res = await service.get('commerce/orders')
+      store.orders = res.data.map((o: any) => ({
+        ...o,
+        customer_name: o.full_name,
+        customer_phone: o.phone_number,
+        total_amount: Number(o.total_price),
+        status: o.status || 'pending'
+      }))
     } catch (error) {
       console.error('Failed to fetch orders:', error)
     }
   },
 
-  async fetchUsers() {
+  async fetchUsers(page: number = 1, pageSize: number = 10, search: string = '', role: string = '') {
     try {
-      const res = await service.get('users/')
-      store.users = res.data
+      const params: any = { page, page_size: pageSize }
+      if (search) params.search = search
+      if (role) params.role = role
+      const res = await service.get('users/', { params })
+      store.users = res.data.results
+      store.userTotalCount = res.data.count
     } catch (error) {
       console.error('Failed to fetch users:', error)
       throw error 
@@ -256,13 +291,38 @@ export const actions = {
     }
   },
 
-  async fetchAdminReviews() {
+  async deleteUsers(userIds: number[]) {
     try {
-      const res = await service.get('commerce/reviews')
-      store.adminReviews = res.data
+      const res = await service.post('users/bulk-delete/', { user_ids: userIds })
+      await this.fetchUsers()
+      return res.data
+    } catch (error) {
+      console.error('Failed to delete users bulk', error)
+      throw error
+    }
+  },
+
+  async fetchAdminReviews(page: number = 1, pageSize: number = 10, search: string = '', rating: number | '' = '') {
+    try {
+      const params: any = { page, page_size: pageSize }
+      if (search) params.search = search
+      if (rating) params.rating = rating
+      const res = await service.get('commerce/reviews', { params })
+      store.adminReviews = res.data.results
+      store.reviewTotalCount = res.data.count
     } catch (error) {
       console.error('Failed to fetch admin reviews:', error)
       throw error 
+    }
+  },
+
+  async updateReviewReadStatus(reviewId: number, isRead: boolean) {
+    try {
+      const res = await service.put(`commerce/reviews/${reviewId}`, { is_read: isRead })
+      return res.data
+    } catch (error) {
+      console.error('Failed to update review read status', error)
+      throw error
     }
   },
 
@@ -436,7 +496,7 @@ export const actions = {
   },
 
   // Cart Actions
-  addToCart(product: Product, qty: number = 1) {
+  addToCart(product: Product, qty: number = 1, openDrawer: boolean = true) {
     const existing = store.cart.find((item: CartItem) => item.product.id === product.id)
     if (existing) {
       existing.quantity += qty
@@ -447,8 +507,10 @@ export const actions = {
         quantity: qty
       })
     }
-    // Automatically open drawer to show feedback
-    store.cartDrawerOpen = true
+    if (openDrawer) {
+      // Automatically open drawer to show feedback
+      store.cartDrawerOpen = true
+    }
   },
 
   removeFromCart(productId: number) {
@@ -472,15 +534,29 @@ export const actions = {
 
   async submitOrder(orderData: any) {
     try {
-      const res = await service.post('orders', {
-        ...orderData,
-        total_amount: cartTotal.value,
-        paid_amount: 0 // New order, not yet paid
-      })
+      const payload = {
+        full_name: orderData.customer_name,
+        phone_number: orderData.customer_phone,
+        items: store.cart.map(item => ({
+          product: item.product.id,
+          quantity: item.quantity
+        }))
+      }
+      const res = await service.post('commerce/orders', payload)
       this.clearCart()
       return res.data
     } catch (error) {
       console.error('Failed to submit order:', error)
+      throw error
+    }
+  },
+
+  async updateOrderStatus(orderId: number, status: string) {
+    try {
+      const res = await service.patch(`commerce/orders/${orderId}`, { status })
+      return res.data
+    } catch (error) {
+      console.error('Failed to update order status:', error)
       throw error
     }
   },
@@ -936,10 +1012,75 @@ export function connectAdminWebsocket() {
   socket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data)
-      if (data.type === 'main_order.created') {
+      if (data.type === 'commerce_order.created') {
+        const exists = store.orders.some(o => o.id === data.order.id)
+        if (!exists) {
+          const mappedOrder = {
+            ...data.order,
+            customer_name: data.order.full_name,
+            customer_phone: data.order.phone_number,
+            total_amount: Number(data.order.total_price),
+            status: data.order.status || 'pending'
+          }
+          store.orders.unshift(mappedOrder)
+          
+          if (store.user && (store.user.role_name === 'Admin' || store.user.is_superuser)) {
+            store.latestOrderAlert = mappedOrder
+            ElNotification({
+              title: 'Täze sargyt!',
+              message: `Müşderi: ${mappedOrder.customer_name}\nTelefon: ${mappedOrder.customer_phone}\nJemi: $${mappedOrder.total_amount}`,
+              type: 'success',
+              position: 'bottom-right',
+              duration: 0
+            })
+          }
+        }
+      } else if (data.type === 'commerce_order.updated') {
+        const idx = store.orders.findIndex(o => o.id === data.order.id)
+        const mappedOrder = {
+          ...data.order,
+          customer_name: data.order.full_name,
+          customer_phone: data.order.phone_number,
+          total_amount: Number(data.order.total_price),
+          status: data.order.status || 'pending'
+        }
+        if (idx !== -1) {
+          store.orders[idx] = mappedOrder
+        } else {
+          if (store.user && (data.order.user === store.user.id || store.user.role_name === 'Admin' || store.user.is_superuser)) {
+            store.orders.push(mappedOrder)
+          }
+        }
+        
+        // Notify user if it is their order
+        if (store.user && data.order.user === store.user.id) {
+          let statusText = 'Garaşylýar'
+          if (data.order.status === 'completed') statusText = 'Tamamlandy'
+          else if (data.order.status === 'processing') statusText = 'Taýýarlanýar'
+          else if (data.order.status === 'cancelled') statusText = 'Goýbolsun edildi'
+          
+          ElNotification({
+            title: 'Sargyt tassyklandy!',
+            message: `#${data.order.id} sargydyňyzyň ýagdaýy: "${statusText}"`,
+            type: 'info',
+            position: 'bottom-right',
+            duration: 8000
+          })
+        }
+      } else if (data.type === 'commerce_order.deleted') {
+        store.orders = store.orders.filter(o => o.id !== data.order_id)
+      } else if (data.type === 'main_order.created') {
         const exists = store.orders.some(o => o.id === data.order.id)
         if (!exists) {
           store.orders.unshift(data.order)
+          store.latestOrderAlert = data.order
+          ElNotification({
+            title: 'Täze sargyt!',
+            message: `Müşderi: ${data.order.customer_name}\nTelefon: ${data.order.customer_phone}\nJemi: $${data.order.total_amount}`,
+            type: 'success',
+            position: 'bottom-right',
+            duration: 0
+          })
         }
       } else if (data.type === 'main_order.updated') {
         const idx = store.orders.findIndex(o => o.id === data.order.id)
@@ -960,6 +1101,26 @@ export function connectAdminWebsocket() {
         }
       } else if (data.type === 'message.deleted') {
         store.adminMessages = store.adminMessages.filter(m => m.id !== data.message_id)
+      } else if (data.type === 'review.created') {
+        const exists = store.adminReviews.some(r => r.id === data.review.id)
+        if (!exists) {
+          store.adminReviews.unshift(data.review)
+          store.reviewTotalCount++
+          ElNotification({
+            title: 'Täze teswir!',
+            message: `"${data.review.productName}" haryda täze teswir ýazyldy.`,
+            type: 'info',
+            position: 'bottom-right'
+          })
+        }
+      } else if (data.type === 'review.updated') {
+        const idx = store.adminReviews.findIndex(r => r.id === data.review.id)
+        if (idx !== -1) {
+          store.adminReviews[idx] = { ...store.adminReviews[idx], ...data.review }
+        }
+      } else if (data.type === 'review.deleted') {
+        store.adminReviews = store.adminReviews.filter(r => r.id !== data.review_id)
+        store.reviewTotalCount = Math.max(0, store.reviewTotalCount - 1)
       }
     } catch (e) {
       console.error('Error parsing admin WebSocket message', e)

@@ -1,8 +1,27 @@
 <script setup lang="ts">
-import { actions } from '../../store'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { store, actions } from '../../store'
 import type { Product } from '../../types'
 
-defineProps<{ product: Product }>()
+const props = defineProps<{ product: Product }>()
+const router = useRouter()
+
+const isInCart = computed(() => {
+  return store.cart.some(item => item.product.id === props.product.id)
+})
+
+function handleCartClick() {
+  if (isInCart.value) {
+    actions.removeFromCart(props.product.id)
+  } else {
+    actions.addToCart(props.product, 1, false)
+  }
+}
+
+function goToProduct() {
+  router.push(`/product/${props.product.slug}`)
+}
 
 function discountPercent(price: number, original: number) {
   return Math.round(((original - price) / original) * 100)
@@ -10,7 +29,7 @@ function discountPercent(price: number, original: number) {
 </script>
 
 <template>
-  <router-link :to="`/product/${product.id}`" class="product-card group cursor-pointer block">
+  <router-link :to="`/product/${product.slug}`" class="product-card group cursor-pointer block">
     <div class="relative overflow-hidden bg-gray-50">
       <img
         :src="product.image"
@@ -28,15 +47,19 @@ function discountPercent(price: number, original: number) {
         <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Ammarda ýok</span>
       </div>
       <div class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
+        <!-- <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
           <el-icon class="text-sm"><Star /></el-icon>
-        </button>
-        <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
+        </button> -->
+        <button 
+          class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" 
+          @click.prevent="goToProduct"
+        >
           <el-icon class="text-sm"><View /></el-icon>
         </button>
         <button 
-          class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" 
-          @click.prevent="actions.addToCart(product)"
+          class="w-8 h-8 rounded-full shadow flex items-center justify-center transition-colors"
+          :class="isInCart ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-gray-700 hover:bg-red-600 hover:text-white'"
+          @click.prevent="handleCartClick"
         >
           <el-icon class="text-sm"><ShoppingCart /></el-icon>
         </button>
@@ -70,12 +93,13 @@ function discountPercent(price: number, original: number) {
           </span>
         </div>
         <button
-          class="flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="isInCart ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-red-600 text-white hover:bg-red-700'"
           :disabled="!product.inStock"
-          @click.prevent="actions.addToCart(product)"
+          @click.prevent="handleCartClick"
         >
           <el-icon><ShoppingCart /></el-icon>
-          Goş
+          {{ isInCart ? 'Aýyr' : 'Goş' }}
         </button>
       </div>
     </div>

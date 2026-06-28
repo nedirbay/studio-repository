@@ -25,32 +25,32 @@ export interface OrderPayload {
 
 export class OrderRepository extends BaseRepository {
   async list(): Promise<Order[]> {
-    const res = await this.client.get('orders')
+    const res = await this.client.get('commerce/orders')
     return res.data
   }
 
   async detail(id: number) {
-    const res = await this.client.get(`orders/${id}`)
+    const res = await this.client.get(`commerce/orders/${id}`)
     return res.data
   }
 
   async create(payload: OrderPayload) {
-    const res = await this.client.post('orders', payload)
+    const res = await this.client.post('commerce/orders', payload)
     return res.data
   }
 
   async update(id: number, payload: OrderPayload) {
-    const res = await this.client.put(`orders/${id}`, payload)
+    const res = await this.client.put(`commerce/orders/${id}`, payload)
     return res.data
   }
 
   async remove(id: number) {
-    const res = await this.client.delete(`orders/${id}`)
+    const res = await this.client.delete(`commerce/orders/${id}`)
     return res.data
   }
 
   async byStaff(userId: number) {
-    const res = await this.client.get(`orders/staff/${userId}`)
+    const res = await this.client.get(`commerce/orders/staff/${userId}`)
     return res.data
   }
 }

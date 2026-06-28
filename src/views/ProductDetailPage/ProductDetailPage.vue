@@ -24,11 +24,11 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const productId = computed(() => Number(route.params.id))
+const productSlug = computed(() => route.params.slug as string)
 
-const product = computed(() => 
-  store.products.find(p => p.id === productId.value)
-)
+const product = ref<any>(null)
+const loadingProduct = ref(false)
+const errorProduct = ref(false)
 
 const comments = computed(() => store.reviews)
 
@@ -67,6 +67,7 @@ function prevImage() {
   modalImageIndex.value = modalImageIndex.value === 0 ? images.value.length - 1 : modalImageIndex.value - 1
 }
 
+// Next Image
 function nextImage() {
   modalImageIndex.value = modalImageIndex.value === images.value.length - 1 ? 0 : modalImageIndex.value + 1
 }
@@ -105,7 +106,7 @@ async function submitReview() {
 
   isSubmitting.value = true
   try {
-    await actions.submitReview(productId.value, {
+    await actions.submitReview(product.value.id, {
       rating: reviewForm.value.rating,
       title: reviewForm.value.title,
       content: reviewForm.value.content
@@ -138,7 +139,7 @@ async function submitQuestion() {
     await actions.sendMessage({
       subject: `Haryt soragy: ${product.value?.name}`,
       message: questionForm.value.message,
-      product: productId.value
+      product: product.value.id
     })
     ElMessage.success('Soragyňyz üstünlikli ugradyldy! Tizden jogap bereris.')
     showAskQuestion.value = false
@@ -150,15 +151,42 @@ async function submitQuestion() {
   }
 }
 
-// Fetch reviews
-async function loadReviews() {
-  if (productId.value) {
-    await actions.fetchReviews(productId.value)
+// Fetch reviews & product
+async function loadProductDetail() {
+  if (!productSlug.value) return
+  loadingProduct.value = true
+  errorProduct.value = false
+  try {
+    const fetchedProduct = await actions.fetchProductBySlug(productSlug.value)
+    product.value = fetchedProduct
+    if (fetchedProduct.id) {
+      await actions.fetchReviews(fetchedProduct.id)
+    }
+  } catch (error) {
+    console.error('Failed to load product detail:', error)
+    errorProduct.value = true
+    product.value = null
+  } finally {
+    loadingProduct.value = false
   }
 }
 
-onMounted(loadReviews)
-watch(productId, loadReviews)
+onMounted(loadProductDetail)
+watch(productSlug, loadProductDetail)
+
+const isInCart = computed(() => {
+  if (!product.value) return false
+  return store.cart.some((item: any) => item.product.id === product.value.id)
+})
+
+function handleCartClick() {
+  if (!product.value) return
+  if (isInCart.value) {
+    actions.removeFromCart(product.value.id)
+  } else {
+    actions.addToCart(product.value, quantity.value, false)
+  }
+}
 
 // Helpful votes
 function markHelpful(comment: ProductReview) {
@@ -175,7 +203,12 @@ function formatDate(dateStr: string) {
 
 <template>
   <main class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 py-6" v-if="product">
+    <!-- Loading State -->
+    <div v-if="loadingProduct" class="max-w-7xl mx-auto px-4 py-12 text-center">
+      <el-skeleton :rows="10" animated />
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-6" v-else-if="product">
       <!-- Breadcrumb -->
       <nav class="flex items-center gap-2 text-sm mb-6">
         <router-link to="/" class="text-gray-500 hover:text-red-600">Baş sahypa</router-link>
@@ -283,16 +316,18 @@ function formatDate(dateStr: string) {
             
             <button
               :disabled="!product.inStock"
-              @click="actions.addToCart(product, quantity)"
+              @click="handleCartClick"
               :class="[
                 'flex-1 flex items-center justify-center gap-2 font-semibold py-2.5 rounded-lg transition-colors',
-                product.inStock 
-                  ? 'bg-red-600 text-white hover:bg-red-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                !product.inStock
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : isInCart
+                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-red-600 text-white hover:bg-red-700'
               ]"
             >
               <el-icon><ShoppingCart /></el-icon>
-              Sebede goş
+              {{ isInCart ? 'Sebetden aýyr' : 'Sebede goş' }}
             </button>
             
             <button class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition-colors">

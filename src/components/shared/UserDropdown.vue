@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   User, 
   ArrowDown, 
   Monitor, 
   SwitchButton,
-  UserFilled
+  UserFilled,
+  ShoppingCart
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { store, actions } from '../../store'
@@ -16,6 +17,50 @@ const router = useRouter()
 // Auth state
 const isLoggedIn = computed(() => store.isAuthenticated)
 const currentUser = computed(() => store.user)
+
+const ordersDialogVisible = ref(false)
+const loadingOrders = ref(false)
+
+const userOrders = computed(() => {
+  return store.orders.filter(o => o.user === currentUser.value?.id)
+})
+
+async function openOrdersModal() {
+  ordersDialogVisible.value = true
+  loadingOrders.value = true
+  try {
+    await actions.fetchOrders()
+  } catch (error) {
+    ElMessage.error('Sargytlaryňyzy ýükläp bolmady')
+  } finally {
+    loadingOrders.value = false
+  }
+}
+
+function getStatusDetails(status: string) {
+  switch (status) {
+    case 'completed':
+      return { text: 'Tamamlandy', type: 'success' }
+    case 'processing':
+      return { text: 'Taýýarlanýar', type: 'primary' }
+    case 'cancelled':
+      return { text: 'Goýbolsun edildi', type: 'danger' }
+    default:
+      return { text: 'Garaşylýar', type: 'warning' }
+  }
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('tk-TM', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 function handleLogout() {
   actions.logout()
@@ -54,6 +99,13 @@ function handleLogout() {
               <span class="font-bold">Hasabym</span>
             </div>
           </el-dropdown-item>
+
+          <el-dropdown-item @click="openOrdersModal">
+            <div class="flex items-center gap-3 w-full py-1">
+              <el-icon class="text-lg"><ShoppingCart /></el-icon>
+              <span class="font-bold">Sargytlarym</span>
+            </div>
+          </el-dropdown-item>
           
           <el-dropdown-item 
             v-if="currentUser?.role_name === 'Admin' || currentUser?.is_superuser" 
@@ -85,6 +137,68 @@ function handleLogout() {
       <el-icon class="text-2xl"><User /></el-icon>
       Giriş
     </router-link>
+
+    <!-- User Orders Dialog -->
+    <el-dialog
+      v-model="ordersDialogVisible"
+      title="Meniň Sargytlarym"
+      width="600px"
+      destroy-on-close
+      class="orders-dialog"
+    >
+      <div v-loading="loadingOrders" class="py-2">
+        <el-table v-if="userOrders.length > 0" :data="userOrders" style="width: 100%" class="user-orders-table">
+          <el-table-column type="expand">
+            <template #default="props">
+              <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 m-2 space-y-2">
+                <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest leading-none mb-2">Harytlar sanawy</p>
+                <div v-for="item in props.row.items" :key="item.id" class="flex justify-between items-center text-sm py-1 border-b border-gray-100 last:border-0">
+                  <div class="flex flex-col">
+                    <span class="font-bold text-gray-800">{{ item.product_name }}</span>
+                    <span class="text-xs text-gray-400">{{ item.quantity }} sany x ${{ item.price }}</span>
+                  </div>
+                  <span class="font-black text-slate-900">${{ (item.quantity * item.price).toLocaleString() }}</span>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Sargyt ID" width="100">
+            <template #default="scope">
+              <span class="font-bold text-gray-500">#{{ scope.row.id }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Sene">
+            <template #default="scope">
+              <span class="text-xs text-gray-600 font-medium">{{ formatDate(scope.row.created_at) }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Jemi baha" width="120">
+            <template #default="scope">
+              <span class="font-black text-red-600">${{ scope.row.total_amount }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Ýagdaýy" width="130" align="right">
+            <template #default="scope">
+              <el-tag
+                :type="getStatusDetails(scope.row.status).type"
+                size="small"
+                class="!rounded-lg font-black uppercase tracking-wider text-[8px]"
+              >
+                {{ getStatusDetails(scope.row.status).text }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div v-else class="text-center py-12 text-gray-400">
+          <el-icon class="text-5xl mb-3"><ShoppingCart /></el-icon>
+          <p class="font-bold">Siziň entek hiç hili sargydyňyz ýok.</p>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 

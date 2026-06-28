@@ -57,7 +57,7 @@ describe('CartService', () => {
 
   it('submitOrder sends total + paid_amount, then clears cart', async () => {
     cart.add(makeProduct(1, 100), 2) // total 200
-    mock.onPost('orders').reply((config) => {
+    mock.onPost('commerce/orders').reply((config) => {
       const body = JSON.parse(config.data)
       expect(body.total_amount).toBe(200)
       expect(body.paid_amount).toBe(0)
@@ -71,7 +71,7 @@ describe('CartService', () => {
 
   it('submitOrder propagates backend error and keeps the cart intact', async () => {
     cart.add(makeProduct(1, 50))
-    mock.onPost('orders').reply(400, { error: 'bad' })
+    mock.onPost('commerce/orders').reply(400, { error: 'bad' })
     await expect(
       cart.submitOrder({ customer_name: 'A', customer_phone: 'X' })
     ).rejects.toThrow()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { store, actions } from '../../../store'
 import type { Product } from '../../../types'
 import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
@@ -8,6 +8,12 @@ import { baseMediaURL } from '../../../utils/request'
 import ProductDialog from './components/ProductDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const clearOrderAlert = () => {
+  store.latestOrderAlert = null
+}
 const updateWidth = () => { windowWidth.value = window.innerWidth }
 onMounted(async () => {
   window.addEventListener('resize', updateWidth)
@@ -56,6 +62,16 @@ const filteredProducts = computed(() => {
     const matchesCategory = !selectedCategory.value || p.category === selectedCategory.value
     return matchesSearch && matchesCategory
   }).reverse()
+})
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredProducts.value.slice(start, end)
+})
+
+watch([searchQuery, selectedCategory], () => {
+  currentPage.value = 1
 })
 
 const openAdd = () => {
@@ -114,6 +130,28 @@ const handleDelete = (id: number) => {
 
 <template>
   <div class="space-y-6 animate-fade-in pb-20">
+    <!-- Real-time Order Alert -->
+    <el-alert
+      v-if="store.latestOrderAlert"
+      title="Täze Sargyt Geldi!"
+      type="success"
+      show-icon
+      closable
+      @close="clearOrderAlert"
+      class="!rounded-3xl border border-green-200 shadow-sm p-4 animate-fade-in"
+    >
+      <div class="mt-2 text-xs font-semibold space-y-1 text-green-800">
+        <div><strong>Müşderi:</strong> {{ store.latestOrderAlert.customer_name }}</div>
+        <div><strong>Telefon:</strong> {{ store.latestOrderAlert.customer_phone }}</div>
+        <div><strong>Jemi baha:</strong> ${{ store.latestOrderAlert.total_amount }}</div>
+        <div class="mt-2">
+          <router-link to="/admin/orders" class="text-green-600 hover:text-green-800 underline font-black">
+            Sargytlara git →
+          </router-link>
+        </div>
+      </div>
+    </el-alert>
+
     <!-- Header Actions -->
     <div class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
       <div class="flex flex-wrap gap-4 w-full lg:w-auto">
@@ -158,7 +196,7 @@ const handleDelete = (id: number) => {
     <!-- Data Table -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
       <el-table 
-        :data="filteredProducts" 
+        :data="paginatedProducts" 
         style="width: 100%" 
         class="admin-table"
         header-cell-class-name="admin-table-header"
@@ -230,6 +268,22 @@ const handleDelete = (id: number) => {
           </template>
         </el-table-column>
       </el-table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white rounded-3xl border border-gray-100 p-4 shadow-sm">
+      <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">
+        Jemi: {{ filteredProducts.length }} haryt
+      </span>
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="sizes, prev, pager, next, jumper"
+        :total="filteredProducts.length"
+        background
+        class="admin-pagination"
+      />
     </div>
 
     <!-- Edit/Add Dialog -->

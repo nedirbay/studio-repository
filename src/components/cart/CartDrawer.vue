@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus'
 
 const windowWidth = ref(window.innerWidth)
 const customerName = ref('')
-const customerPhone = ref('')
+const customerPhone = ref('+993')
 const isSubmitting = ref(false)
 const checkoutStep = ref(1) // 1: Cart, 2: Info form
 

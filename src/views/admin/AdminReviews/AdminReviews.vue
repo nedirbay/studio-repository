@@ -1,35 +1,58 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { store, actions } from '../../../store'
 import { 
   Delete, 
   Search,
-  StarFilled,
   User as UserIcon,
-  Box
+  Box,
+  View,
+  Hide
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-onMounted(() => {
-  actions.fetchAdminReviews().catch(e => {
-    console.warn("Could not fetch reviews:", e)
-  })
-})
 
 const searchQuery = ref('')
 const ratingFilter = ref<number | ''>('')
 
-const filteredReviews = computed(() => {
-  return store.adminReviews.filter(review => {
-    const matchesSearch = 
-      (review.userName && review.userName.toLowerCase().includes(searchQuery.value.toLowerCase())) || 
-      (review.productName && review.productName.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-      (review.content && review.content.toLowerCase().includes(searchQuery.value.toLowerCase()))
-      
-    const matchesRating = ratingFilter.value ? review.rating === ratingFilter.value : true
-    return matchesSearch && matchesRating
-  })
+const loadingReviews = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+async function loadReviews() {
+  loadingReviews.value = true
+  try {
+    await actions.fetchAdminReviews(
+      currentPage.value,
+      pageSize.value,
+      searchQuery.value,
+      ratingFilter.value
+    )
+  } catch (error) {
+    console.error("Could not fetch reviews:", error)
+  } finally {
+    loadingReviews.value = false
+  }
+}
+
+onMounted(() => {
+  loadReviews()
 })
+
+// Watch filters
+watch([searchQuery, ratingFilter], () => {
+  if (currentPage.value === 1) {
+    loadReviews()
+  } else {
+    currentPage.value = 1
+  }
+})
+
+// Watch page
+watch(currentPage, () => {
+  loadReviews()
+})
+
+const filteredReviews = computed(() => store.adminReviews)
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
@@ -38,6 +61,16 @@ const formatDate = (dateStr: string) => {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute:'2-digit'
   }).format(date)
+}
+
+async function toggleReadStatus(review: any) {
+  try {
+    await actions.updateReviewReadStatus(review.id, !review.is_read)
+    loadReviews()
+    ElMessage.success(review.is_read ? 'Tanyşylmadyk diýip bellemek' : 'Tanyşylan diýip bellemek')
+  } catch (error) {
+    ElMessage.error('Ýalňyşlyk ýüze çykdy')
+  }
 }
 
 async function handleDelete(review: any) {
@@ -55,6 +88,7 @@ async function handleDelete(review: any) {
     )
     
     await actions.deleteReview(review.id)
+    loadReviews()
     ElMessage.success('Teswir pozuldy')
   } catch (error) {
     if (error !== 'cancel') {
@@ -99,15 +133,15 @@ async function handleDelete(review: any) {
     </div>
 
     <!-- Reviews Table -->
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" v-loading="loadingReviews">
       <div class="overflow-x-auto custom-scrollbar">
         <table class="w-full min-w-[900px] text-left">
           <thead>
             <tr class="bg-gray-50/50 border-b border-gray-100">
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[20%]">Müşderi</th>
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[25%]">Haryt</th>
-              <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[10%]">Baha</th>
-              <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[35%]">Teswir</th>
+              <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[15%]">Baha</th>
+              <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest w-[30%]">Teswir</th>
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">Sazlamalar</th>
             </tr>
           </thead>
@@ -115,16 +149,23 @@ async function handleDelete(review: any) {
             <tr 
               v-for="item in filteredReviews" 
               :key="item.id"
-              class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group"
+              class="border-b border-gray-50 hover:bg-gray-50/50 transition-all group"
+              :class="!item.is_read ? 'bg-blue-50/30' : ''"
             >
               <!-- User -->
-              <td class="p-4 sm:p-5 align-top">
+              <td 
+                class="p-4 sm:p-5 align-top transition-all"
+                :class="!item.is_read ? 'border-l-4 border-l-blue-500 pl-3 sm:pl-4' : 'border-l-4 border-l-transparent'"
+              >
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-slate-400 shrink-0">
                     <el-icon><UserIcon /></el-icon>
                   </div>
                   <div>
-                    <span class="font-bold text-sm text-slate-900 block">{{ item.userName }}</span>
+                    <div class="flex items-center gap-1.5">
+                      <span v-if="!item.is_read" class="w-2 h-2 rounded-full bg-blue-500 shrink-0" title="Täze teswir"></span>
+                      <span class="font-bold text-sm text-slate-900 block">{{ item.userName }}</span>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -144,16 +185,7 @@ async function handleDelete(review: any) {
               
               <!-- Rating -->
               <td class="p-4 sm:p-5 align-top">
-                <div class="flex items-center gap-1">
-                  <el-icon 
-                    v-for="star in 5" 
-                    :key="star"
-                    :class="star <= item.rating ? 'text-amber-400' : 'text-gray-200'"
-                    class="text-sm"
-                  >
-                    <StarFilled />
-                  </el-icon>
-                </div>
+                <el-rate :model-value="item.rating" disabled />
               </td>
               
               <!-- Content -->
@@ -167,7 +199,15 @@ async function handleDelete(review: any) {
               
               <!-- Actions -->
               <td class="p-4 sm:p-5 align-top text-right">
-                <div class="flex items-center justify-end opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <el-button 
+                    circle 
+                    :icon="item.is_read ? Hide : View"
+                    :type="item.is_read ? '' : 'primary'"
+                    plain
+                    @click="toggleReadStatus(item)"
+                    :title="item.is_read ? 'Tanyşylmadyk diýip bellemek' : 'Tanyşylan diýip bellemek'"
+                  />
                   <el-button 
                     circle 
                     :icon="Delete"
@@ -186,6 +226,17 @@ async function handleDelete(review: any) {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="store.reviewTotalCount > pageSize" class="p-4 border-t border-gray-100 flex justify-center">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="store.reviewTotalCount"
+          layout="prev, pager, next, jumper"
+          background
+        />
       </div>
     </div>
   </div>

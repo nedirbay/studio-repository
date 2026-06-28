@@ -1,27 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { store, actions } from '../../../store'
 import type { User } from '../../../types'
 import { 
   Plus, 
   Edit, 
   Delete, 
-  Search,
-  User as UserIcon,
-  Message,
-  Key
+  Search
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import UserDialog from './components/UserDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
-onMounted(() => {
-  window.addEventListener('resize', updateWidth)
-  actions.fetchUsers().catch(e => {
-    console.warn("Could not fetch users directly on mount, ensure backend /users endpoint is correct", e)
-  })
-})
-onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const searchQuery = ref('')
 const roleFilter = ref('')
@@ -29,53 +20,122 @@ const dialogVisible = ref(false)
 const isEditing = ref(false)
 const submitting = ref(false)
 
-const form = ref<{
-  id?: number
-  username: string
-  email: string
-  role_name: string
-  password?: string
-  is_active: boolean
-}>({
-  username: '',
-  email: '',
-  role_name: 'User',
-  password: '',
-  is_active: true
+const loadingUsers = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+async function loadUsers() {
+  loadingUsers.value = true
+  try {
+    await actions.fetchUsers(
+      currentPage.value,
+      pageSize.value,
+      searchQuery.value,
+      roleFilter.value
+    )
+  } catch (error) {
+    console.error('Failed to load users:', error)
+  } finally {
+    loadingUsers.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updateWidth)
+  loadUsers()
+})
+onUnmounted(() => window.removeEventListener('resize', updateWidth))
+
+const selectedUser = ref<any>(null)
+
+const filteredUsers = computed(() => store.users)
+
+const selectedUserIds = ref<number[]>([])
+
+const isAllSelected = computed(() => {
+  const visibleUsers = filteredUsers.value
+  if (visibleUsers.length === 0) return false
+  
+  // Filter out the current user who is disabled for selection
+  const selectable = visibleUsers.filter(u => !store.user || store.user.id !== u.id)
+  if (selectable.length === 0) return false
+  
+  return selectable.every(u => selectedUserIds.value.includes(u.id))
 })
 
-const filteredUsers = computed(() => {
-  return store.users.filter(user => {
-    const matchesSearch = user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                          user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesRole = roleFilter.value ? user.role_name === roleFilter.value : true
-    return matchesSearch && matchesRole
-  })
+const isIndeterminate = computed(() => {
+  const selectedCount = selectedUserIds.value.length
+  const visibleUsers = filteredUsers.value
+  const selectable = visibleUsers.filter(u => !store.user || store.user.id !== u.id)
+  return selectedCount > 0 && selectedCount < selectable.length
 })
+
+function toggleSelectAll(val: boolean) {
+  if (val) {
+    const visibleUsers = filteredUsers.value
+    const selectable = visibleUsers.filter(u => !store.user || store.user.id !== u.id)
+    selectedUserIds.value = selectable.map(u => u.id)
+  } else {
+    selectedUserIds.value = []
+  }
+}
+
+// Watch search and filter to reset page and reload
+watch([searchQuery, roleFilter], () => {
+  selectedUserIds.value = []
+  if (currentPage.value === 1) {
+    loadUsers()
+  } else {
+    currentPage.value = 1
+  }
+})
+
+// Watch page to reload
+watch(currentPage, () => {
+  selectedUserIds.value = []
+  loadUsers()
+})
+
+async function handleBulkDelete() {
+  const idsToDelete = [...selectedUserIds.value]
+  if (idsToDelete.length === 0) return
+
+  const deleteCount = idsToDelete.length
+  const msg = `Saýlanan ${deleteCount} ulanyjyny pozmak isleýärsiňizmi?`
+
+  try {
+    await ElMessageBox.confirm(
+      msg,
+      'Köpçülikleýin pozmak',
+      {
+        confirmButtonText: 'Hawa, poz',
+        cancelButtonText: 'Bes et',
+        type: 'warning',
+        confirmButtonClass: '!bg-red-600 !border-red-600 !text-white !rounded-xl !px-6',
+        cancelButtonClass: '!rounded-xl'
+      }
+    )
+
+    await actions.deleteUsers(idsToDelete)
+    ElMessage.success('Saýlanan ulanyjylar üstünlikli pozuldy')
+    selectedUserIds.value = []
+    loadUsers()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('Köpçülikleýin pozmakda näsazlyk ýüze çykdy')
+    }
+  }
+}
 
 function handleAdd() {
   isEditing.value = false
-  form.value = {
-    username: '',
-    email: '',
-    role_name: 'User',
-    password: '',
-    is_active: true
-  }
+  selectedUser.value = null
   dialogVisible.value = true
 }
 
 function handleEdit(user: User) {
   isEditing.value = true
-  form.value = {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role_name: user.role_name,
-    is_active: user.is_active,
-    // Password intentionally left empty when editing, unless they want to reset it
-    password: ''
-  }
+  selectedUser.value = user
   dialogVisible.value = true
 }
 
@@ -94,6 +154,7 @@ async function handleDelete(user: User) {
     )
     
     await actions.deleteUser(user.id)
+    loadUsers()
     ElMessage.success('Ulanyjy üstünlikli pozuldy')
   } catch (error) {
     if (error !== 'cancel') {
@@ -102,39 +163,18 @@ async function handleDelete(user: User) {
   }
 }
 
-async function handleSave() {
-  if (!form.value.username || !form.value.email || !form.value.role_name) {
-    ElMessage.warning('Maglumatlary doly giriziň')
-    return
-  }
-  
-  if (!isEditing.value && !form.value.password) {
-    ElMessage.warning('Täze ulanyjy üçin parol hökman gerek')
-    return
-  }
-
+async function handleSave(payload: any) {
   submitting.value = true
   try {
-    const payload: any = {
-      username: form.value.username,
-      email: form.value.email,
-      role_name: form.value.role_name,
-      is_active: form.value.is_active
-    }
-    
-    // Only send password if it's provided (new user or changing existing)
-    if (form.value.password) {
-      payload.password = form.value.password
-    }
-
-    if (isEditing.value && form.value.id) {
-      await actions.updateUser(form.value.id, payload)
+    if (isEditing.value && selectedUser.value?.id) {
+      await actions.updateUser(selectedUser.value.id, payload)
       ElMessage.success('Ulanyjy maglumatlary täzelendi')
     } else {
       await actions.addUser(payload)
       ElMessage.success('Täze ulanyjy goşuldy')
     }
     dialogVisible.value = false
+    loadUsers()
   } catch (error) {
     ElMessage.error('Ýalňyşlyk ýüze çykdy')
   } finally {
@@ -152,14 +192,26 @@ async function handleSave() {
         <p class="text-[10px] sm:text-xs text-gray-400 font-bold mt-1 uppercase tracking-widest">Sistemadaky ähli ulanyjylary dolandyryň</p>
       </div>
       
-      <el-button 
-        type="primary" 
-        @click="handleAdd"
-        class="!bg-slate-900 !border-none !rounded-xl !px-6 !py-5 hover:!bg-slate-800 transition-all font-bold w-full sm:w-auto"
-      >
-        <el-icon class="mr-2 text-lg"><Plus /></el-icon>
-        Täze ulanyjy
-      </el-button>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <el-button 
+          v-if="selectedUserIds.length > 0"
+          type="danger" 
+          @click="handleBulkDelete"
+          class="!rounded-xl !px-6 !py-5 transition-all font-bold w-full sm:w-auto"
+        >
+          <el-icon class="mr-2 text-lg"><Delete /></el-icon>
+          Saýlananlary poz ({{ selectedUserIds.length }})
+        </el-button>
+
+        <el-button 
+          type="primary" 
+          @click="handleAdd"
+          class="!bg-slate-900 !border-none !rounded-xl !px-6 !py-5 hover:!bg-slate-800 transition-all font-bold w-full sm:w-auto"
+        >
+          <el-icon class="mr-2 text-lg"><Plus /></el-icon>
+          Täze ulanyjy
+        </el-button>
+      </div>
     </div>
 
     <!-- Filters & Search -->
@@ -184,11 +236,18 @@ async function handleSave() {
     </div>
 
     <!-- Users Table -->
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" v-loading="loadingUsers">
       <div class="overflow-x-auto custom-scrollbar">
         <table class="w-full min-w-[800px] text-left">
           <thead>
             <tr class="bg-gray-50/50 border-b border-gray-100">
+              <th class="p-4 sm:p-5 w-12 text-center">
+                <el-checkbox 
+                  :model-value="isAllSelected" 
+                  :indeterminate="isIndeterminate" 
+                  @change="toggleSelectAll" 
+                />
+              </th>
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Ulanyjy</th>
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">E-poçta</th>
               <th class="p-4 sm:p-5 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Roly</th>
@@ -202,6 +261,13 @@ async function handleSave() {
               :key="user.id"
               class="border-b border-gray-50 hover:bg-red-50/10 transition-colors group"
             >
+              <td class="p-4 sm:p-5 w-12 text-center">
+                <el-checkbox 
+                  v-model="selectedUserIds" 
+                  :value="user.id" 
+                  :disabled="store.user && store.user.id === user.id" 
+                />
+              </td>
               <td class="p-4 sm:p-5">
                 <div class="flex items-center gap-3 sm:gap-4">
                   <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-slate-400 group-hover:bg-red-100 group-hover:text-red-600 transition-colors shrink-0">
@@ -237,7 +303,6 @@ async function handleSave() {
                     class="hover:!text-blue-600 hover:!border-blue-200"
                     @click="handleEdit(user)"
                   />
-                  <!-- Prevent self-deletion if needed (assuming user.id !== currentUser.id logic here if available, ignoring for now) -->
                   <el-button 
                     circle 
                     :icon="Delete"
@@ -250,67 +315,35 @@ async function handleSave() {
             </tr>
             
             <tr v-if="filteredUsers.length === 0">
-              <td colspan="5" class="p-10 text-center">
+              <td colspan="6" class="p-10 text-center">
                 <el-empty description="Ulanyjy tapylmady" :image-size="100" />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="store.userTotalCount > pageSize" class="p-4 border-t border-gray-100 flex justify-center">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="store.userTotalCount"
+          layout="prev, pager, next, jumper"
+          background
+        />
+      </div>
     </div>
 
     <!-- Edit/Add Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? 'Ulanyjyny üýtget' : 'Täze ulanyjy goş'"
-      :width="windowWidth < 768 ? '95%' : '500px'"
-      class="admin-dialog"
-      align-center
-    >
-      <el-form :model="form" label-position="top" class="space-y-4">
-        <el-form-item label="Ulanyjy ady">
-          <el-input v-model="form.username" :prefix-icon="UserIcon" placeholder="Mysal üçin: merdan95" />
-        </el-form-item>
-        
-        <el-form-item label="E-poçta salgysy">
-          <el-input v-model="form.email" :prefix-icon="Message" placeholder="Mysal üçin: mysal@mysal.com" />
-        </el-form-item>
-        
-        <el-form-item label="Parol (Üýtgetmek üçin täze parol)">
-          <el-input 
-            v-model="form.password" 
-            type="password" 
-            show-password
-            :prefix-icon="Key" 
-            :placeholder="isEditing ? 'Diňe üýtgetmek isleseňiz ýazyň' : 'Täze parol'" 
-          />
-        </el-form-item>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Roly">
-            <el-select v-model="form.role_name" class="w-full">
-              <el-option label="Ulanyjy (User)" value="User" />
-              <el-option label="Admin" value="Admin" />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="Statusy">
-            <div class="h-8 flex items-center mt-1">
-              <el-switch v-model="form.is_active" active-text="Işjeň" inactive-text="Bloklanan" />
-            </div>
-          </el-form-item>
-        </div>
-      </el-form>
-      
-      <template #footer>
-        <div class="flex gap-3 justify-end mt-4">
-          <el-button @click="dialogVisible = false" class="!rounded-xl" :disabled="submitting">Bes et</el-button>
-          <el-button type="primary" :loading="submitting" @click="handleSave" class="!rounded-xl !px-6 !bg-slate-900 !border-slate-900 border-none hover:!bg-slate-800">
-            Sakla
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <UserDialog 
+      v-model:visible="dialogVisible" 
+      :is-editing="isEditing" 
+      :user="selectedUser" 
+      :window-width="windowWidth" 
+      :submitting="submitting"
+      @save="handleSave"
+    />
   </div>
 </template>
 

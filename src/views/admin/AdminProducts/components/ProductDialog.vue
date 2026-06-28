@@ -22,18 +22,11 @@ const form = ref<any>({})
 const fileList = ref<any[]>([])
 const newSpecKey   = ref('')
 const newSpecValue = ref('')
+const loadingProduct = ref(false)
 
 // ── Drag-and-drop image ordering ──────────────────────────────────────────
 const draggingIdx  = ref<number | null>(null)
 const dragoverIdx  = ref<number | null>(null)
-
-watch(() => props.visible, (val) => {
-  dialogVisible.value = val
-})
-
-watch(dialogVisible, (val) => {
-  emit('update:visible', val)
-})
 
 const getAbsoluteUrl = (url: string) => {
   if (!url) return ''
@@ -43,7 +36,40 @@ const getAbsoluteUrl = (url: string) => {
   return baseMediaURL + url
 }
 
+watch(() => props.visible, async (val) => {
+  dialogVisible.value = val
+  if (val && props.isEditing && props.product && props.product.slug) {
+    loadingProduct.value = true
+    try {
+      const detailedProduct = await actions.fetchProductBySlug(props.product.slug)
+      const mapped = JSON.parse(JSON.stringify(detailedProduct))
+      form.value = {
+        ...mapped,
+        originalPrice: mapped.originalPrice ?? mapped.original_price ?? 0,
+        inStock: mapped.inStock ?? mapped.instock ?? true,
+        brand: mapped.brand ?? mapped.marka ?? '',
+        category: mapped.category ?? mapped.category_name ?? '',
+      }
+      fileList.value = (detailedProduct.media || []).map((m: any) => ({
+        name: m.url.split('/').pop(),
+        url: getAbsoluteUrl(m.url),
+        rawUrl: m.url
+      }))
+    } catch (error) {
+      console.error('Failed to load detailed product:', error)
+      ElMessage.error('Haryt maglumatlaryny ýüklemek başa barmady')
+    } finally {
+      loadingProduct.value = false
+    }
+  }
+})
+
+watch(dialogVisible, (val) => {
+  emit('update:visible', val)
+})
+
 watch(() => props.product, (newVal) => {
+  if (!newVal) return
   // Map backend snake_case fields to frontend camelCase for the form
   const mapped = JSON.parse(JSON.stringify(newVal))
   form.value = {
@@ -183,7 +209,7 @@ const handleSave = () => {
     class="admin-dialog"
     align-center
   >
-    <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar">
+    <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar" v-loading="loadingProduct">
       <el-form :model="form" label-position="top" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
         <el-form-item label="Haryt ady" class="md:col-span-2">
           <el-input v-model="form.name" placeholder="Harydyň doly ady" />

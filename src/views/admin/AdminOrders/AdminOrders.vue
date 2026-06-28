@@ -8,12 +8,18 @@ import {
   Calendar,
   Phone,
   Money,
-  InfoFilled
+  InfoFilled,
+  Check,
+  Close
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import OrderDetailDialog from './components/OrderDetailDialog.vue'
 
 const searchQuery = ref('')
 const loading = ref(false)
+
+const detailDialogVisible = ref(false)
+const selectedOrder = ref<any>(null)
 
 async function loadOrders() {
   loading.value = true
@@ -32,11 +38,47 @@ onMounted(() => {
 
 const filteredOrders = computed(() => {
   return store.orders.filter(o => {
-    return o.customer_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-           o.customer_phone.includes(searchQuery.value) ||
+    return (o.customer_name && o.customer_name.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+           (o.customer_phone && o.customer_phone.includes(searchQuery.value)) ||
            o.id.toString().includes(searchQuery.value)
   }).reverse()
 })
+
+function openDetail(order: any) {
+  selectedOrder.value = order
+  detailDialogVisible.value = true
+}
+
+async function handleApprove(orderId: number) {
+  try {
+    await actions.updateOrderStatus(orderId, 'completed')
+    ElMessage.success('Sargyt üstünlikli tassyklanyldy!')
+  } catch (error) {
+    ElMessage.error('Sargydy tassyklap bolmady')
+  }
+}
+
+async function handleCancel(orderId: number) {
+  try {
+    await actions.updateOrderStatus(orderId, 'cancelled')
+    ElMessage.success('Sargyt goýbolsun edildi!')
+  } catch (error) {
+    ElMessage.error('Sargydy goýbolsun edip bolmady')
+  }
+}
+
+function statusTag(order: any) {
+  switch (order.status) {
+    case 'completed':
+      return { text: 'Tamamlandy', type: 'success' }
+    case 'processing':
+      return { text: 'Taýýarlanýar', type: 'primary' }
+    case 'cancelled':
+      return { text: 'Goýbolsun edildi', type: 'danger' }
+    default:
+      return { text: 'Garaşylýar', type: 'warning' }
+  }
+}
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr)
@@ -160,24 +202,45 @@ function formatDate(dateStr: string) {
         </el-table-column>
 
         <el-table-column label="Ýagdaýy" width="150">
-          <template #default>
-            <el-tag type="warning" size="small" class="!rounded-lg font-black uppercase tracking-widest text-[8px] px-2">
-              Garaşylýar
+          <template #default="scope">
+            <el-tag :type="statusTag(scope.row).type" size="small" class="!rounded-lg font-black uppercase tracking-widest text-[8px] px-2">
+              {{ statusTag(scope.row).text }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="Amallar" width="120" align="right">
-          <template #default>
+        <el-table-column label="Amallar" width="220" align="right">
+          <template #default="scope">
             <div class="flex gap-2 justify-end px-4">
               <el-tooltip content="Jikme-jik gör">
                 <el-button 
                   circle 
                   :icon="InfoFilled" 
                   size="small"
+                  @click="openDetail(scope.row)"
                   class="!bg-slate-50 !text-slate-600 !border-none hover:!bg-slate-600 hover:!text-white transition-all"
                 />
               </el-tooltip>
+              <template v-if="scope.row.status === 'pending'">
+                <el-tooltip content="Tassykla">
+                  <el-button 
+                    circle 
+                    :icon="Check" 
+                    size="small"
+                    @click="handleApprove(scope.row.id)"
+                    class="!bg-green-50 !text-green-600 !border-none hover:!bg-green-600 hover:!text-white transition-all"
+                  />
+                </el-tooltip>
+                <el-tooltip content="Goýbolsun et">
+                  <el-button 
+                    circle 
+                    :icon="Close" 
+                    size="small"
+                    @click="handleCancel(scope.row.id)"
+                    class="!bg-red-50 !text-red-600 !border-none hover:!bg-red-600 hover:!text-white transition-all"
+                  />
+                </el-tooltip>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -191,6 +254,14 @@ function formatDate(dateStr: string) {
         </template>
       </el-table>
     </div>
+
+    <!-- Order Detail Dialog -->
+    <OrderDetailDialog
+      v-model:visible="detailDialogVisible"
+      :order="selectedOrder"
+      @approve="handleApprove"
+      @cancel="handleCancel"
+    />
   </div>
 </template>
 

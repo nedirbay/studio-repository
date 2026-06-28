@@ -14,6 +14,7 @@ export interface Product {
   description?: string
   features?: string[]
   specifications?: Record<string, string>
+  slug?: string
 }
 
 export interface User {

@@ -328,7 +328,7 @@ watch(() => route.query.brand, (brandName) => {
           <div v-if="filteredProducts.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
             <el-icon class="text-6xl text-gray-300 mb-4"><Search /></el-icon>
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Haryt tapylmady</h3>
-            <p class="text-gray-500 mb-4">Gözlegiňizi ýa-da filtrleriňizi uýtgedip görüň</p>
+            <p class="text-gray-500 mb-4">Gözlegiňizi ýa-da filtrleriňizi üýtgedip görüň</p>
             <button @click="clearAllFilters" class="btn-primary">
               Ähli filtrleri arassala
             </button>

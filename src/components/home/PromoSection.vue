@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { store } from '../../store'
+import { baseMediaURL } from '../../utils/request'
+
+const getImageUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return baseMediaURL + url
+}
 </script>
 
 <template>
@@ -12,7 +21,7 @@ import { store } from '../../store'
           class="relative rounded-xl overflow-hidden h-44 group cursor-pointer"
         >
           <img
-            :src="promo.image"
+            :src="getImageUrl(promo.image)"
             :alt="promo.title"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

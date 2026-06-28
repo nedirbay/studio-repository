@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { store } from '../../store'
+import { baseMediaURL } from '../../utils/request'
+
+const getImageUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return baseMediaURL + url
+}
 </script>
 
 <template>
@@ -8,7 +17,7 @@ import { store } from '../../store'
       <el-carousel-item v-for="banner in store.banners" :key="banner.id">
         <div class="relative h-full overflow-hidden">
           <img
-            :src="banner.image"
+            :src="getImageUrl(banner.image)"
             :alt="banner.title"
             class="w-full h-full object-cover"
           />

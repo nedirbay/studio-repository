@@ -1,47 +1,67 @@
 import { vi, describe, it, expect } from 'vitest'
 
-const svc = vi.hoisted(() => ({
-  listCategories: vi.fn().mockResolvedValue([{ id: 1, name: 'Toý' }]),
-  listReels: vi.fn().mockResolvedValue([{ id: 1, kind: 'video' }]),
-  listCollections: vi.fn().mockResolvedValue([{ id: 1, title: 'C' }]),
-  createReel: vi.fn().mockResolvedValue({ id: 2 }),
-  updateReel: vi.fn().mockResolvedValue({ id: 1, is_published: true }),
-  deleteReel: vi.fn().mockResolvedValue(undefined),
-  createCollection: vi.fn().mockResolvedValue({ id: 3 }),
-  updateCollection: vi.fn().mockResolvedValue({ id: 1 }),
-  deleteCollection: vi.fn().mockResolvedValue(undefined),
-}))
+const mockGet = vi.fn()
+const mockPost = vi.fn()
+const mockPatch = vi.fn()
+const mockDelete = vi.fn()
 
-vi.mock('../../../PhotoStudioPage/photoStudioService', () => ({ photoStudioService: svc }))
+vi.mock('../../../../utils/http', () => ({
+  defaultHttpClient: () => ({
+    get: mockGet,
+    post: mockPost,
+    patch: mockPatch,
+    delete: mockDelete,
+  })
+}))
 
 import { adminPhotoStudioService } from '../adminPhotoStudioService'
 
 describe('adminPhotoStudioService', () => {
-  it('lists reels and collections', async () => {
-    expect((await adminPhotoStudioService.listReels()).length).toBe(1)
-    expect((await adminPhotoStudioService.listCollections()).length).toBe(1)
+  it('lists videos and images', async () => {
+    mockGet.mockResolvedValueOnce({ data: { count: 1, results: [{ id: 1, title: 'Video 1' }] } })
+    mockGet.mockResolvedValueOnce({ data: { count: 1, results: [{ id: 1, title: 'Image 1' }] } })
+    
+    const videosRes = await adminPhotoStudioService.listVideos()
+    const imagesRes = await adminPhotoStudioService.listImages()
+    
+    expect(videosRes.results).toEqual([{ id: 1, title: 'Video 1' }])
+    expect(videosRes.count).toBe(1)
+    expect(imagesRes.results).toEqual([{ id: 1, title: 'Image 1' }])
+    expect(imagesRes.count).toBe(1)
   })
 
-  it('creates a reel', async () => {
-    const res = await adminPhotoStudioService.createReel({ title: 'A', media_url: 'x' })
-    expect(svc.createReel).toHaveBeenCalledWith({ title: 'A', media_url: 'x' })
-    expect(res.id).toBe(2)
+  it('creates video and image', async () => {
+    const fd = new FormData()
+    mockPost.mockResolvedValueOnce({ data: { id: 2 } })
+    mockPost.mockResolvedValueOnce({ data: { id: 3 } })
+
+    const vRes = await adminPhotoStudioService.createVideo(fd)
+    const iRes = await adminPhotoStudioService.createImage(fd)
+
+    expect(vRes.id).toBe(2)
+    expect(iRes.id).toBe(3)
   })
 
-  it('setReelPublished forwards an is_published patch', async () => {
-    await adminPhotoStudioService.setReelPublished(1, false)
-    expect(svc.updateReel).toHaveBeenCalledWith(1, { is_published: false })
+  it('updates video and image', async () => {
+    const fd = new FormData()
+    mockPatch.mockResolvedValueOnce({ data: { id: 1, title: 'Updated Video' } })
+    mockPatch.mockResolvedValueOnce({ data: { id: 1, title: 'Updated Image' } })
+
+    const vRes = await adminPhotoStudioService.updateVideo(1, fd)
+    const iRes = await adminPhotoStudioService.updateImage(1, fd)
+
+    expect(vRes.title).toBe('Updated Video')
+    expect(iRes.title).toBe('Updated Image')
   })
 
-  it('deletes a reel and a collection', async () => {
-    await adminPhotoStudioService.deleteReel(1)
-    await adminPhotoStudioService.deleteCollection(3)
-    expect(svc.deleteReel).toHaveBeenCalledWith(1)
-    expect(svc.deleteCollection).toHaveBeenCalledWith(3)
-  })
+  it('deletes video and image', async () => {
+    mockDelete.mockResolvedValueOnce({ data: {} })
+    mockDelete.mockResolvedValueOnce({ data: {} })
 
-  it('updates a collection', async () => {
-    await adminPhotoStudioService.updateCollection(1, { title: 'New' })
-    expect(svc.updateCollection).toHaveBeenCalledWith(1, { title: 'New' })
+    await adminPhotoStudioService.deleteVideo(1)
+    await adminPhotoStudioService.deleteImage(2)
+
+    expect(mockDelete).toHaveBeenCalledWith('photostudio/videos/1/')
+    expect(mockDelete).toHaveBeenCalledWith('photostudio/images/2/')
   })
 })

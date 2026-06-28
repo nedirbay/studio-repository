@@ -183,7 +183,14 @@ const handleSave = () => {
           Hiç hili media ýok.
         </div>
       </div>
-    </el-drawer>
+    </el-form>
+    
+    <template #footer>
+      <div class="flex gap-3 justify-end px-4 pb-4">
+        <el-button @click="drawerVisible = false" class="!rounded-xl">Bes et</el-button>
+        <el-button type="primary" @click="handleSave" class="!rounded-xl !px-10 !font-black h-12 shadow-lg shadow-red-600/20">Makalany sakla</el-button>
+      </div>
+    </template>
   </el-drawer>
 </template>
 

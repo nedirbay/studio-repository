@@ -6,6 +6,8 @@ import {
   CaretTop,
   CaretBottom,
   ArrowLeft,
+  Mute,
+  Bell,
 } from '@element-plus/icons-vue'
 import Hls from 'hls.js'
 import ServiceGenerate, { baseMediaURL } from '../../utils/request'
@@ -45,6 +47,7 @@ const pageSize = 12
 const videoRefs = ref<Record<number, HTMLVideoElement | null>>({})
 const hlsInstances = ref<Record<number, Hls>>({})
 const muted = ref(true)
+const volume = ref(1)
 const selectedMedia = ref<StudioMediaItem | null>(null)
 const loadingMore = ref(false)
 
@@ -264,8 +267,22 @@ function prev() {
 function toggleMute() {
   muted.value = !muted.value
   Object.values(videoRefs.value).forEach(video => {
-    if (video) video.muted = muted.value
+    if (video) {
+      video.muted = muted.value
+      if (!muted.value) video.volume = volume.value
+    }
   })
+}
+
+function setVolume(val: number) {
+  volume.value = val
+  Object.values(videoRefs.value).forEach(video => {
+    if (video) {
+      video.volume = val
+      video.muted = val === 0
+    }
+  })
+  muted.value = val === 0
 }
 
 function togglePlay() {
@@ -441,6 +458,21 @@ watch(selectedMediaId, async (id) => {
         <button class="back-btn" title="Yza gaýt" @click="closeViewer">
           <el-icon><ArrowLeft /></el-icon>
         </button>
+        <div v-if="activeTab === 'videos'" class="volume-control">
+          <button class="mute-btn" :title="muted ? 'Sesi aç' : 'Sesi ýap'" @click="toggleMute">
+            <el-icon v-if="muted"><Mute /></el-icon>
+            <el-icon v-else><Bell /></el-icon>
+          </button>
+          <input
+            type="range"
+            class="volume-slider"
+            min="0"
+            max="1"
+            step="0.05"
+            :value="muted ? 0 : volume"
+            @input="setVolume(+($event.target as HTMLInputElement).value)"
+          />
+        </div>
       </header>
 
       <div ref="containerRef" class="reels-feed" @scroll.passive="onScroll">
@@ -705,6 +737,63 @@ watch(selectedMediaId, async (id) => {
 .back-btn:active,
 .mute-btn:active {
   transform: scale(0.95);
+}
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+}
+.volume-control .mute-btn {
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+.volume-control .mute-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.6);
+  transition: transform 0.15s;
+}
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.6);
 }
 .studio-title {
   display: flex;

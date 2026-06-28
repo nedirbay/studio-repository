@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { store, actions } from '../../../store'
+import { baseMediaURL } from '../../../utils/request'
+
+const getImageUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return baseMediaURL + url
+}
+
 import { 
   Plus, 
   Edit, 
@@ -116,7 +126,7 @@ const getProductName = (id: number) => {
         class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-500"
       >
         <div class="relative h-48 overflow-hidden">
-          <img :src="banner.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+          <img :src="getImageUrl(banner.image)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           <div class="absolute inset-0 bg-gradient-to-r opacity-60" :class="banner.bgColor"></div>
           <div class="absolute inset-0 p-6 flex flex-col justify-end text-white">
             <span class="text-[10px] font-black uppercase tracking-widest bg-white/20 backdrop-blur-md w-fit px-2 py-0.5 rounded-md mb-2">

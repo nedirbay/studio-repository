@@ -2,7 +2,8 @@
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { store, actions } from '../../store'
-import { Calendar, ArrowLeft, Camera, VideoCamera } from '@element-plus/icons-vue'
+import { Calendar, ArrowLeft, Camera } from '@element-plus/icons-vue'
+import BlogVideoPlayer from '../../components/shared/BlogVideoPlayer.vue'
 
 const route = useRoute()
 const blogSlug = computed(() => route.params.slug as string)
@@ -98,10 +99,7 @@ const imageList = computed(() => {
                   </div>
                 </div>
                 <div v-else-if="media.kind === 'video'" class="relative overflow-hidden rounded-2xl aspect-video bg-gray-100">
-                  <video :src="media.url" controls class="w-full h-full object-cover"></video>
-                  <div class="absolute top-4 right-4 bg-red-600 text-white p-2 rounded-lg pointer-events-none">
-                    <el-icon><VideoCamera /></el-icon>
-                  </div>
+                  <BlogVideoPlayer :src="media.url" />
                 </div>
               </div>
             </div>

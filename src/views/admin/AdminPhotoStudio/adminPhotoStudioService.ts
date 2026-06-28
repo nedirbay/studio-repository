@@ -1,42 +1,49 @@
-import { photoStudioService } from '../../PhotoStudioPage/photoStudioService'
-import type { PhotoCollection, PhotoReel } from '../../../types'
+import { defaultHttpClient } from '../../../utils/http'
 
-/**
- * Admin operations for the PhotoStudio (reels + collections), reusing the same
- * `photoStudioService` the public page uses for reads.
- */
+export interface PaginatedResult<T> {
+  count: number
+  results: T[]
+}
+
 export const adminPhotoStudioService = {
-  listCategories() {
-    return photoStudioService.listCategories()
+  listVideos(page = 1, pageSize = 10): Promise<PaginatedResult<any>> {
+    return defaultHttpClient().get('photostudio/videos/', { params: { page, page_size: pageSize } }).then(res => {
+      if (Array.isArray(res.data)) return { count: res.data.length, results: res.data }
+      return { count: res.data.count ?? 0, results: res.data.results ?? [] }
+    })
   },
-  listReels() {
-    return photoStudioService.listReels()
-  },
-  listCollections() {
-    return photoStudioService.listCollections()
-  },
-
-  createReel(payload: Partial<PhotoReel>) {
-    return photoStudioService.createReel(payload)
-  },
-  updateReel(id: number, payload: Partial<PhotoReel>) {
-    return photoStudioService.updateReel(id, payload)
-  },
-  deleteReel(id: number) {
-    return photoStudioService.deleteReel(id)
-  },
-  /** Toggle a reel's published flag without touching its other fields. */
-  setReelPublished(id: number, isPublished: boolean) {
-    return photoStudioService.updateReel(id, { is_published: isPublished })
+  listImages(page = 1, pageSize = 10): Promise<PaginatedResult<any>> {
+    return defaultHttpClient().get('photostudio/images/', { params: { page, page_size: pageSize } }).then(res => {
+      if (Array.isArray(res.data)) return { count: res.data.length, results: res.data }
+      return { count: res.data.count ?? 0, results: res.data.results ?? [] }
+    })
   },
 
-  createCollection(payload: Partial<PhotoCollection>) {
-    return photoStudioService.createCollection(payload)
+  createVideo(formData: FormData) {
+    return defaultHttpClient().post('photostudio/videos/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data)
   },
-  updateCollection(id: number, payload: Partial<PhotoCollection>) {
-    return photoStudioService.updateCollection(id, payload)
+  updateVideo(id: number, formData: FormData) {
+    return defaultHttpClient().patch(`photostudio/videos/${id}/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data)
   },
-  deleteCollection(id: number) {
-    return photoStudioService.deleteCollection(id)
+  deleteVideo(id: number) {
+    return defaultHttpClient().delete(`photostudio/videos/${id}/`).then(res => res.data)
   },
+
+  createImage(formData: FormData) {
+    return defaultHttpClient().post('photostudio/images/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data)
+  },
+  updateImage(id: number, formData: FormData) {
+    return defaultHttpClient().patch(`photostudio/images/${id}/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data)
+  },
+  deleteImage(id: number) {
+    return defaultHttpClient().delete(`photostudio/images/${id}/`).then(res => res.data)
+  }
 }

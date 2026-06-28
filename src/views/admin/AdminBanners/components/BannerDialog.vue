@@ -3,6 +3,16 @@ import { ref, watch } from 'vue'
 import { actions } from '../../../../store'
 import { Delete, Picture as ImageIcon } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { baseMediaURL } from '../../../../utils/request'
+
+const getImageUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return baseMediaURL + url
+}
+
 
 const props = defineProps<{
   visible: boolean
@@ -124,7 +134,7 @@ const colorOptions = [
         <el-form-item label="Banner suraty">
           <div class="space-y-4 w-full">
             <div v-if="form.image" class="relative w-full h-40 rounded-xl overflow-hidden border border-gray-200">
-              <img :src="form.image" class="w-full h-full object-cover" />
+              <img :src="getImageUrl(form.image)" class="w-full h-full object-cover" />
               <button 
                 type="button"
                 @click="form.image = ''" 

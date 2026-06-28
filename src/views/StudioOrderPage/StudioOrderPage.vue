@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, Calendar, Edit, Document } from '@element-plus/icons-vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import { Plus, Delete, Calendar, Edit, Document, Printer } from '@element-plus/icons-vue'
 import {
   studioOrderService,
   computeTotal,
@@ -9,7 +9,7 @@ import {
   isOrderApproved,
 } from './studioOrderService'
 import { studioOrderStore, emptyDay, resetStudioOrderForm } from './studioOrderStore'
-import { openContractPrint } from './studioContract'
+import { openContractPrint, buildContractHtml, contractNumber, downloadContractPdf } from './studioContract'
 import type { StudioOrder } from '../../types'
 
 const s = studioOrderStore
@@ -35,7 +35,63 @@ async function loadAll() {
   }
 }
 
-onMounted(loadAll)
+let socket: WebSocket | null = null
+
+function connectWebSocket() {
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsHost = import.meta.env.PROD
+    ? window.location.host
+    : '127.0.0.1:8000'
+  const token = localStorage.getItem('token')
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/orders/${token ? '?token=' + token : ''}`
+
+  socket = new WebSocket(wsUrl)
+
+  socket.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data.type === 'order.updated') {
+        const idx = s.orders.findIndex((o) => o.id === data.order.id)
+        if (idx !== -1) {
+          const oldOrder = s.orders[idx]
+          if (!isOrderApproved(oldOrder) && isOrderApproved(data.order)) {
+            ElNotification({
+              title: 'Sargyt Tassyklandy!',
+              message: `#${data.order.id} sargydyňyz üstünlikli tassyklanyldy. Şertnamany ýükläp bilersiňiz.`,
+              type: 'success',
+              duration: 10000,
+            })
+          }
+          s.orders[idx] = { ...s.orders[idx], ...data.order }
+        }
+      } else if (data.type === 'order.deleted') {
+        s.orders = s.orders.filter((o) => o.id !== data.order_id)
+      }
+    } catch (e) {
+      console.error('Error parsing WebSocket message', e)
+    }
+  }
+
+  socket.onclose = () => {
+    console.log('User WebSocket connection closed, reconnecting in 5s...')
+    setTimeout(connectWebSocket, 5000)
+  }
+
+  socket.onerror = (err) => {
+    console.error('WebSocket error:', err)
+  }
+}
+
+onMounted(() => {
+  loadAll()
+  connectWebSocket()
+})
+
+onUnmounted(() => {
+  if (socket) {
+    socket.close()
+  }
+})
 
 function openCreate() {
   resetStudioOrderForm()
@@ -57,13 +113,7 @@ function removeDay(index: number) {
   if (s.form.days.length === 0) addDay()
 }
 
-function addEquipment(dayIndex: number) {
-  s.form.days[dayIndex].equipments.push({ equipment_id: 0, count: 1 })
-}
 
-function removeEquipment(dayIndex: number, i: number) {
-  s.form.days[dayIndex].equipments.splice(i, 1)
-}
 
 function addService(dayIndex: number) {
   s.form.days[dayIndex].services.push({ service_id: 0, count: 1 })
@@ -127,13 +177,34 @@ async function deleteOrder(id: number) {
   }
 }
 
+const contractDialogVisible = ref(false)
+const selectedOrderForContract = ref<StudioOrder | null>(null)
+
 function downloadContract(order: StudioOrder) {
   if (!isOrderApproved(order)) {
     ElMessage.warning('Şertnama diňe tassyklanan sargyt üçin elýeterli')
     return
   }
+  selectedOrderForContract.value = order
+  contractDialogVisible.value = true
+}
+
+function handlePrintContract(order: StudioOrder) {
   if (!openContractPrint(order)) {
-    ElMessage.error('Penjire açylmady — açylýan penjireleri (popup) rugsat ediň')
+    ElMessage.error('Açylýan penjirä (popup) rugsat ediň')
+  }
+}
+
+const loadingDownload = ref(false)
+async function handleDownloadContract(order: StudioOrder) {
+  loadingDownload.value = true
+  try {
+    await downloadContractPdf(order)
+  } catch (err) {
+    console.error('PDF download failed', err)
+    ElMessage.error('Şertnamany PDF formatda ýükläp bolmady')
+  } finally {
+    loadingDownload.value = false
   }
 }
 
@@ -152,17 +223,18 @@ function formatDate(value: string) {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="flex items-start justify-between gap-4 mb-6">
+  <div class="w-[98%] max-w-[98%] mx-auto px-1 sm:px-4 py-8 overflow-x-hidden">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl md:text-3xl font-black text-gray-900">Studio Sargyt</h1>
         <p class="text-gray-500 text-sm mt-1">Sargytlaryňyz we olaryň ýagdaýy.</p>
       </div>
-      <el-button type="primary" size="large" :icon="Plus" @click="openCreate">Sargyt et</el-button>
+      <el-button type="primary" size="large" :icon="Plus" class="w-full sm:w-auto self-stretch sm:self-auto" @click="openCreate">Sargyt et</el-button>
     </div>
 
-    <!-- Orders table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- Orders Table (Scrollable on mobile) -->
+    <div class="w-full max-w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
       <el-table :data="s.orders" v-loading="s.loading" style="width: 100%">
         <el-table-column label="#" width="80">
           <template #default="{ row }">
@@ -232,11 +304,12 @@ function formatDate(value: string) {
         <template #empty>
           <div class="py-16 text-center text-gray-400">
             <p class="font-bold mb-3">Heniz sargyt ýok</p>
-            <el-button type="primary" :icon="Plus" @click="openCreate">Sargyt et</el-button>
           </div>
         </template>
       </el-table>
     </div>
+
+
 
     <!-- Create / edit dialog -->
     <el-dialog
@@ -249,7 +322,7 @@ function formatDate(value: string) {
     >
       <el-form :model="s.form" :rules="rules" label-position="top" class="studio-form">
         <!-- Customer block -->
-        <div class="bg-gray-50 rounded-xl border border-gray-100 p-4 md:p-5 mb-4">
+        <div class="bg-gray-50 rounded-xl border border-gray-100 p-2 sm:p-5 mb-4">
           <h2 class="font-bold text-gray-800 mb-3">Müşderi maglumatlary</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1">
             <el-form-item label="Ady" prop="customer_name">
@@ -270,7 +343,7 @@ function formatDate(value: string) {
         <div
           v-for="(day, di) in s.form.days"
           :key="di"
-          class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5 mb-4"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-2 sm:p-5 mb-4"
         >
           <div class="flex items-center justify-between mb-3">
             <h2 class="font-bold text-gray-800 flex items-center gap-2">
@@ -287,7 +360,7 @@ function formatDate(value: string) {
             </el-button>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
             <el-form-item label="Sene">
               <el-date-picker
                 v-model="day.date"
@@ -306,9 +379,6 @@ function formatDate(value: string) {
                 class="w-full"
               />
             </el-form-item>
-            <el-form-item label="Bir günlük baha (TMT)" class="col-span-2 md:col-span-1">
-              <el-input-number v-model="day.daily_price" :min="0" :step="50" class="w-full" controls-position="right" />
-            </el-form-item>
           </div>
 
           <el-form-item label="Salgy">
@@ -321,25 +391,7 @@ function formatDate(value: string) {
             />
           </el-form-item>
 
-          <!-- Equipments -->
-          <div class="mt-1">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-semibold text-gray-700">Enjamlar</span>
-              <el-button size="small" :icon="Plus" @click="addEquipment(di)">Enjam goş</el-button>
-            </div>
-            <div v-for="(eq, ei) in day.equipments" :key="ei" class="flex items-center gap-2 mb-2">
-              <el-select v-model="eq.equipment_id" placeholder="Enjam saýlaň" class="flex-1 min-w-0" filterable>
-                <el-option
-                  v-for="opt in s.equipments"
-                  :key="opt.id"
-                  :label="`${opt.name} (bar: ${opt.count})`"
-                  :value="opt.id"
-                />
-              </el-select>
-              <el-input-number v-model="eq.count" :min="1" class="w-24 sm:w-32 shrink-0" controls-position="right" />
-              <el-button type="danger" text :icon="Delete" class="shrink-0" @click="removeEquipment(di, ei)" />
-            </div>
-          </div>
+
 
           <!-- Services -->
           <div class="mt-2">
@@ -347,12 +399,14 @@ function formatDate(value: string) {
               <span class="text-sm font-semibold text-gray-700">Hyzmatlar</span>
               <el-button size="small" :icon="Plus" @click="addService(di)">Hyzmat goş</el-button>
             </div>
-            <div v-for="(sv, si) in day.services" :key="si" class="flex items-center gap-2 mb-2">
-              <el-select v-model="sv.service_id" placeholder="Hyzmat saýlaň" class="flex-1 min-w-0" filterable>
+            <div v-for="(sv, si) in day.services" :key="si" class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 p-3 bg-gray-50/50 rounded-lg border border-gray-100 sm:p-0 sm:bg-transparent sm:border-none">
+              <el-select v-model="sv.service_id" placeholder="Hyzmat saýlaň" class="w-full sm:flex-1" filterable>
                 <el-option v-for="opt in s.services" :key="opt.id" :label="opt.name" :value="opt.id" />
               </el-select>
-              <el-input-number v-model="sv.count" :min="1" class="w-24 sm:w-32 shrink-0" controls-position="right" />
-              <el-button type="danger" text :icon="Delete" class="shrink-0" @click="removeService(di, si)" />
+              <div class="flex items-center gap-2 justify-between sm:justify-start w-full sm:w-auto">
+                <el-input-number v-model="sv.count" :min="1" class="w-28 sm:w-32" controls-position="right" />
+                <el-button type="danger" text :icon="Delete" @click="removeService(di, si)" />
+              </div>
             </div>
           </div>
         </div>
@@ -372,6 +426,30 @@ function formatDate(value: string) {
               {{ s.editingId != null ? 'Ýatda sakla' : 'Sargyt ber' }}
             </el-button>
           </div>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- Contract Preview Dialog -->
+    <el-dialog
+      v-model="contractDialogVisible"
+      :title="`Şertnama: ${selectedOrderForContract ? contractNumber(selectedOrderForContract) : ''}`"
+      width="850px"
+      class="studio-order-dialog"
+      top="5vh"
+      destroy-on-close
+    >
+      <div v-if="selectedOrderForContract" class="h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-gray-100 p-2 md:p-4 flex justify-center">
+        <iframe
+          :srcdoc="buildContractHtml(selectedOrderForContract)"
+          class="w-full h-full border-none shadow-md bg-white rounded-lg"
+        ></iframe>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <el-button @click="contractDialogVisible = false">Ýap</el-button>
+          <el-button type="success" :icon="Document" :loading="loadingDownload" @click="handleDownloadContract(selectedOrderForContract!)">Ýükle (PDF)</el-button>
+          <el-button type="primary" :icon="Printer" @click="handlePrintContract(selectedOrderForContract!)">Çap et</el-button>
         </div>
       </template>
     </el-dialog>
@@ -397,11 +475,13 @@ function formatDate(value: string) {
 }
 @media (max-width: 640px) {
   .studio-order-dialog {
-    width: 96% !important;
-    --el-dialog-padding-primary: 14px;
+    width: 99% !important;
+    --el-dialog-padding-primary: 8px;
   }
   .studio-order-dialog .el-dialog__body {
     padding-top: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 }
 </style>

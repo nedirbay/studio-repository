@@ -2,24 +2,35 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { store, actions } from '../../../store'
 import type { Product } from '../../../types'
-import { 
-  Plus, 
-  Edit, 
-  Delete, 
-  Search, 
-  Close
-} from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { baseMediaURL } from '../../../utils/request'
+import ProductDialog from './components/ProductDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
-onMounted(() => window.addEventListener('resize', updateWidth))
+onMounted(async () => {
+  window.addEventListener('resize', updateWidth)
+  await Promise.all([
+    actions.fetchProducts(),
+    actions.fetchCategories(),
+    actions.fetchBrands()
+  ])
+})
 onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const dialogVisible = ref(false)
 const isEditing = ref(false)
+
+const getImageUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return baseMediaURL + url
+}
 
 const initialForm: Omit<Product, 'id'> = {
   name: '',
@@ -33,17 +44,15 @@ const initialForm: Omit<Product, 'id'> = {
   brand: '',
   inStock: true,
   description: '',
-  features: [],
   specifications: {}
 }
 
 const form = ref<any>({ ...initialForm })
-const fileList = ref<any []>([])
 
 const filteredProducts = computed(() => {
   return store.products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                         p.brand?.toLowerCase().includes(searchQuery.value.toLowerCase())
+                          (p.brand && p.brand.toLowerCase().includes(searchQuery.value.toLowerCase()))
     const matchesCategory = !selectedCategory.value || p.category === selectedCategory.value
     return matchesSearch && matchesCategory
   }).reverse()
@@ -51,38 +60,26 @@ const filteredProducts = computed(() => {
 
 const openAdd = () => {
   isEditing.value = false
-  form.value = { ...initialForm, features: [], specifications: {} }
-  fileList.value = []
+  form.value = { ...initialForm, specifications: {} }
   dialogVisible.value = true
 }
 
 const openEdit = (product: any) => {
   isEditing.value = true
   form.value = JSON.parse(JSON.stringify(product))
-  // Initialize fileList from existing media
-  fileList.value = (product.media || []).map((m: any) => ({
-    name: m.url.split('/').pop(),
-    url: m.url
-  }))
   dialogVisible.value = true
 }
 
-const handleSave = async () => {
-  if (!form.value.name || !form.value.category || !form.value.price) {
-    ElMessage.warning('Adyny, kategoriýasyny we bahasyny dolduryň')
-    return
-  }
-
-  // Convert fileList to media array
-  const media = fileList.value.map(file => ({
-    kind: 'image',
-    url: file.url
-  }))
+const onProductSave = async (savedForm: any) => {
+  // ProductDialog emits backend field names; only category still comes as name string
+  // Resolve category name → ID before sending to store
+  const categoryId = typeof savedForm.category === 'number'
+    ? savedForm.category
+    : store.categories.find(c => c.name === savedForm.category)?.id
 
   const payload = {
-    ...form.value,
-    category: store.categories.find(c => c.name === form.value.category)?.id,
-    media: media
+    ...savedForm,
+    category: categoryId
   }
 
   try {
@@ -99,25 +96,6 @@ const handleSave = async () => {
   }
 }
 
-const handleUpload = async (options: any) => {
-  try {
-    const url = await actions.uploadImage(options.file)
-    fileList.value.push({
-      name: options.file.name,
-      url: url
-    })
-  } catch (error) {
-    ElMessage.error('Surat ýüklenmedi')
-  }
-}
-
-const handleRemove = (file: any) => {
-  const index = fileList.value.findIndex(f => f.url === file.url)
-  if (index !== -1) {
-    fileList.value.splice(index, 1)
-  }
-}
-
 const handleDelete = (id: number) => {
   ElMessageBox.confirm(
     'Bu harydy pozmak isleýärsiňizmi?',
@@ -131,20 +109,6 @@ const handleDelete = (id: number) => {
     actions.deleteProduct(id)
     ElMessage.success('Haryt pozuldy')
   })
-}
-
-// Helpers for features/specs
-const newFeature = ref('')
-const addFeature = () => {
-  if (newFeature.value && form.value.features) {
-    form.value.features.push(newFeature.value)
-    newFeature.value = ''
-  }
-}
-const removeFeature = (index: number) => {
-  if (form.value.features) {
-    form.value.features.splice(index, 1)
-  }
 }
 </script>
 
@@ -202,7 +166,7 @@ const removeFeature = (index: number) => {
         <el-table-column width="100" label="Suraty">
           <template #default="scope">
             <div class="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden">
-              <img :src="scope.row.image" class="w-full h-full object-cover" />
+              <img :src="getImageUrl(scope.row.image)" class="w-full h-full object-cover" />
             </div>
           </template>
         </el-table-column>
@@ -269,95 +233,13 @@ const removeFeature = (index: number) => {
     </div>
 
     <!-- Edit/Add Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? 'Harydy üýtgetmek' : 'Täze haryt goşmak'"
-      :width="windowWidth < 768 ? '95%' : '800px'"
-      class="admin-dialog"
-      align-center
-    >
-      <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar">
-        <el-form :model="form" label-position="top" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-          <el-form-item label="Haryt ady" class="md:col-span-2">
-            <el-input v-model="form.name" placeholder="Harydyň doly ady" />
-          </el-form-item>
-          
-          <el-form-item label="Kategoriýa">
-            <el-select v-model="form.category" placeholder="Saýlaň" class="w-full">
-              <el-option
-                v-for="cat in store.categories"
-                :key="cat.slug"
-                :label="cat.name"
-                :value="cat.name"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="Brend">
-            <el-input v-model="form.brand" placeholder="Mysal üçin: ASUS" />
-          </el-form-item>
-          
-          <el-form-item label="Baha ($)">
-            <el-input-number v-model="form.price" :min="0" class="!w-full" />
-          </el-form-item>
-          
-          <el-form-item label="Köne baha ($)">
-            <el-input-number v-model="form.originalPrice" :min="0" class="!w-full" />
-          </el-form-item>
-          
-          <el-form-item label="Haryt suratlary" class="md:col-span-2">
-            <el-upload
-              action="#"
-              list-type="picture-card"
-              :auto-upload="true"
-              :http-request="handleUpload"
-              :file-list="fileList"
-              :on-remove="handleRemove"
-              multiple
-            >
-              <el-icon><Plus /></el-icon>
-            </el-upload>
-          </el-form-item>
-          
-          <el-form-item label="Badge (Bellik)">
-            <el-select v-model="form.badge" placeholder="Saýlamaly däl" clearable class="w-full">
-              <el-option label="Sale (Arzanladyş)" value="sale" />
-              <el-option label="New (Täze)" value="new" />
-              <el-option label="Hot (Mäşhur)" value="hot" />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="Galyndyda barmy?">
-            <el-switch v-model="form.inStock" active-text="Bar" inactive-text="Ýok" />
-          </el-form-item>
-          
-          <el-form-item label="Düşündiriş" class="md:col-span-2">
-            <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Haryt barada giňişleýin maglumat..." />
-          </el-form-item>
-
-          <!-- Dynamic Features -->
-          <el-form-item label="Aýratynlyklar (Features)" class="md:col-span-2">
-            <div class="space-y-2">
-              <div v-for="(_, idx) in form.features" :key="idx" class="flex gap-2">
-                <el-input v-model="form.features![idx]" />
-                <el-button link type="danger" @click="removeFeature(idx)"><el-icon><Close /></el-icon></el-button>
-              </div>
-              <div class="flex gap-2">
-                <el-input v-model="newFeature" placeholder="Täze aýratynlyk..." @keyup.enter="addFeature" />
-                <el-button type="primary" plain @click="addFeature"><el-icon><Plus /></el-icon></el-button>
-              </div>
-            </div>
-          </el-form-item>
-        </el-form>
-      </div>
-      
-      <template #footer>
-        <div class="flex gap-3 justify-end mt-4 px-4 pb-4">
-          <el-button @click="dialogVisible = false" class="!rounded-xl">Bes et</el-button>
-          <el-button type="primary" @click="handleSave" class="!rounded-xl !px-10 !font-black h-12">Harydy sakla</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <ProductDialog
+      v-model:visible="dialogVisible"
+      :is-editing="isEditing"
+      :product="form"
+      :window-width="windowWidth"
+      @save="onProductSave"
+    />
   </div>
 </template>
 

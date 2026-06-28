@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Search,
@@ -13,8 +13,11 @@ import {
 } from '@element-plus/icons-vue'
 import { adminStudioOrdersService, isOrderApproved } from './adminStudioOrdersService'
 import { adminStudioOrdersStore } from './adminStudioOrdersStore'
-import { openContractPrint } from '../../StudioOrderPage/studioContract'
 import type { StudioOrder } from '../../../types'
+
+import StudioOrderDetailDialog from './components/StudioOrderDetailDialog.vue'
+import StudioOrderApproveDialog from './components/StudioOrderApproveDialog.vue'
+import StudioOrderContractDialog from './components/StudioOrderContractDialog.vue'
 
 const s = adminStudioOrdersStore
 const detail = ref<StudioOrder | null>(null)
@@ -32,7 +35,56 @@ async function load() {
   }
 }
 
-onMounted(load)
+let socket: WebSocket | null = null
+
+function connectWebSocket() {
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsHost = import.meta.env.PROD
+    ? window.location.host
+    : '127.0.0.1:8000'
+  const token = localStorage.getItem('token')
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/orders/${token ? '?token=' + token : ''}`
+
+  socket = new WebSocket(wsUrl)
+
+  socket.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data.type === 'order.created') {
+        const exists = s.orders.some((o) => o.id === data.order.id)
+        if (!exists) {
+          s.orders.unshift(data.order)
+        }
+      } else if (data.type === 'order.updated') {
+        patchOrder(data.order)
+      } else if (data.type === 'order.deleted') {
+        s.orders = s.orders.filter((o) => o.id !== data.order_id)
+      }
+    } catch (e) {
+      console.error('Error parsing WebSocket message', e)
+    }
+  }
+
+  socket.onclose = () => {
+    console.log('Admin WebSocket connection closed, reconnecting in 5s...')
+    setTimeout(connectWebSocket, 5000)
+  }
+
+  socket.onerror = (err) => {
+    console.error('WebSocket error:', err)
+  }
+}
+
+onMounted(() => {
+  load()
+  connectWebSocket()
+})
+
+onUnmounted(() => {
+  if (socket) {
+    socket.close()
+  }
+})
 
 const filtered = computed(() => {
   const q = s.search.trim().toLowerCase()
@@ -72,15 +124,12 @@ function patchOrder(updated: StudioOrder) {
   if (i !== -1) s.orders[i] = { ...s.orders[i], ...updated }
 }
 
-async function approve(o: StudioOrder) {
-  try {
-    const updated = await adminStudioOrdersService.approve(o.id)
-    patchOrder(updated && updated.id ? updated : { ...o, status: 'approved', is_approved: true })
-    ElMessage.success('Sargyt tassyklandy')
-  } catch (e) {
-    console.error('approve failed', e)
-    ElMessage.error('Tassyklap bolmady')
-  }
+const approveDialogVisible = ref(false)
+const orderToApprove = ref<StudioOrder | null>(null)
+
+function openApproveDialog(o: StudioOrder) {
+  orderToApprove.value = o
+  approveDialogVisible.value = true
 }
 
 async function reject(o: StudioOrder) {
@@ -114,14 +163,16 @@ async function remove(o: StudioOrder) {
   }
 }
 
+const contractDialogVisible = ref(false)
+const selectedOrderForContract = ref<StudioOrder | null>(null)
+
 function downloadContract(o: StudioOrder) {
   if (!isOrderApproved(o)) {
-    ElMessage.warning('Şertnama diňe tassyklanan sargyt üçin elýeterli')
+    ElMessage.warning('Şertnama diňe tassyklanan sargyt üçün elýeterli')
     return
   }
-  if (!openContractPrint(o)) {
-    ElMessage.error('Açylýan penjirä (popup) rugsat ediň')
-  }
+  selectedOrderForContract.value = o
+  contractDialogVisible.value = true
 }
 
 function openDetail(o: StudioOrder) {
@@ -200,23 +251,50 @@ function formatDate(value: string) {
             <el-tag :type="statusTag(row).type" size="small" class="font-bold">{{ statusTag(row).text }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Amallar" width="230" align="right">
+        <el-table-column label="Amallar" width="300" align="right">
           <template #default="{ row }">
-            <div class="flex items-center justify-end gap-1">
-              <el-tooltip content="Tassykla">
-                <el-button type="success" text :icon="Check" :disabled="isOrderApproved(row)" @click="approve(row)" />
-              </el-tooltip>
-              <el-tooltip content="Ret et">
-                <el-button type="warning" text :icon="Close" @click="reject(row)" />
-              </el-tooltip>
-              <el-tooltip content="Şertnama (PDF)">
-                <el-button type="primary" text :icon="Document" :disabled="!isOrderApproved(row)" @click="downloadContract(row)" />
-              </el-tooltip>
+            <div class="flex items-center justify-end">
+              <!-- Pending Actions -->
+              <template v-if="!isOrderApproved(row) && String(row.status).toLowerCase() !== 'rejected' && String(row.status).toLowerCase() !== 'completed'">
+                <el-button 
+                  type="success" 
+                  size="small" 
+                  plain 
+                  :icon="Check" 
+                  @click="openApproveDialog(row)"
+                >
+                  Tassykla
+                </el-button>
+                <el-button 
+                  type="warning" 
+                  size="small" 
+                  plain 
+                  :icon="Close" 
+                  @click="reject(row)"
+                >
+                  Ret et
+                </el-button>
+              </template>
+
+              <!-- Approved Actions -->
+              <template v-else-if="isOrderApproved(row)">
+                <el-button 
+                  type="primary" 
+                  size="small" 
+                  plain 
+                  :icon="Document" 
+                  @click="downloadContract(row)"
+                >
+                  Şertnama (PDF)
+                </el-button>
+              </template>
+
+              <!-- Shared Actions -->
               <el-tooltip content="Jikme-jik">
-                <el-button text :icon="InfoFilled" @click="openDetail(row)" />
+                <el-button text :icon="InfoFilled" @click="openDetail(row)" class="p-1" />
               </el-tooltip>
               <el-tooltip content="Poz">
-                <el-button type="danger" text :icon="Delete" @click="remove(row)" />
+                <el-button type="danger" text :icon="Delete" @click="remove(row)" class="p-1" />
               </el-tooltip>
             </div>
           </template>
@@ -231,29 +309,19 @@ function formatDate(value: string) {
     </div>
 
     <!-- Detail dialog -->
-    <el-dialog v-model="detailVisible" :title="`Sargyt #${detail?.id ?? ''}`" width="90%" class="studio-order-dialog" top="5vh">
-      <div v-if="detail" class="space-y-4">
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div><span class="text-gray-400">Müşderi:</span> <span class="font-bold">{{ detail.customer_name }}</span></div>
-          <div><span class="text-gray-400">Telefon:</span> <span class="font-bold">{{ detail.customer_phone }}</span></div>
-          <div><span class="text-gray-400">Jemi:</span> <span class="font-bold text-red-600">{{ detail.total_amount }} TMT</span></div>
-          <div><span class="text-gray-400">Galan:</span> <span class="font-bold">{{ detail.remaining_amount }} TMT</span></div>
-        </div>
-        <div
-          v-for="d in detail.days"
-          :key="d.id"
-          class="border border-gray-100 rounded-xl p-3 bg-gray-50"
-        >
-          <div class="font-bold text-slate-800">{{ formatDate(d.date) }}<span v-if="d.time"> · {{ d.time }}</span></div>
-          <div class="text-sm text-gray-600">{{ d.address }} · {{ d.daily_price }} TMT</div>
-          <div v-if="d.equipments.length" class="text-xs text-gray-500 mt-1">
-            Enjamlar: {{ d.equipments.map((e) => `${e.equipment_name}×${e.count}`).join(', ') }}
-          </div>
-          <div v-if="d.services.length" class="text-xs text-gray-500">
-            Hyzmatlar: {{ d.services.map((sv) => `${sv.service_name}×${sv.count}`).join(', ') }}
-          </div>
-        </div>
-      </div>
-    </el-dialog>
+    <StudioOrderDetailDialog v-model="detailVisible" :order="detail" />
+
+    <!-- Price setting & approval dialog -->
+    <StudioOrderApproveDialog
+      v-model="approveDialogVisible"
+      :order="orderToApprove"
+      @approved="patchOrder"
+    />
+
+    <!-- Contract Preview Dialog -->
+    <StudioOrderContractDialog
+      v-model="contractDialogVisible"
+      :order="selectedOrderForContract"
+    />
   </div>
 </template>

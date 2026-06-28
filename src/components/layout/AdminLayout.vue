@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { connectAdminWebsocket } from '../../store'
 import { 
   Menu, 
   Files, 
@@ -15,7 +16,9 @@ import {
   Picture,
   Document,
   Camera,
-  VideoCamera
+  VideoCamera,
+  Present,
+  Cellphone
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -35,6 +38,7 @@ watch(() => route.path, () => {
 const menuItems = [
   { id: 'dashboard', label: 'Dolandyryş paneli', path: '/admin/dashboard', icon: Menu },
   { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
+  { id: 'brands', label: 'Brendler', path: '/admin/brands', icon: Operation },
   { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
   { id: 'users', label: 'Ulanyjylar', path: '/admin/users', icon: User },
   { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
@@ -44,12 +48,18 @@ const menuItems = [
   { id: 'photo-studio', label: 'Foto Studiýa', path: '/admin/photo-studio', icon: VideoCamera },
   { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
   { id: 'blogs', label: 'Bloglar', path: '/admin/blogs', icon: Document },
+  { id: 'gifts', label: 'Sowgatlar & Aksiýalar', path: '/admin/gifts', icon: Present },
+  { id: 'mobile-apps', label: 'Mobil Goşundy', path: '/admin/mobile-apps', icon: Cellphone },
 ]
 
 
 const currentTitle = computed(() => {
   const item = menuItems.find(i => route.path.startsWith(i.path))
   return item ? item.label : 'Admin'
+})
+
+onMounted(() => {
+  connectAdminWebsocket()
 })
 </script>
 

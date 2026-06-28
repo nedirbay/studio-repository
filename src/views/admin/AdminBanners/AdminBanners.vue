@@ -9,10 +9,15 @@ import {
   Select
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import BannerDialog from './components/BannerDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
-onMounted(() => window.addEventListener('resize', updateWidth))
+onMounted(() => {
+  window.addEventListener('resize', updateWidth)
+  actions.fetchBanners()
+  actions.fetchProducts()
+})
 onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const dialogVisible = ref(false)
@@ -46,18 +51,18 @@ const openEdit = (banner: any) => {
   dialogVisible.value = true
 }
 
-const handleSave = async () => {
-  if (!form.value.title || !form.value.image) {
+const onBannerSave = async (savedForm: any) => {
+  if (!savedForm.title || !savedForm.image) {
     ElMessage.warning('Adyny we suratyny dolduryň')
     return
   }
 
   try {
     if (isEditing.value) {
-      await actions.updateBanner(form.value)
+      await actions.updateBanner(savedForm)
       ElMessage.success('Banner täzelendi')
     } else {
-      await actions.addBanner(form.value)
+      await actions.addBanner(savedForm)
       ElMessage.success('Täze banner goşuldy')
     }
     dialogVisible.value = false
@@ -81,29 +86,10 @@ const handleDelete = (id: number) => {
   })
 }
 
-const handleUpload = async (options: any) => {
-  try {
-    const url = await actions.uploadImage(options.file)
-    form.value.image = url
-    ElMessage.success('Surat ýüklendi')
-  } catch (error) {
-    ElMessage.error('Surat ýüklenmedi')
-  }
-}
-
 // Get product name for display
 const getProductName = (id: number) => {
   return store.products.find(p => p.id === id)?.name || 'Nämälim haryt'
 }
-
-const colorOptions = [
-  { label: 'Gök (Dark Blue)', value: 'from-blue-900/80' },
-  { label: 'Gyzyl (Dark Red)', value: 'from-red-900/80' },
-  { label: 'Ýaşyl (Dark Green)', value: 'from-emerald-900/80' },
-  { label: 'Mawy (Cyan)', value: 'from-cyan-900/80' },
-  { label: 'Gara (Black)', value: 'from-slate-900/80' },
-  { label: 'Benewşe (Indigo)', value: 'from-indigo-900/80' },
-]
 </script>
 
 <template>
@@ -173,97 +159,15 @@ const colorOptions = [
       </div>
     </div>
 
-    <!-- Edit/Add Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? 'Banneri üýtgetmek' : 'Täze banner goşmak'"
-      :width="windowWidth < 768 ? '95%' : '600px'"
-      class="admin-dialog"
-      align-center
-    >
-      <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar">
-        <el-form :model="form" label-position="top" class="space-y-4">
-          <el-form-item label="Sözbaşy (Title)">
-            <el-input v-model="form.title" placeholder="Esasy sözbaşy" />
-          </el-form-item>
-          
-          <el-form-item label="Kiçi sözbaşy (Subtitle)">
-            <el-input v-model="form.subtitle" placeholder="Gözüňe ilýän kiçi ýazgy" />
-          </el-form-item>
-          
-          <el-form-item label="Düşündiriş">
-            <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Gysgaça düşündiriş..." />
-          </el-form-item>
-
-          <div class="grid grid-cols-2 gap-4">
-            <el-form-item label="Düwmäniň ýazgysy">
-              <el-input v-model="form.ctaText" />
-            </el-form-item>
-            <el-form-item label="Arka tarapyň reňki">
-              <el-select v-model="form.bgColor" class="w-full">
-                <el-option 
-                  v-for="opt in colorOptions" 
-                  :key="opt.value" 
-                  :label="opt.label" 
-                  :value="opt.value" 
-                />
-              </el-select>
-            </el-form-item>
-          </div>
-
-          <el-form-item label="Baglanjak haryt (Product)">
-            <el-select 
-              v-model="form.product_id" 
-              placeholder="Haryt saýlaň (hökman däl)" 
-              clearable 
-              filterable
-              class="w-full"
-            >
-              <el-option
-                v-for="product in store.products"
-                :key="product.id"
-                :label="product.name"
-                :value="product.id"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="Banner suraty">
-            <div class="space-y-4 w-full">
-              <div v-if="form.image" class="relative w-full h-40 rounded-xl overflow-hidden border border-gray-200">
-                <img :src="form.image" class="w-full h-full object-cover" />
-                <button 
-                  @click="form.image = ''" 
-                  class="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-xl shadow-lg hover:bg-red-700 transition-colors"
-                >
-                  <el-icon><Delete /></el-icon>
-                </button>
-              </div>
-              <el-upload
-                v-else
-                drag
-                action="#"
-                :auto-upload="true"
-                :http-request="handleUpload"
-                class="w-full"
-              >
-                <el-icon class="el-icon--upload"><ImageIcon /></el-icon>
-                <div class="el-upload__text">
-                  Surat çekip goýuň ýa-da <em>saýlaň</em>
-                </div>
-              </el-upload>
-            </div>
-          </el-form-item>
-        </el-form>
-      </div>
-      
-      <template #footer>
-        <div class="flex gap-3 justify-end mt-4 px-4 pb-4">
-          <el-button @click="dialogVisible = false" class="!rounded-lg">Bes et</el-button>
-          <el-button type="primary" @click="handleSave" class="!rounded-lg !px-10 !font-black h-12 shadow-lg shadow-red-600/20">Banneri sakla</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <!-- Edit/Add Dialog Component -->
+    <BannerDialog
+      v-model:visible="dialogVisible"
+      :is-editing="isEditing"
+      :banner="form"
+      :window-width="windowWidth"
+      :products="store.products"
+      @save="onBannerSave"
+    />
   </div>
 </template>
 

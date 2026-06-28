@@ -75,6 +75,15 @@ watch(
   { deep: true }
 )
 
+// Listen for unauthorized events to clear store state without circular imports
+if (typeof window !== 'undefined') {
+  window.addEventListener('unauthorized', () => {
+    store.isAuthenticated = false
+    store.user = null
+  })
+}
+
+
 // Computed helpers
 export const cartCount = computed(() => store.cart.reduce((total: number, item: CartItem) => total + item.quantity, 0))
 export const cartTotal = computed(() => store.cart.reduce((total: number, item: CartItem) => total + (item.product.price * item.quantity), 0))
@@ -94,6 +103,7 @@ export const actions = {
         this.fetchBlogs()
       ])
       store.initialized = true
+      connectAdminWebsocket()
     } catch (error) {
       console.error('Failed to initialize store:', error)
     } finally {
@@ -384,11 +394,45 @@ export const actions = {
       console.error('Failed to add category:', error)
     }
   },
-  async updateCategory(_category: any) {
-    console.warn('Update category not implemented in backend')
+  async updateCategory(category: any) {
+    try {
+      await service.put(`commerce/categories/${category.id}`, category)
+      await this.fetchCategories()
+    } catch (error) {
+      console.error('Failed to update category:', error)
+    }
   },
-  async deleteCategory(_id: number) {
-    console.warn('Delete category not implemented in backend')
+  async deleteCategory(id: number) {
+    try {
+      await service.delete(`commerce/categories/${id}`)
+      await this.fetchCategories()
+    } catch (error) {
+      console.error('Failed to delete category:', error)
+    }
+  },
+  async addBrand(brand: any) {
+    try {
+      await service.post('commerce/brands', brand)
+      await this.fetchBrands()
+    } catch (error) {
+      console.error('Failed to add brand:', error)
+    }
+  },
+  async updateBrand(brand: any) {
+    try {
+      await service.put(`commerce/brands/${brand.id}`, brand)
+      await this.fetchBrands()
+    } catch (error) {
+      console.error('Failed to update brand:', error)
+    }
+  },
+  async deleteBrand(id: number) {
+    try {
+      await service.delete(`commerce/brands/${id}`)
+      await this.fetchBrands()
+    } catch (error) {
+      console.error('Failed to delete brand:', error)
+    }
   },
 
   // Cart Actions
@@ -450,6 +494,7 @@ export const actions = {
         localStorage.setItem('user', JSON.stringify(res.data.user))
         store.isAuthenticated = true
         store.user = res.data.user
+        connectAdminWebsocket()
       }
       return res.data
     } catch (error) {
@@ -466,6 +511,7 @@ export const actions = {
         localStorage.setItem('user', JSON.stringify(res.data.user))
         store.isAuthenticated = true
         store.user = res.data.user
+        connectAdminWebsocket()
       }
       return res.data
     } catch (error) {
@@ -492,6 +538,7 @@ export const actions = {
         localStorage.setItem('user', JSON.stringify(res.data.user))
         store.isAuthenticated = true
         store.user = res.data.user
+        connectAdminWebsocket()
       }
       return res.data
     } catch (error) {
@@ -505,6 +552,7 @@ export const actions = {
     localStorage.removeItem('user')
     store.isAuthenticated = false
     store.user = null
+    disconnectAdminWebsocket()
   },
 
   async resendOtp(email: string) {
@@ -813,4 +861,124 @@ export const giftsActions = {
       return []
     }
   },
+
+  async createCampaign(data: any) {
+    try {
+      const res = await service.post('gifts/campaigns/', data)
+      await this.fetchCampaigns({ status: 'all' })
+      return res.data
+    } catch (error) {
+      console.error('Failed to create campaign:', error)
+      throw error
+    }
+  },
+
+  async updateCampaign(id: number, data: any) {
+    try {
+      const res = await service.put(`gifts/campaigns/${id}/`, data)
+      await this.fetchCampaigns({ status: 'all' })
+      return res.data
+    } catch (error) {
+      console.error('Failed to update campaign:', error)
+      throw error
+    }
+  },
+
+  async deleteCampaign(id: number) {
+    try {
+      await service.delete(`gifts/campaigns/${id}/`)
+      await this.fetchCampaigns({ status: 'all' })
+    } catch (error) {
+      console.error('Failed to delete campaign:', error)
+      throw error
+    }
+  },
+
+  async fetchCampaignParticipants(campaignId: number) {
+    try {
+      const res = await service.get(`gifts/campaigns/${campaignId}/join/`)
+      return res.data
+    } catch (error) {
+      console.error('Failed to fetch campaign participants:', error)
+      return []
+    }
+  },
+
+  async updateParticipantStatus(id: number, status: string) {
+    try {
+      const res = await service.patch(`gifts/participations/${id}/`, { status })
+      return res.data
+    } catch (error) {
+      console.error('Failed to update participant status:', error)
+      throw error
+    }
+  }
+}
+
+let socket: WebSocket | null = null
+
+export function connectAdminWebsocket() {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+    return
+  }
+
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsHost = import.meta.env.PROD
+    ? window.location.host
+    : '127.0.0.1:8000'
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/orders/${token ? '?token=' + token : ''}`
+
+  socket = new WebSocket(wsUrl)
+
+  socket.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+      if (data.type === 'main_order.created') {
+        const exists = store.orders.some(o => o.id === data.order.id)
+        if (!exists) {
+          store.orders.unshift(data.order)
+        }
+      } else if (data.type === 'main_order.updated') {
+        const idx = store.orders.findIndex(o => o.id === data.order.id)
+        if (idx !== -1) {
+          store.orders[idx] = { ...store.orders[idx], ...data.order }
+        }
+      } else if (data.type === 'main_order.deleted') {
+        store.orders = store.orders.filter(o => o.id !== data.order_id)
+      } else if (data.type === 'message.created') {
+        const exists = store.adminMessages.some(m => m.id === data.message.id)
+        if (!exists) {
+          store.adminMessages.unshift(data.message)
+        }
+      } else if (data.type === 'message.updated') {
+        const idx = store.adminMessages.findIndex(m => m.id === data.message.id)
+        if (idx !== -1) {
+          store.adminMessages[idx] = { ...store.adminMessages[idx], ...data.message }
+        }
+      } else if (data.type === 'message.deleted') {
+        store.adminMessages = store.adminMessages.filter(m => m.id !== data.message_id)
+      }
+    } catch (e) {
+      console.error('Error parsing admin WebSocket message', e)
+    }
+  }
+
+  socket.onclose = () => {
+    console.log('Admin WebSocket connection closed, reconnecting in 5s...')
+    setTimeout(connectAdminWebsocket, 5000)
+  }
+
+  socket.onerror = (err) => {
+    console.error('Admin WebSocket error:', err)
+  }
+}
+
+export function disconnectAdminWebsocket() {
+  if (socket) {
+    socket.close()
+    socket = null
+  }
 }

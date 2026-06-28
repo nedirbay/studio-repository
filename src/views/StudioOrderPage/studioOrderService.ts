@@ -4,6 +4,7 @@ import type {
   StudioOrderDay,
   StudioOrderPayload,
   StudioOrderStatus,
+  StudioOrderStaff,
 } from '../../types'
 
 // Lazily built so importing the pure helpers (computeTotal/buildPayload) in
@@ -16,6 +17,8 @@ export interface StudioOrderForm {
   customer_phone: string
   order_type_id: number | null
   days: StudioOrderDay[]
+  paid_amount?: number
+  staff?: StudioOrderStaff[]
 }
 
 /**
@@ -27,6 +30,14 @@ export function formFromOrder(order: StudioOrder): StudioOrderForm {
     customer_name: order.customer_name,
     customer_phone: order.customer_phone,
     order_type_id: order.order_type_id,
+    paid_amount: order.paid_amount,
+    staff: order.staff.map((st) => ({
+      user_id: st.user_id,
+      equipments: st.equipments.map((e) => ({
+        equipment_id: e.equipment_id,
+        count: e.count,
+      })),
+    })),
     days: order.days.map((d) => ({
       date: d.date,
       time: d.time ?? '',
@@ -67,23 +78,24 @@ export function buildPayload(form: StudioOrderForm): StudioOrderPayload {
     customer_phone: form.customer_phone.trim(),
     order_type_id: form.order_type_id,
     total_amount: computeTotal(form.days),
-    paid_amount: 0,
+    paid_amount: form.paid_amount !== undefined ? form.paid_amount : 0,
     days: form.days.map((d) => ({
       date: d.date,
       time: d.time || null,
       address: d.address,
       daily_price: Number(d.daily_price) || 0,
-      equipments: d.equipments.filter((e) => e.equipment_id).map((e) => ({
-        equipment_id: e.equipment_id,
-        count: Number(e.count) || 1,
-      })),
+      equipments: d.equipments
+        ? d.equipments.filter((e) => e.equipment_id).map((e) => ({
+            equipment_id: e.equipment_id,
+            count: Number(e.count) || 1,
+          }))
+        : [],
       services: d.services.filter((s) => s.service_id).map((s) => ({
         service_id: s.service_id,
         count: Number(s.count) || 1,
       })),
     })),
-    // Staff is assigned later by management; customers leave it empty.
-    staff: [],
+    staff: form.staff || [],
   }
 }
 

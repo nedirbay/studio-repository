@@ -1,10 +1,8 @@
-import { CategoryRepository } from '../../ProductsPage/categoryRepository'
-
-const categories = new CategoryRepository()
+import { repositories } from '../../../repositories'
 
 export const adminCategoriesService = {
-  list() { return categories.list() },
+  list() { return repositories.categories.list() },
   create(payload: { name: string; icon?: string; slug?: string }) {
-    return categories.create(payload)
+    return repositories.categories.create(payload)
   },
 }

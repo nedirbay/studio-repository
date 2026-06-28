@@ -39,7 +39,7 @@ const sections: Section[] = [
   {
     key: 'gifts',
     label: 'Sowgatlar',
-    description: 'Bäsleşikler, aksiýalar we gymmat bahaly sowgatlar üçin gatnaş',
+    description: 'Bäsleşikler, aksiýalar we gymmat bahaly sowgatlar üçin goşulyň',
     icon: Present,
     route: '/gifts',
     gradient: 'from-amber-500 via-red-500 to-rose-600',
@@ -64,14 +64,15 @@ function go(section: Section) {
     <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 md:py-16 flex flex-col min-h-screen">
       <header class="text-center mb-10 md:mb-16">
         <div class="inline-flex flex-col items-center">
-          <span class="text-xs md:text-sm tracking-[0.5em] uppercase text-red-500 font-bold mb-3">
-            Doganlar
-          </span>
+          <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-xl md:text-3xl font-black text-red-600 tracking-[0.2em] uppercase">Doganlar</span>
+            <span class="text-xs md:text-sm font-bold text-slate-400 tracking-[0.15em] uppercase">foto merkezi</span>
+          </div>
           <h1 class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
             Hoş geldiňiz
           </h1>
           <p class="mt-4 text-base md:text-lg text-slate-600 max-w-2xl">
-            Doganlar foto merkezinde kamera, studiýa we sowgat bölümlerinden birini saýlaň
+            Doganlar foto merkezinde harytlar, fotostudio we sowgatlar bölümlerinden birini saýlaň
           </p>
         </div>
       </header>

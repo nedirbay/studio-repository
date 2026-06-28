@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { store } from '../../../store'
+import { computed, onMounted } from 'vue'
+import { store, actions } from '../../../store'
+
+onMounted(() => {
+  actions.fetchProducts()
+  actions.fetchCategories()
+})
 import { 
   Box, 
   Files, 

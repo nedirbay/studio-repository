@@ -8,15 +8,12 @@ import router from './router'
 import VueApexCharts from 'vue3-apexcharts'
 
 import ServiceGenerate from './utils/request'
-import { setHttpClientFactory } from './repositories/base'
-setHttpClientFactory(() => ServiceGenerate())
-
-import { actions } from './store'
+import { setHttpClientFactory as setRepoFactory } from './repositories/base'
+import { setHttpClientFactory as setHttpFactory } from './utils/http'
+setRepoFactory(() => ServiceGenerate())
+setHttpFactory(() => ServiceGenerate())
 
 const app = createApp(App)
-
-// Initialize store
-actions.initialize()
 
 app.use(ElementPlus)
 app.use(router)

@@ -1,5 +1,4 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
-import { logoutApp } from '../helper'
 import { ElMessage } from 'element-plus'
 import router from '../router'
 
@@ -46,18 +45,28 @@ const ServiceGenerate = () => {
           duration: 5 * 1000,
         })
       } else if (error.response?.status === 401) {
-        // Only redirect if it's not the verify endpoint, or if we want to force it
-        // For debugging, let's see why it fails first
         console.warn('401 Unauthorized detected')
 
-        if (!error.config.url?.includes('/auth/verify')) {
+        // Clear local storage tokens immediately so subsequent requests don't use them
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+
+        // Notify store to reset its reactive state (avoids circular dependency)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('unauthorized'))
+        }
+
+        // Check if the current route actually requires authentication
+        const currentRoute = router.currentRoute.value
+        const requiresAuth = currentRoute?.matched.some(record => record.meta.requiresAuth) || currentRoute?.path.startsWith('/admin')
+
+        if (requiresAuth && !error.config.url?.includes('/auth/verify')) {
           ElMessage({
             message: 'Täzeden ulgama giriň',
             type: 'error',
             duration: 5 * 1000,
           })
-          logoutApp()
-          router.push('/login')
+          router.push({ path: '/login', query: { redirect: currentRoute.fullPath } })
         }
       } else if (!axios?.isCancel(error)) {
         ElMessage({

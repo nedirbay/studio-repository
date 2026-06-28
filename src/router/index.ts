@@ -124,6 +124,11 @@ const routes = [
         component: () => import('../views/admin/AdminCategories/AdminCategories.vue')
       },
       {
+        path: 'brands',
+        name: 'AdminBrands',
+        component: () => import('../views/admin/AdminBrands/AdminBrands.vue')
+      },
+      {
         path: 'products',
         name: 'AdminProducts',
         component: () => import('../views/admin/AdminProducts/AdminProducts.vue')
@@ -171,6 +176,17 @@ const routes = [
         name: 'AdminPhotoStudio',
         component: () => import('../views/admin/AdminPhotoStudio/AdminPhotoStudio.vue'),
         meta: { title: 'Foto Studiýa' }
+      },
+      {
+        path: 'gifts',
+        name: 'AdminGifts',
+        component: () => import('../views/admin/AdminGifts/AdminGifts.vue'),
+        meta: { title: 'Sowgatlar & Aksiýalar' }
+      },
+      {
+        path: 'mobile-apps',
+        name: 'AdminMobileApps',
+        component: () => import('../views/admin/AdminMobileApps/AdminMobileApps.vue')
       }
     ]
   }

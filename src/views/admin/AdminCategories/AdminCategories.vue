@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { store, actions } from '../../../store'
 import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import CategoryDialog from './components/CategoryDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
-onMounted(() => window.addEventListener('resize', updateWidth))
+onMounted(async () => {
+  window.addEventListener('resize', updateWidth)
+  await actions.fetchCategories()
+})
 onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
 const searchQuery = ref('')
@@ -20,13 +24,28 @@ const form = ref({
   count: 0
 })
 
-const filteredCategories = ref(store.categories)
+// Pagination state
+const currentPage = ref(1)
+const pageSize = ref(10) // 10 categories per page
 
-const handleSearch = () => {
-  filteredCategories.value = store.categories.filter(c => 
+// Computed categories based on search
+const searchedCategories = computed(() => {
+  return store.categories.filter(c => 
     c.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
-}
+})
+
+// Paginated categories for the table
+const paginatedCategories = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return searchedCategories.value.slice(start, end)
+})
+
+// Reset to page 1 on search
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
 
 const openAdd = () => {
   isEditing.value = false
@@ -40,37 +59,42 @@ const openEdit = (category: any) => {
   dialogVisible.value = true
 }
 
-const handleSave = () => {
-  if (!form.value.name || !form.value.slug) {
+const onCategorySave = async (savedForm: any) => {
+  if (!savedForm.name || !savedForm.slug) {
     ElMessage.warning('Adyny we slug-y dolduryň')
     return
   }
 
-  if (isEditing.value) {
-    actions.updateCategory(form.value)
-    ElMessage.success('Kategoriýa täzelendi')
-  } else {
-    actions.addCategory(form.value)
-    ElMessage.success('Täze kategoriýa goşuldy')
+  try {
+    if (isEditing.value) {
+      await actions.updateCategory(savedForm)
+      ElMessage.success('Kategoriýa täzelendi')
+    } else {
+      await actions.addCategory(savedForm)
+      ElMessage.success('Täze kategoriýa goşuldy')
+    }
+    dialogVisible.value = false
+  } catch (error) {
+    ElMessage.error('Ýalňyşlyk ýüze çykdy')
   }
-  
-  dialogVisible.value = false
-  handleSearch()
 }
 
 const handleDelete = (id: number) => {
   ElMessageBox.confirm(
     'Bu kategoriýany pozmak isleýärsiňizmi?',
-    'Üns berin',
+    'Üns beriň',
     {
       confirmButtonText: 'Poz',
       cancelButtonText: 'Bes et',
       type: 'warning',
     }
-  ).then(() => {
-    actions.deleteCategory(id)
-    ElMessage.success('Kategoriýa pozuldy')
-    handleSearch()
+  ).then(async () => {
+    try {
+      await actions.deleteCategory(id)
+      ElMessage.success('Kategoriýa pozuldy')
+    } catch (error) {
+      ElMessage.error('Kategoriýany pozup bolmady')
+    }
   })
 }
 </script>
@@ -83,7 +107,6 @@ const handleDelete = (id: number) => {
         <el-input
           v-model="searchQuery"
           placeholder="Kategoriýa gözle..."
-          @input="handleSearch"
           class="admin-search-input"
         >
           <template #prefix>
@@ -106,7 +129,7 @@ const handleDelete = (id: number) => {
     <!-- Data Table -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
       <el-table 
-        :data="filteredCategories" 
+        :data="paginatedCategories" 
         style="width: 100%" 
         class="admin-table"
         header-cell-class-name="admin-table-header"
@@ -162,32 +185,25 @@ const handleDelete = (id: number) => {
       </el-table>
     </div>
 
-    <!-- Edit/Add Dialog -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? 'Kategoriýany üýtgetmek' : 'Täze kategoriýa goşmak'"
-      :width="windowWidth < 640 ? '90%' : '400px'"
-      class="admin-dialog"
-      align-center
-    >
-      <el-form :model="form" label-position="top" class="space-y-4">
-        <el-form-item label="Kategoriýa ady">
-          <el-input v-model="form.name" placeholder="Mysal üçin: Noutbuklar" />
-        </el-form-item>
-        <el-form-item label="Slug (URL üçin)">
-          <el-input v-model="form.slug" placeholder="Mysal üçin: laptops" />
-        </el-form-item>
-        <el-form-item label="Sekizburçluk / Ikonka">
-          <el-input v-model="form.icon" placeholder="Emoji ýada şekil (💻)" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="flex gap-3 justify-end mt-4">
-          <el-button @click="dialogVisible = false" class="!rounded-xl">Bes et</el-button>
-          <el-button type="primary" @click="handleSave" class="!rounded-xl !px-6">Sakla</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <!-- Pagination -->
+    <div v-if="searchedCategories.length > pageSize" class="mt-6 flex justify-center">
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="prev, pager, next, jumper"
+        :total="searchedCategories.length"
+        background
+      />
+    </div>
+
+    <!-- Edit/Add Dialog Component -->
+    <CategoryDialog
+      v-model:visible="dialogVisible"
+      :is-editing="isEditing"
+      :category="form"
+      :window-width="windowWidth"
+      @save="onCategorySave"
+    />
   </div>
 </template>
 

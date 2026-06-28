@@ -80,7 +80,7 @@ export function buildContractHtml(order: StudioOrder): string {
 </style>
 </head>
 <body>
-  <h1>Hyzmat görkezmek hakynda şertnama</h1>
+  <h1>"Doganlar" foto studiosynyň hyzmatlary boýunça şertnama</h1>
   <div class="sub">№ ${esc(contractNumber(order))} &nbsp;·&nbsp; ${esc(today)} ý.</div>
 
   <div class="meta">
@@ -95,7 +95,7 @@ export function buildContractHtml(order: StudioOrder): string {
   </div>
 
   <p>
-    Şu şertnama bilen Ýerine ýetiriji Buýrujynyň surata/wideo düşüriş
+    Şu şertnama bilen "Doganlar" foto studiosy buýrujynyň surata/wideo düşüriş
     hyzmatlaryny aşakdaky şertlerde ýerine ýetirmegi öz üstüne alýar:
   </p>
 
@@ -105,7 +105,7 @@ export function buildContractHtml(order: StudioOrder): string {
         <th style="width:32px">№</th>
         <th>Sene / wagt</th>
         <th>Salgy</th>
-        <th>Enjamlar we hyzmatlar</th>
+        <th>Hyzmatlar</th>
         <th class="num">Bahasy</th>
       </tr>
     </thead>
@@ -156,3 +156,38 @@ export function openContractPrint(order: StudioOrder): boolean {
   setTimeout(print, 400)
   return true
 }
+
+/**
+ * Download the contract as a PDF file directly to the user's device.
+ */
+export async function downloadContractPdf(order: StudioOrder) {
+  const html = buildContractHtml(order)
+  
+  try {
+    // Dynamically load html2pdf.js from CDN if not already loaded
+    if (!(window as any).html2pdf) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    }
+    
+    const html2pdf = (window as any).html2pdf
+    const opt = {
+      margin:       15,
+      filename:     `sertnama_${contractNumber(order)}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, logging: false, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }
+    
+    await html2pdf().set(opt).from(html).save()
+  } finally {
+    // No cleanup required
+  }
+}
+
+

@@ -261,16 +261,6 @@ function formatDate(dateStr: string) {
             <p class="text-gray-600 leading-relaxed">{{ product.description }}</p>
           </div>
 
-          <!-- Features -->
-          <div v-if="product.features && product.features.length > 0" class="bg-white rounded-xl p-5 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Esasy aýratynlyklar</h3>
-            <ul class="space-y-2">
-              <li v-for="(feature, index) in product.features" :key="index" class="flex items-start gap-2">
-                <el-icon class="text-green-600 mt-1"><CircleCheck /></el-icon>
-                <span class="text-gray-600">{{ feature }}</span>
-              </li>
-            </ul>
-          </div>
 
           <!-- Quantity & Add to Cart -->
           <div class="flex flex-col sm:flex-row gap-4">

@@ -1,2 +1,2 @@
-export * from './authService'
-export * from './cartService'
+export * from '../views/LoginPage/authService'
+export * from '../views/ProductDetailPage/cartService'

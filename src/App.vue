@@ -5,7 +5,8 @@ import TopBar from './components/layout/TopBar.vue'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 import SplashScreen from './components/shared/SplashScreen.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { actions } from './store'
 
 const showSplash = ref(true)
 
@@ -17,6 +18,12 @@ onMounted(() => {
 })
 
 const route = useRoute()
+
+watch(() => route.path, (path) => {
+  if (!path.startsWith('/admin') && path !== '/login' && path !== '/register' && path !== '/forgot-password') {
+    actions.initialize()
+  }
+}, { immediate: true })
 const shouldShowLayout = computed(() => {
   // Hide layout for admin pages and routes with hideLayout meta
   const isAdmin = route.path.startsWith('/admin')

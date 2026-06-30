@@ -10,11 +10,11 @@ const baseNavItems: NavItem[] = [
   { label: 'Baş sahypa', href: '/home' },
   { label: 'Kategoriýalar', href: '/products', children: [] },
   { label: 'Täze gelenler', href: '/new-arrivals' },
+  { label: 'Täzelikler', href: '/blog' },
   { label: 'FotoStudio', href: '/studio' },
   { label: 'Studio Sargyt', href: '/studio-order' },
   { label: 'Sowgatlar', href: '/gifts' },
   { label: 'Biz barada', href: '/about' },
-  { label: 'Blog', href: '/blog' },
 ]
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'

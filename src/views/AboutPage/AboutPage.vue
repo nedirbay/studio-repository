@@ -68,7 +68,12 @@ const fetchActiveVersion = async () => {
 
 const handleDownload = () => {
   if (activeApp.value?.file_url) {
-    window.open(activeApp.value.file_url, '_blank')
+    let downloadUrl = activeApp.value.file_url
+    // Convert to HTTPS if the front-end is served over HTTPS to avoid mixed-content blocks
+    if (window.location.protocol === 'https:' && downloadUrl.startsWith('http://')) {
+      downloadUrl = downloadUrl.replace('http://', 'https://')
+    }
+    window.open(downloadUrl, '_blank')
     ElMessage.success('Mobil goşundy ýüklenip başlandy...')
   } else {
     ElMessage.error('Ýüklemek üçin faýl tapylmady.')

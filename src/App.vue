@@ -10,7 +10,8 @@ import { actions } from './store'
 
 const showSplash = ref(true)
 
-onMounted(() => {
+onMounted(async () => {
+  await actions.fetchActiveCurrency()
   // We keep it in DOM for the full 2.5s (2s + 0.5s fade out)
   setTimeout(() => {
     showSplash.value = false

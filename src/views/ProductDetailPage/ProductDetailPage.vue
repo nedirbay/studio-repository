@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { store, actions } from '../../store'
+import { store, actions, formatPrice } from '../../store'
 import type { ProductReview } from '../../types'
 import { ElMessage } from 'element-plus'
 import { 
@@ -279,12 +279,12 @@ function formatDate(dateStr: string) {
 
           <!-- Price -->
           <div class="flex items-baseline gap-3">
-            <span class="text-3xl font-bold text-red-600">${{ product.price.toLocaleString() }}</span>
+            <span class="text-3xl font-bold text-red-600">{{ formatPrice(product.price) }}</span>
             <span v-if="product.originalPrice" class="text-xl text-gray-400 line-through">
-              ${{ product.originalPrice.toLocaleString() }}
+              {{ formatPrice(product.originalPrice) }}
             </span>
             <span v-if="product.originalPrice" class="text-sm font-semibold text-green-600">
-              Tygyşytlaň ${{ (product.originalPrice - product.price).toLocaleString() }}
+              Tygyşytlaň {{ formatPrice(product.originalPrice - product.price) }}
             </span>
           </div>
 

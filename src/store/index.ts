@@ -34,6 +34,8 @@ interface StoreState {
   studioComments: PhotoReelComment[]
   campaigns: Campaign[]
   latestOrderAlert: any | null
+  currencies: any[]
+  activeCurrency: any | null
 }
 
 // Load initial state from localStorage if exists
@@ -66,7 +68,9 @@ export const store = reactive<StoreState>({
   studioCollections: [],
   studioComments: [],
   campaigns: [],
-  latestOrderAlert: null
+  latestOrderAlert: null,
+  currencies: [],
+  activeCurrency: null
 })
 
 // Persistence
@@ -746,7 +750,80 @@ export const actions = {
       console.error(`Failed to delete blog post ${slug}:`, error)
       throw error
     }
+  },
+
+  async fetchCurrencies() {
+    try {
+      const res = await service.get('currencies')
+      store.currencies = res.data
+    } catch (error) {
+      console.error('Failed to fetch currencies:', error)
+    }
+  },
+
+  async fetchActiveCurrency() {
+    try {
+      const res = await service.get('currencies/active')
+      store.activeCurrency = res.data
+    } catch (error) {
+      console.error('Failed to fetch active currency:', error)
+    }
+  },
+
+  async addCurrency(currencyData: any) {
+    try {
+      await service.post('currencies', currencyData)
+      await this.fetchCurrencies()
+      await this.fetchActiveCurrency()
+    } catch (error) {
+      console.error('Failed to add currency:', error)
+      throw error
+    }
+  },
+
+  async updateCurrency(id: number, currencyData: any) {
+    try {
+      await service.put(`currencies/${id}`, currencyData)
+      await this.fetchCurrencies()
+      await this.fetchActiveCurrency()
+    } catch (error) {
+      console.error('Failed to update currency:', error)
+      throw error
+    }
+  },
+
+  async deleteCurrency(id: number) {
+    try {
+      await service.delete(`currencies/${id}`)
+      await this.fetchCurrencies()
+      await this.fetchActiveCurrency()
+    } catch (error) {
+      console.error('Failed to delete currency:', error)
+      throw error
+    }
+  },
+
+  async activateCurrency(id: number) {
+    try {
+      await service.post(`currencies/${id}/activate`)
+      await this.fetchCurrencies()
+      await this.fetchActiveCurrency()
+    } catch (error) {
+      console.error('Failed to activate currency:', error)
+      throw error
+    }
   }
+}
+
+export function formatPrice(amount: number | string | null | undefined) {
+  if (amount === null || amount === undefined || amount === '') return ''
+  const symbol = store.activeCurrency?.symbol || 'TMT'
+  const num = Number(amount)
+  const amt = isNaN(num) ? amount.toString() : num.toLocaleString()
+  if (symbol === '$') {
+    return `$${amt}`
+  }
+  return `${amt} ${symbol}`
 }
 
 // ---------------------------------------------------------------------------

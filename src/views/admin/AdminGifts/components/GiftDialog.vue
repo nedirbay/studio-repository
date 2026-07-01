@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { actions } from '../../../../store'
+import { baseMediaURL } from '../../../../utils/request'
 
 const props = defineProps<{
   visible: boolean
@@ -32,6 +35,48 @@ const emit = defineEmits<{
 }>()
 
 const form = ref({ ...props.campaign })
+
+const colorStart = ref('#dc2626')
+const colorEnd = ref('#f97316')
+
+// Watch form.bg_gradient to update colorpickers
+watch(() => form.value.bg_gradient, (val) => {
+  if (val && val.includes(',')) {
+    const parts = val.split(',')
+    if (parts[0] && parts[0].startsWith('#')) colorStart.value = parts[0]
+    if (parts[1] && parts[1].startsWith('#')) colorEnd.value = parts[1]
+  } else if (val && val.startsWith('#')) {
+    colorStart.value = val
+    colorEnd.value = val
+  } else {
+    // Default fallback for Tailwind classes like "from-red-600 to-orange-500"
+    colorStart.value = '#dc2626'
+    colorEnd.value = '#f97316'
+  }
+}, { immediate: true })
+
+// Watch colorpickers to update form.bg_gradient
+watch([colorStart, colorEnd], ([start, end]) => {
+  form.value.bg_gradient = `${start},${end}`
+})
+
+const getAbsoluteUrl = (url: string) => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url
+  }
+  return baseMediaURL + url
+}
+
+const handleImageUpload = async (options: any, field: 'image_url' | 'banner_url') => {
+  try {
+    const url = await actions.uploadImage(options.file)
+    form.value[field] = url
+    ElMessage.success('Surat üstünlikli ýüklendi!')
+  } catch (error) {
+    ElMessage.error('Surat ýüklemek başa barmady')
+  }
+}
 
 watch(() => props.campaign, (newVal) => {
   form.value = { ...newVal }
@@ -146,15 +191,60 @@ const handleSave = () => {
       </el-form-item>
 
       <el-form-item label="Surat URL (Image)" class="col-span-1">
-        <el-input v-model="form.image_url" placeholder="Surat URL goýuň" />
+        <div class="flex flex-col gap-2 w-full">
+          <div class="flex gap-2">
+            <el-input v-model="form.image_url" placeholder="Surat URL goýuň ýa-da ýükläň" class="flex-1" />
+            <el-upload
+              action="#"
+              :http-request="(opt) => handleImageUpload(opt, 'image_url')"
+              :show-file-list="false"
+              accept="image/*"
+            >
+              <el-button type="primary" plain class="!rounded-xl">Ýükle</el-button>
+            </el-upload>
+          </div>
+          <div v-if="form.image_url" class="relative w-24 h-24 rounded-lg overflow-hidden border bg-gray-50 mt-1">
+            <img :src="getAbsoluteUrl(form.image_url)" class="w-full h-full object-cover" />
+            <button @click.prevent="form.image_url = ''" class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs border border-white">&times;</button>
+          </div>
+        </div>
       </el-form-item>
 
       <el-form-item label="Banner Surat URL" class="col-span-1">
-        <el-input v-model="form.banner_url" placeholder="Tapawutly banner surat URL-y" />
+        <div class="flex flex-col gap-2 w-full">
+          <div class="flex gap-2">
+            <el-input v-model="form.banner_url" placeholder="Banner surat URL-y ýa-da ýükläň" class="flex-1" />
+            <el-upload
+              action="#"
+              :http-request="(opt) => handleImageUpload(opt, 'banner_url')"
+              :show-file-list="false"
+              accept="image/*"
+            >
+              <el-button type="primary" plain class="!rounded-xl">Ýükle</el-button>
+            </el-upload>
+          </div>
+          <div v-if="form.banner_url" class="relative w-24 h-24 rounded-lg overflow-hidden border bg-gray-50 mt-1">
+            <img :src="getAbsoluteUrl(form.banner_url)" class="w-full h-full object-cover" />
+            <button @click.prevent="form.banner_url = ''" class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs border border-white">&times;</button>
+          </div>
+        </div>
       </el-form-item>
 
-      <el-form-item label="Arka tarapyň reňki (bg_gradient)" class="col-span-1">
-        <el-input v-model="form.bg_gradient" placeholder="from-red-600 to-orange-500" />
+      <el-form-item label="Arka tarapyň reňkleri (bg_gradient)" class="col-span-1">
+        <div class="flex flex-col gap-2 w-full">
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] text-gray-400 font-bold uppercase mb-1">Başy</span>
+              <el-color-picker v-model="colorStart" size="default" />
+            </div>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] text-gray-400 font-bold uppercase mb-1">Soňy</span>
+              <el-color-picker v-model="colorEnd" size="default" />
+            </div>
+            <div class="flex-1 h-10 rounded-xl border border-gray-100 self-end" :style="{ background: `linear-gradient(135deg, ${colorStart}, ${colorEnd})` }" title="Reňk görnüşi"></div>
+          </div>
+          <span class="text-[10px] text-gray-400 font-medium">Reňk saýlaň we sag tarapda görnüşini synlaň</span>
+        </div>
       </el-form-item>
 
       <el-form-item label="Aýratynlyklar" class="col-span-1 flex items-center pt-6">

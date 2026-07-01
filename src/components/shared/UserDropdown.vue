@@ -10,7 +10,7 @@ import {
   ShoppingCart
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { store, actions } from '../../store'
+import { store, actions, formatPrice } from '../../store'
 
 const router = useRouter()
 
@@ -155,9 +155,9 @@ function handleLogout() {
                 <div v-for="item in props.row.items" :key="item.id" class="flex justify-between items-center text-sm py-1 border-b border-gray-100 last:border-0">
                   <div class="flex flex-col">
                     <span class="font-bold text-gray-800">{{ item.product_name }}</span>
-                    <span class="text-xs text-gray-400">{{ item.quantity }} sany x ${{ item.price }}</span>
+                    <span class="text-xs text-gray-400">{{ item.quantity }} sany x {{ formatPrice(item.price) }}</span>
                   </div>
-                  <span class="font-black text-slate-900">${{ (item.quantity * item.price).toLocaleString() }}</span>
+                  <span class="font-black text-slate-900">{{ formatPrice(item.quantity * item.price) }}</span>
                 </div>
               </div>
             </template>
@@ -177,7 +177,7 @@ function handleLogout() {
 
           <el-table-column label="Jemi baha" width="120">
             <template #default="scope">
-              <span class="font-black text-red-600">${{ scope.row.total_amount }}</span>
+              <span class="font-black text-red-600">{{ formatPrice(scope.row.total_amount) }}</span>
             </template>
           </el-table-column>
 

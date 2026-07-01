@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { 
   Cellphone, 
-  Setting, 
-  UploadFilled, 
   Plus, 
   Delete, 
   Check, 
   Download, 
   Document,
   Calendar,
-  InfoFilled
+  Edit
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { type MobileAppVersion } from '../../../repositories/mobileAppRepository'
 import { adminMobileAppsService } from './adminMobileAppsService'
 import UploadAppDialog from './components/UploadAppDialog.vue'
+import EditAppDialog from './components/EditAppDialog.vue'
 
 // State
 const activeApp = ref<MobileAppVersion | null>(null)
@@ -24,6 +23,9 @@ const loadingActive = ref(true)
 const loadingList = ref(false)
 const uploadDialogVisible = ref(false)
 const uploading = ref(false)
+const editDialogVisible = ref(false)
+const editingVersion = ref<MobileAppVersion | null>(null)
+const saving = ref(false)
 
 // Formatting helpers
 const formatDate = (dateStr: string) => {
@@ -114,6 +116,30 @@ const handleDelete = (id: number) => {
       ElMessage.error('Wersiýany öçürmek başartmady.')
     }
   }).catch(() => {})
+}
+
+const handleEdit = (row: MobileAppVersion) => {
+  editingVersion.value = row
+  editDialogVisible.value = true
+}
+
+const onEditSubmit = async (formData: FormData) => {
+  if (!editingVersion.value) return
+  saving.value = true
+  try {
+    await adminMobileAppsService.updateVersion(editingVersion.value.id, formData)
+    ElMessage.success('Wersiýa maglumatlary üstünlikli täzelendi!')
+    editDialogVisible.value = false
+    
+    // Refresh Data
+    await fetchActiveVersion()
+    await fetchVersions()
+  } catch (err: any) {
+    console.error('Update failed:', err)
+    ElMessage.error(err.response?.data?.error || 'Wersiýany üýtgetmek başartmady.')
+  } finally {
+    saving.value = false
+  }
 }
 
 // Lifecycle
@@ -231,9 +257,16 @@ onMounted(async () => {
           </template>
         </el-table-column>
         
-        <el-table-column label="Hereketler" width="180" align="right">
+        <el-table-column label="Hereketler" width="220" align="right">
           <template #default="{ row }">
             <div class="flex justify-end gap-2">
+              <button 
+                @click="handleEdit(row)"
+                class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 hover:border-amber-300 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+                title="Redaktirle"
+              >
+                <el-icon class="text-sm"><edit /></el-icon>
+              </button>
               <button 
                 v-if="!row.is_active"
                 @click="handleActivate(row.id)"
@@ -269,6 +302,14 @@ onMounted(async () => {
       v-model:visible="uploadDialogVisible"
       :uploading="uploading"
       @submit="onUploadSubmit"
+    />
+
+    <!-- Edit Version Dialog Component -->
+    <EditAppDialog
+      v-model:visible="editDialogVisible"
+      :saving="saving"
+      :version="editingVersion"
+      @submit="onEditSubmit"
     />
   </div>
 </template>

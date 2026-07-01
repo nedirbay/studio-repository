@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { store, actions } from '../../../store'
+import { store, actions, formatPrice } from '../../../store'
 import { 
   ShoppingCart, 
   Search, 
@@ -113,7 +113,7 @@ function formatDate(dateStr: string) {
         <div>
           <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Jemi söwda</p>
           <p class="text-xl sm:text-2xl font-black text-slate-900">
-            ${{ store.orders.reduce((sum, o) => sum + Number(o.total_amount), 0).toLocaleString() }}
+            {{ formatPrice(store.orders.reduce((sum, o) => sum + Number(o.total_amount), 0)) }}
           </p>
         </div>
       </div>
@@ -188,7 +188,7 @@ function formatDate(dateStr: string) {
 
         <el-table-column label="Jemi baha" width="150" sortable sort-by="total_amount">
           <template #default="scope">
-            <span class="font-black text-red-600 text-lg">${{ Number(scope.row.total_amount).toLocaleString() }}</span>
+            <span class="font-black text-red-600 text-lg">{{ formatPrice(scope.row.total_amount) }}</span>
           </template>
         </el-table-column>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { store, actions, cartTotal } from '../../store'
+import { store, actions, cartTotal, formatPrice } from '../../store'
 import { User, Phone, ShoppingCart, Delete, Minus, Plus, Close, ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -124,7 +124,7 @@ async function handleCheckout() {
                   <div class="text-xs text-gray-500 mb-2">{{ item.product.brand }}</div>
                   
                   <div class="flex items-center justify-between">
-                    <div class="text-sm font-bold text-red-600">${{ item.product.price.toLocaleString() }}</div>
+                    <div class="text-sm font-bold text-red-600">{{ formatPrice(item.product.price) }}</div>
                     
                     <div class="flex items-center border border-gray-200 rounded-lg scale-90 origin-right">
                       <button @click="actions.updateQuantity(item.product.id, item.quantity - 1)" class="w-7 h-7 flex items-center justify-center hover:bg-gray-100 text-gray-500">
@@ -202,7 +202,7 @@ async function handleCheckout() {
                 </div>
                 <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                   <span class="font-bold text-gray-900">Umumy baha:</span>
-                  <span class="text-xl font-black text-red-600">${{ cartTotal.toLocaleString() }}</span>
+                  <span class="text-xl font-black text-red-600">{{ formatPrice(cartTotal) }}</span>
                 </div>
               </div>
             </div>
@@ -219,7 +219,7 @@ async function handleCheckout() {
           </div>
           <div class="flex justify-between items-end">
             <span class="text-gray-900 font-medium">Umumy baha:</span>
-            <span class="text-2xl font-bold text-red-600">${{ cartTotal.toLocaleString() }}</span>
+            <span class="text-2xl font-bold text-red-600">{{ formatPrice(cartTotal) }}</span>
           </div>
         </div>
 

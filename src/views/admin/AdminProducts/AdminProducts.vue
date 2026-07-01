@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { store, actions } from '../../../store'
+import { store, actions, formatPrice } from '../../../store'
 import type { Product } from '../../../types'
 import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -143,7 +143,7 @@ const handleDelete = (id: number) => {
       <div class="mt-2 text-xs font-semibold space-y-1 text-green-800">
         <div><strong>Müşderi:</strong> {{ store.latestOrderAlert.customer_name }}</div>
         <div><strong>Telefon:</strong> {{ store.latestOrderAlert.customer_phone }}</div>
-        <div><strong>Jemi baha:</strong> ${{ store.latestOrderAlert.total_amount }}</div>
+        <div><strong>Jemi baha:</strong> {{ formatPrice(store.latestOrderAlert.total_amount) }}</div>
         <div class="mt-2">
           <router-link to="/admin/orders" class="text-green-600 hover:text-green-800 underline font-black">
             Sargytlara git →
@@ -229,8 +229,8 @@ const handleDelete = (id: number) => {
         <el-table-column label="Baha" width="120" sortable sort-by="price">
           <template #default="scope">
             <div class="flex flex-col">
-              <span class="font-black text-red-600">${{ scope.row.price }}</span>
-              <span v-if="scope.row.originalPrice" class="text-[10px] text-gray-400 line-through font-bold">${{ scope.row.originalPrice }}</span>
+              <span class="font-black text-red-600">{{ formatPrice(scope.row.price) }}</span>
+              <span v-if="scope.row.originalPrice" class="text-[10px] text-gray-400 line-through font-bold">{{ formatPrice(scope.row.originalPrice) }}</span>
             </div>
           </template>
         </el-table-column>

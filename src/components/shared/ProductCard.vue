@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { store, actions } from '../../store'
+import { store, actions, formatPrice } from '../../store'
 import type { Product } from '../../types'
 
 const props = defineProps<{ product: Product }>()
@@ -87,9 +87,9 @@ function discountPercent(price: number, original: number) {
 
       <div class="flex items-center justify-between mt-3">
         <div>
-          <span class="text-lg font-bold text-red-600">${{ product.price.toLocaleString() }}</span>
+          <span class="text-lg font-bold text-red-600">{{ formatPrice(product.price) }}</span>
           <span v-if="product.originalPrice" class="text-xs text-gray-400 line-through ml-2">
-            ${{ product.originalPrice.toLocaleString() }}
+            {{ formatPrice(product.originalPrice) }}
           </span>
         </div>
         <button

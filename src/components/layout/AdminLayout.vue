@@ -18,7 +18,9 @@ import {
   Camera,
   VideoCamera,
   Present,
-  Cellphone
+  Cellphone,
+  Tools,
+  Coin
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -45,11 +47,13 @@ const menuItems = [
   { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
   { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
   { id: 'studio-orders', label: 'Studio Sargytlary', path: '/admin/studio-orders', icon: Camera },
+  { id: 'studio-catalogs', label: 'Studio Kataloglary', path: '/admin/studio-catalogs', icon: Tools },
   { id: 'photo-studio', label: 'Foto Studiýa', path: '/admin/photo-studio', icon: VideoCamera },
   { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
   { id: 'blogs', label: 'Bloglar', path: '/admin/blogs', icon: Document },
   { id: 'gifts', label: 'Sowgatlar & Aksiýalar', path: '/admin/gifts', icon: Present },
   { id: 'mobile-apps', label: 'Mobil Goşundy', path: '/admin/mobile-apps', icon: Cellphone },
+  { id: 'currencies', label: 'Pul birlikleri', path: '/admin/currencies', icon: Coin },
 ]
 
 

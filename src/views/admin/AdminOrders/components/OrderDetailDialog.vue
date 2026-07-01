@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Check, Close } from '@element-plus/icons-vue'
+import { formatPrice } from '../../../../store'
 
 const props = defineProps<{
   visible: boolean
@@ -79,12 +79,12 @@ function formatDate(dateStr: string) {
             <el-table-column label="Sany" prop="quantity" width="80" align="center" />
             <el-table-column label="Baha" width="90" align="right">
               <template #default="scope">
-                <span class="font-bold text-gray-700">${{ scope.row.price }}</span>
+                <span class="font-bold text-gray-700">{{ formatPrice(scope.row.price) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="Jemi" width="90" align="right">
               <template #default="scope">
-                <span class="font-black text-slate-900">${{ (scope.row.quantity * scope.row.price).toLocaleString() }}</span>
+                <span class="font-black text-slate-900">{{ formatPrice(scope.row.quantity * scope.row.price) }}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -94,7 +94,7 @@ function formatDate(dateStr: string) {
       <!-- Total -->
       <div class="flex justify-between items-center bg-red-50 p-4 rounded-2xl border border-red-100">
         <span class="font-bold text-red-900">Umumy baha:</span>
-        <span class="text-xl font-black text-red-600">${{ order.total_amount.toLocaleString() }}</span>
+        <span class="text-xl font-black text-red-600">{{ formatPrice(order.total_amount) }}</span>
       </div>
 
       <!-- Actions -->

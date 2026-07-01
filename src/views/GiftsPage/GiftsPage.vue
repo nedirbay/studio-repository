@@ -32,6 +32,18 @@ function resolveMedia(url?: string) {
   return baseMediaURL + url
 }
 
+function getGradientStyle(bg?: string) {
+  if (!bg) return ''
+  if (bg.includes(',')) {
+    const [start, end] = bg.split(',')
+    return `linear-gradient(135deg, ${start}, ${end})`
+  }
+  if (bg.startsWith('#')) {
+    return bg
+  }
+  return ''
+}
+
 // Format duration range in Turkmen (e.g. "1-10 iýun 2026 aralyk dowam etýär")
 function formatCampaignDuration(startsAt?: string, endsAt?: string | null) {
   if (!startsAt) return 'Möhletsiz'
@@ -165,7 +177,12 @@ onMounted(() => {
           <!-- Card Media -->
           <div class="card-media">
             <img v-if="c.image_url" :src="resolveMedia(c.image_url)" :alt="c.title" loading="lazy" />
-            <div v-else class="placeholder" :class="`bg-gradient-to-br ${c.bg_gradient || 'from-red-600 to-orange-500'}`">
+            <div
+              v-else
+              class="placeholder"
+              :class="!c.bg_gradient || (!c.bg_gradient.includes(',') && !c.bg_gradient.startsWith('#')) ? `bg-gradient-to-br ${c.bg_gradient || 'from-red-600 to-orange-500'}` : ''"
+              :style="c.bg_gradient && (c.bg_gradient.includes(',') || c.bg_gradient.startsWith('#')) ? { background: getGradientStyle(c.bg_gradient) } : {}"
+            >
               <el-icon><component :is="typeMeta[c.type]?.icon || Present" /></el-icon>
             </div>
             <span class="type-badge" :style="{ background: typeMeta[c.type]?.color || '#dc2626' }">

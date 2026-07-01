@@ -29,6 +29,13 @@ export class MobileAppRepository extends BaseRepository {
     return res.data
   }
 
+  async updateVersion(id: number, formData: FormData): Promise<MobileAppVersion> {
+    const res = await this.client.put(`mobile-apps/versions/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data
+  }
+
   async activateVersion(id: number): Promise<{ success: boolean; version: MobileAppVersion }> {
     const res = await this.client.post(`mobile-apps/versions/${id}/activate`)
     return res.data

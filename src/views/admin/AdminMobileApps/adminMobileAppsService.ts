@@ -10,6 +10,9 @@ export const adminMobileAppsService = {
   uploadVersion(formData: FormData) {
     return repositories.mobileApp.uploadVersion(formData)
   },
+  updateVersion(id: number, formData: FormData) {
+    return repositories.mobileApp.updateVersion(id, formData)
+  },
   activateVersion(id: number) {
     return repositories.mobileApp.activateVersion(id)
   },

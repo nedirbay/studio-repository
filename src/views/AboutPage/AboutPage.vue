@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import doganlarImg from '../../assets/doganlar.png'
 import { useRouter } from 'vue-router'
 import { 
   Location, 
@@ -108,7 +109,7 @@ onMounted(async () => {
           Doganlar <span class="text-red-600">foto merkezi</span>
         </h1>
         <p class="text-xl text-gray-300 font-light leading-relaxed mb-8">
-          Mary şäherinde ýokary hilli foto apparatlaryň söwdasy we professional surat hyzmatlaryny hödürleýän ýeke-täk merkez.
+          Mary şäherinde ýokary hilli foto apparatlaryň söwdasy we professional surat hyzmatlaryny hödürleýän merkez.
         </p>
       </div>
     </section>
@@ -145,7 +146,7 @@ onMounted(async () => {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-28">
         <div class="relative order-2 lg:order-1">
           <div class="image-stack">
-            <img src="https://images.pexels.com/photos/593322/pexels-photo-593322.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Camera Gear" class="main-img" />
+            <img :src="doganlarImg" alt="Camera Gear" class="main-img" />
             <div class="floating-badge bg-red-600 text-white p-6 rounded-2xl shadow-xl">
               <div class="text-3xl font-black">10+</div>
               <div class="text-[10px] font-bold uppercase tracking-widest">Ýyllyk Tejribe</div>
@@ -420,7 +421,7 @@ onMounted(async () => {
 }
 
 .main-img {
-  @apply rounded-[40px] shadow-2xl w-full max-w-[500px] object-cover aspect-square;
+  @apply rounded-[40px] shadow-2xl w-full max-w-[680px] h-[640px] object-cover;
 }
 
 .floating-badge {

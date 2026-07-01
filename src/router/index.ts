@@ -178,6 +178,12 @@ const routes = [
         meta: { title: 'Foto Studiýa' }
       },
       {
+        path: 'studio-catalogs',
+        name: 'AdminStudioCatalogs',
+        component: () => import('../views/admin/AdminStudioCatalogs/AdminStudioCatalogs.vue'),
+        meta: { title: 'Studio Kataloglary' }
+      },
+      {
         path: 'gifts',
         name: 'AdminGifts',
         component: () => import('../views/admin/AdminGifts/AdminGifts.vue'),
@@ -187,6 +193,12 @@ const routes = [
         path: 'mobile-apps',
         name: 'AdminMobileApps',
         component: () => import('../views/admin/AdminMobileApps/AdminMobileApps.vue')
+      },
+      {
+        path: 'currencies',
+        name: 'AdminCurrencies',
+        component: () => import('../views/admin/AdminCurrencies/AdminCurrencies.vue'),
+        meta: { title: 'Pul birlikleri' }
       }
     ]
   }

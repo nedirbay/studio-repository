@@ -19,8 +19,37 @@ import ParticipantsDialog from './components/ParticipantsDialog.vue'
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
 
+function onParticipationCreated(e: Event) {
+  const p = (e as CustomEvent).detail
+  if (participantsDialogVisible.value && selectedCampaign.value && selectedCampaign.value.id === p.campaign) {
+    if (!participants.value.some(x => x.id === p.id)) {
+      participants.value.unshift(p)
+    }
+  }
+}
+
+function onParticipationUpdated(e: Event) {
+  const p = (e as CustomEvent).detail
+  if (participantsDialogVisible.value && selectedCampaign.value && selectedCampaign.value.id === p.campaign) {
+    const idx = participants.value.findIndex(x => x.id === p.id)
+    if (idx !== -1) {
+      participants.value[idx] = p
+    }
+  }
+}
+
+function onParticipationDeleted(e: Event) {
+  const { id, campaign_id } = (e as CustomEvent).detail
+  if (participantsDialogVisible.value && selectedCampaign.value && selectedCampaign.value.id === campaign_id) {
+    participants.value = participants.value.filter(x => x.id !== id)
+  }
+}
+
 onMounted(async () => {
   window.addEventListener('resize', updateWidth)
+  window.addEventListener('participation-created', onParticipationCreated)
+  window.addEventListener('participation-updated', onParticipationUpdated)
+  window.addEventListener('participation-deleted', onParticipationDeleted)
   loading.value = true
   try {
     await giftsActions.fetchCampaigns({ status: 'all' })
@@ -33,6 +62,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateWidth)
+  window.removeEventListener('participation-created', onParticipationCreated)
+  window.removeEventListener('participation-updated', onParticipationUpdated)
+  window.removeEventListener('participation-deleted', onParticipationDeleted)
 })
 
 const loading = ref(false)

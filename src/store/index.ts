@@ -1198,6 +1198,29 @@ export function connectAdminWebsocket() {
       } else if (data.type === 'review.deleted') {
         store.adminReviews = store.adminReviews.filter(r => r.id !== data.review_id)
         store.reviewTotalCount = Math.max(0, store.reviewTotalCount - 1)
+      } else if (data.type === 'participation.created') {
+        const campaign = store.campaigns.find(c => c.id === data.participation.campaign)
+        if (campaign) {
+          campaign.participants_count = (campaign.participants_count || 0) + 1
+        }
+        if (store.user && (store.user.role_name === 'Admin' || store.user.is_superuser)) {
+          ElNotification({
+            title: 'Täze gatnaşyjy!',
+            message: `Aksiýa: ${data.participation.campaign_title || 'Aksiýa'}\nGatnaşyjy: ${data.participation.full_name}\nTelefon: ${data.participation.phone}`,
+            type: 'success',
+            position: 'bottom-right',
+            duration: 5000
+          })
+        }
+        window.dispatchEvent(new CustomEvent('participation-created', { detail: data.participation }))
+      } else if (data.type === 'participation.updated') {
+        window.dispatchEvent(new CustomEvent('participation-updated', { detail: data.participation }))
+      } else if (data.type === 'participation.deleted') {
+        const campaign = store.campaigns.find(c => c.id === data.campaign_id)
+        if (campaign) {
+          campaign.participants_count = Math.max(0, (campaign.participants_count || 1) - 1)
+        }
+        window.dispatchEvent(new CustomEvent('participation-deleted', { detail: { id: data.participation_id, campaign_id: data.campaign_id } }))
       }
     } catch (e) {
       console.error('Error parsing admin WebSocket message', e)

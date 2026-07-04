@@ -199,6 +199,12 @@ const routes = [
         name: 'AdminCurrencies',
         component: () => import('../views/admin/AdminCurrencies/AdminCurrencies.vue'),
         meta: { title: 'Pul birlikleri' }
+      },
+      {
+        path: 'logs',
+        name: 'AdminLogs',
+        component: () => import('../views/admin/AdminLogs/AdminLogs.vue'),
+        meta: { title: 'Ulgam loglary' }
       }
     ]
   }

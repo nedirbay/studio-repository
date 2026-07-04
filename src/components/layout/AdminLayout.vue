@@ -20,7 +20,8 @@ import {
   Present,
   Cellphone,
   Tools,
-  Coin
+  Coin,
+  Memo
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -37,24 +38,43 @@ watch(() => route.path, () => {
 })
 
 
-const menuItems = [
-  { id: 'dashboard', label: 'Dolandyryş paneli', path: '/admin/dashboard', icon: Menu },
-  { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
-  { id: 'brands', label: 'Brendler', path: '/admin/brands', icon: Operation },
-  { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
-  { id: 'users', label: 'Ulanyjylar', path: '/admin/users', icon: User },
-  { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
-  { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
-  { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
-  { id: 'studio-orders', label: 'Studio Sargytlary', path: '/admin/studio-orders', icon: Camera },
-  { id: 'studio-catalogs', label: 'Studio Kataloglary', path: '/admin/studio-catalogs', icon: Tools },
-  { id: 'photo-studio', label: 'Foto Studiýa', path: '/admin/photo-studio', icon: VideoCamera },
-  { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
-  { id: 'blogs', label: 'Bloglar', path: '/admin/blogs', icon: Document },
-  { id: 'gifts', label: 'Sowgatlar & Aksiýalar', path: '/admin/gifts', icon: Present },
-  { id: 'mobile-apps', label: 'Mobil Goşundy', path: '/admin/mobile-apps', icon: Cellphone },
-  { id: 'currencies', label: 'Pul birlikleri', path: '/admin/currencies', icon: Coin },
+const menuGroups = [
+  {
+    title: 'Umumy',
+    items: [
+      { id: 'dashboard', label: 'Hasabat sahypa', path: '/admin/dashboard', icon: Menu },
+      { id: 'users', label: 'Ulanyjylary dolandyrmak', path: '/admin/users', icon: User },
+      { id: 'logs', label: 'Ulgam loglary', path: '/admin/logs', icon: Memo },
+      { id: 'gifts', label: 'Sowgatlar & Aksiýalar', path: '/admin/gifts', icon: Present },
+      { id: 'currencies', label: 'Pul birlikleri', path: '/admin/currencies', icon: Coin },
+      { id: 'mobile-apps', label: 'Mobil Goşundy', path: '/admin/mobile-apps', icon: Cellphone },
+    ]
+  },
+  {
+    title: 'Foto merkez',
+    items: [
+      { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
+      { id: 'brands', label: 'Brendler', path: '/admin/brands', icon: Operation },
+      { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
+      { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
+      { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
+      { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
+      { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
+      { id: 'blogs', label: 'Täzelikler', path: '/admin/blogs', icon: Document },
+    ]
+  },
+  {
+    title: 'Foto studio',
+    items: [
+      { id: 'studio-catalogs', label: 'Studio Sözlükleri', path: '/admin/studio-catalogs', icon: Tools },
+      { id: 'studio-orders', label: 'Studio Sargytlary', path: '/admin/studio-orders', icon: Camera },
+      { id: 'photo-studio', label: 'Foto Studiýa (Reels)', path: '/admin/photo-studio', icon: VideoCamera },
+    ]
+  }
 ]
+
+const menuItems = menuGroups.flatMap(group => group.items)
+
 
 
 const currentTitle = computed(() => {
@@ -97,19 +117,24 @@ onMounted(() => {
         </button>
       </div>
 
-      <nav class="flex-1 p-6 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
-        <router-link
-          v-for="item in menuItems"
-          :key="item.id"
-          :to="item.path"
-          class="flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 no-underline group"
-          :class="route.path.startsWith(item.path) 
-            ? 'bg-red-600 text-white shadow-xl shadow-red-600/20 translate-x-1' 
-            : 'text-gray-400 hover:text-white hover:bg-white/5'"
-        >
-          <el-icon class="text-xl"><component :is="item.icon" /></el-icon>
-          <span class="font-bold text-sm">{{ item.label }}</span>
-        </router-link>
+      <nav class="flex-1 p-6 space-y-6 mt-4 overflow-y-auto custom-scrollbar">
+        <div v-for="group in menuGroups" :key="group.title" class="space-y-1.5">
+          <div class="px-5 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2 select-none">
+            {{ group.title }}
+          </div>
+          <router-link
+            v-for="item in group.items"
+            :key="item.id"
+            :to="item.path"
+            class="flex items-center gap-4 px-5 py-3 rounded-2xl transition-all duration-300 no-underline group"
+            :class="route.path.startsWith(item.path) 
+              ? 'bg-red-600 text-white shadow-xl shadow-red-600/20 translate-x-1' 
+              : 'text-gray-400 hover:text-white hover:bg-white/5'"
+          >
+            <el-icon class="text-xl"><component :is="item.icon" /></el-icon>
+            <span class="font-bold text-sm">{{ item.label }}</span>
+          </router-link>
+        </div>
       </nav>
 
       <div class="p-6 border-t border-white/10">

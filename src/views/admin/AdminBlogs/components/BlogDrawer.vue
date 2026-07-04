@@ -74,6 +74,16 @@ const removeMedia = (index: number) => {
   mediaList.value.splice(index, 1)
 }
 
+const getMediaUrl = (path?: string) => {
+  if (!path) return ''
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  const base = import.meta.env.PROD ? '' : 'http://127.0.0.1:8000'
+  return `${base}${cleanPath}`
+}
+
 const handleSave = () => {
   emit('save', {
     ...form.value,
@@ -118,7 +128,7 @@ const handleSave = () => {
             class="main-image-upload"
           >
             <div v-if="form.main_image" class="relative group cursor-pointer w-full aspect-video rounded-xl overflow-hidden border border-gray-100 mb-2">
-              <img :src="form.main_image" class="w-full h-full object-cover" />
+              <img :src="getMediaUrl(form.main_image)" class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
                 Suraty üýtget
               </div>
@@ -172,11 +182,10 @@ const handleSave = () => {
             </el-upload>
           </div>
           <div v-if="media.url && media.kind === 'image'" class="w-full aspect-video rounded-xl overflow-hidden border border-gray-100 bg-white">
-             <img :src="media.url" class="w-full h-full object-contain" />
+             <img :src="getMediaUrl(media.url)" class="w-full h-full object-contain" />
           </div>
-          <div v-if="media.url && media.kind === 'video'" class="w-full aspect-video rounded-xl overflow-hidden border border-gray-100 bg-slate-900 flex items-center justify-center">
-             <el-icon class="text-4xl text-white opacity-50"><VideoCamera /></el-icon>
-             <span class="text-[10px] text-white ml-2">Wideo ýüklendi</span>
+          <div v-if="media.url && media.kind === 'video'" class="w-full aspect-video rounded-xl overflow-hidden border border-gray-100 bg-slate-900">
+             <video :src="getMediaUrl(media.url)" controls class="w-full h-full object-contain"></video>
           </div>
         </div>
         <div v-if="mediaList.length === 0" class="text-center py-8 text-gray-400 italic text-sm">

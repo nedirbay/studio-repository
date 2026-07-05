@@ -1170,6 +1170,19 @@ export function connectAdminWebsocket() {
         const exists = store.adminMessages.some(m => m.id === data.message.id)
         if (!exists) {
           store.adminMessages.unshift(data.message)
+          // Real-time alert for admin users
+          if (store.user && (store.user.role_name === 'Admin' || store.user.is_superuser)) {
+            ElNotification({
+              title: '✉️ Täze sorag geldi!',
+              message: `${data.message.username || 'Myhman'}: ${data.message.subject || data.message.message?.slice(0, 60) || ''}${data.message.product_name ? ' · ' + data.message.product_name : ''}`,
+              type: 'warning',
+              position: 'bottom-right',
+              duration: 0,
+              onClick() {
+                window.dispatchEvent(new CustomEvent('navigate-to-messages'))
+              }
+            })
+          }
         }
       } else if (data.type === 'message.updated') {
         const idx = store.adminMessages.findIndex(m => m.id === data.message.id)

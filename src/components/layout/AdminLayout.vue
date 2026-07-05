@@ -25,7 +25,10 @@ import {
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
+import { useRouter } from 'vue-router'
+
 const route = useRoute()
+const router = useRouter()
 const isSidebarOpen = ref(false)
 
 function toggleSidebar() {
@@ -84,6 +87,9 @@ const currentTitle = computed(() => {
 
 onMounted(() => {
   connectAdminWebsocket()
+  window.addEventListener('navigate-to-messages', () => {
+    router.push('/admin/messages')
+  })
 })
 </script>
 

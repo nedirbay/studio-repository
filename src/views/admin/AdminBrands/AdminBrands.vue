@@ -18,8 +18,7 @@ const dialogVisible = ref(false)
 const isEditing = ref(false)
 const form = ref({
   id: 0,
-  name: '',
-  slug: ''
+  name: ''
 })
 
 // Pagination
@@ -48,13 +47,13 @@ watch(searchQuery, () => {
 
 const openAdd = () => {
   isEditing.value = false
-  form.value = { id: 0, name: '', slug: '' }
+  form.value = { id: 0, name: '' }
   dialogVisible.value = true
 }
 
 const openEdit = (brand: any) => {
   isEditing.value = true
-  form.value = { id: brand.id, name: brand.name, slug: brand.slug || '' }
+  form.value = { id: brand.id, name: brand.name }
   dialogVisible.value = true
 }
 

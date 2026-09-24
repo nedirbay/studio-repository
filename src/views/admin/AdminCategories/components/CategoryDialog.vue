@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 const props = defineProps<{
   visible: boolean
   isEditing: boolean
-  category: { id: number; name: string; icon: string; slug: string; count: number }
+  category: { id: number; name: string; icon: string; count: number }
   windowWidth: number
 }>()
 
@@ -45,9 +45,6 @@ const handleSave = () => {
     <el-form :model="form" label-position="top" class="space-y-4">
       <el-form-item label="Kategoriýa ady">
         <el-input v-model="form.name" placeholder="Mysal üçin: Noutbuklar" />
-      </el-form-item>
-      <el-form-item label="Slug (URL üçin)">
-        <el-input v-model="form.slug" placeholder="Mysal üçin: laptops" />
       </el-form-item>
       <el-form-item label="Ikonka (islege görä)">
         <el-input v-model="form.icon" placeholder="Emoji ýada şekil (💻)" />

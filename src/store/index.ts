@@ -107,7 +107,6 @@ export const actions = {
     try {
       await Promise.all([
         this.fetchCategories(),
-        this.fetchProducts(),
         this.fetchBanners(),
         this.fetchPromos(),
         this.fetchBrands(),
@@ -199,7 +198,7 @@ export const actions = {
 
   async fetchProducts() {
     try {
-      const res = await service.get('commerce/products')
+      const res = await service.get('commerce/product-catalog')
       // Map backend fields to frontend types
       store.products = res.data.map((p: any) => ({
         ...p,
@@ -212,6 +211,23 @@ export const actions = {
       }))
     } catch (error) {
       console.error('Failed to fetch products:', error)
+    }
+  },
+
+  async fetchProductCatalogue() {
+    try {
+      const res = await service.get('commerce/products')
+      store.products = res.data.map((p: any) => ({
+        ...p,
+        category: p.category_name,
+        brand: p.marka,
+        image: p.image || (p.media && p.media.length > 0 ? p.media[0].url : ''),
+        images: p.media ? p.media.map((m: any) => m.url) : (p.image ? [p.image] : []),
+        inStock: p.instock,
+        originalPrice: p.original_price
+      }))
+    } catch (error) {
+      console.error('Failed to fetch product catalogue:', error)
     }
   },
 

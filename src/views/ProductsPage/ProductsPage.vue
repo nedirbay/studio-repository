@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from '../../components/shared/ProductCard.vue'
 import FilterPanel from '../../components/products/FilterPanel.vue'
-import { store } from '../../store'
+import { store, actions } from '../../store'
 
 const route = useRoute()
+
+onMounted(() => {
+  void actions.fetchProductCatalogue()
+})
 
 // Search and filter state
 const searchQuery = ref('')

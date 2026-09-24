@@ -7,12 +7,12 @@ export class BrandRepository extends BaseRepository {
     return res.data
   }
 
-  async create(payload: { name: string; slug?: string; logo_url?: string }) {
+  async create(payload: { name: string; logo_url?: string }) {
     const res = await this.client.post('commerce/brands', payload)
     return res.data
   }
 
-  async update(id: number, payload: { name?: string; slug?: string; logo_url?: string }) {
+  async update(id: number, payload: { name?: string; logo_url?: string }) {
     const res = await this.client.put(`commerce/brands/${id}`, payload)
     return res.data
   }

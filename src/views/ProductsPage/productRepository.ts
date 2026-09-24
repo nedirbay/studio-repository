@@ -22,7 +22,12 @@ export interface ProductPayload {
 
 export class ProductRepository extends BaseRepository {
   async list(): Promise<any[]> {
-    const res = await this.client.get('commerce/products')
+    const res = await this.client.get('commerce/product-catalog')
+    return res.data
+  }
+
+  async listLatest(): Promise<any[]> {
+    const res = await this.client.get('commerce/latest-products')
     return res.data
   }
 

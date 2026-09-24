@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 const props = defineProps<{
   visible: boolean
   isEditing: boolean
-  brand: { id: number; name: string; slug: string }
+  brand: { id: number; name: string }
   windowWidth: number
 }>()
 
@@ -46,9 +46,6 @@ const handleSave = () => {
     <el-form :model="form" label-position="top" class="space-y-4">
       <el-form-item label="Brendiň ady">
         <el-input v-model="form.name" placeholder="Mysal üçin: Sony" />
-      </el-form-item>
-      <el-form-item label="Slug (URL üçin)">
-        <el-input v-model="form.slug" placeholder="Mysal üçin: sony" />
       </el-form-item>
     </el-form>
     <template #footer>

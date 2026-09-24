@@ -20,7 +20,6 @@ const form = ref({
   id: 0,
   name: '',
   icon: '',
-  slug: '',
   count: 0
 })
 
@@ -49,19 +48,19 @@ watch(searchQuery, () => {
 
 const openAdd = () => {
   isEditing.value = false
-  form.value = { id: 0, name: '', icon: '📁', slug: '', count: 0 }
+  form.value = { id: 0, name: '', icon: '📁', count: 0 }
   dialogVisible.value = true
 }
 
 const openEdit = (category: any) => {
   isEditing.value = true
-  form.value = { ...category }
+  form.value = { id: category.id, name: category.name, icon: category.icon || '📁', count: category.count || 0 }
   dialogVisible.value = true
 }
 
 const onCategorySave = async (savedForm: any) => {
-  if (!savedForm.name || !savedForm.slug) {
-    ElMessage.warning('Adyny we slug-y dolduryň')
+  if (!savedForm.name) {
+    ElMessage.warning('Kategoriýanyň adyny dolduryň')
     return
   }
 

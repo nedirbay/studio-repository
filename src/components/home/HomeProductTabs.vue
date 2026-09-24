@@ -1,9 +1,33 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { store } from '../../store'
+import { homeService } from '../../views/HomePage/homeService'
 import ProductCard from '../shared/ProductCard.vue'
 
 const activeTab = ref<'featured' | 'deals'>('featured')
+const latestProducts = ref<any[]>([])
+const isLoadingLatest = ref(true)
+const latestProductsFailed = ref(false)
+
+async function loadLatestProducts() {
+  try {
+    const products = await homeService.listLatestProducts()
+    latestProducts.value = products.map((product: any) => ({
+      ...product,
+      category: product.category_name,
+      brand: product.marka,
+      image: product.image || '',
+      images: product.image ? [product.image] : [],
+      inStock: product.instock,
+      originalPrice: product.original_price,
+    }))
+  } catch (error) {
+    latestProductsFailed.value = true
+    console.error('Soňky goşulan harytlary ýüklemek başa barmady:', error)
+  } finally {
+    isLoadingLatest.value = false
+  }
+}
 
 // Countdown logic for the deals tab
 const hours = ref(11)
@@ -12,6 +36,7 @@ const seconds = ref(30)
 let timer: ReturnType<typeof setInterval>
 
 onMounted(() => {
+  void loadLatestProducts()
   timer = setInterval(() => {
     if (seconds.value > 0) {
       seconds.value--
@@ -51,8 +76,8 @@ function pad(n: number) {
                 ? 'bg-white text-gray-900 shadow-lg scale-105' 
                 : 'text-gray-500 hover:text-gray-700'"
             >
-              <el-icon><Star /></el-icon>
-              Saýlama Harytlar
+              <el-icon><Clock /></el-icon>
+              Soňky goşulanlar
             </button>
             <button 
               @click="activeTab = 'deals'"
@@ -98,13 +123,23 @@ function pad(n: number) {
           leave-from-class="opacity-100"
           leave-to-class="opacity-0"
         >
-          <div :key="activeTab" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <ProductCard
-              v-for="product in (activeTab === 'featured' ? store.products.slice(0, 8) : store.products.filter(p => p.originalPrice || p.badge === 'sale').slice(0, 8))"
-              :key="product.id"
-              :product="product"
-              class="transition-transform duration-300 hover:-translate-y-2"
-            />
+          <div :key="activeTab">
+            <div v-if="activeTab === 'featured' && isLoadingLatest" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div v-for="item in 4" :key="item" class="rounded-xl border border-gray-100 p-4">
+                <el-skeleton animated :rows="4" />
+              </div>
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <ProductCard
+                v-for="product in (activeTab === 'featured' ? latestProducts : store.products.filter(p => p.originalPrice || p.badge === 'sale').slice(0, 8))"
+                :key="product.id"
+                :product="product"
+                class="transition-transform duration-300 hover:-translate-y-2"
+              />
+            </div>
+            <p v-if="activeTab === 'featured' && !isLoadingLatest && latestProducts.length === 0" class="py-10 text-center text-gray-500">
+              {{ latestProductsFailed ? 'Harytlary ýüklemek başa barmady.' : 'Häzirlikçe görkezmäge haryt ýok.' }}
+            </p>
           </div>
         </Transition>
       </div>

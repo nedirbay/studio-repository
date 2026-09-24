@@ -7,7 +7,7 @@ export class CategoryRepository extends BaseRepository {
     return res.data
   }
 
-  async create(payload: { name: string; icon?: string; slug?: string }) {
+  async create(payload: { name: string; icon?: string }) {
     const res = await this.client.post('commerce/categories', payload)
     return res.data
   }

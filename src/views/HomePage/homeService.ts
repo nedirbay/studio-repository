@@ -1,19 +1,10 @@
-import { BannerRepository } from './bannerRepository'
-import { PromoRepository } from './promoRepository'
-import { CategoryRepository } from '../ProductsPage/categoryRepository'
-import { ProductRepository } from '../ProductsPage/productRepository'
-import { BrandRepository } from '../ProductsPage/brandRepository'
-
-const banners = new BannerRepository()
-const promos = new PromoRepository()
-const categories = new CategoryRepository()
-const products = new ProductRepository()
-const brands = new BrandRepository()
+import { repositories } from '../../repositories'
 
 export const homeService = {
-  listBanners() { return banners.list() },
-  listPromos() { return promos.list() },
-  listCategories() { return categories.list() },
-  listProducts() { return products.list() },
-  listBrands() { return brands.list() },
+  listBanners() { return repositories.banners.list() },
+  listPromos() { return repositories.promos.list() },
+  listCategories() { return repositories.categories.list() },
+  listProducts() { return repositories.products.list() },
+  listLatestProducts() { return repositories.products.listLatest() },
+  listBrands() { return repositories.brands.list() },
 }

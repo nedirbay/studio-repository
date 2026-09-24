@@ -4,10 +4,10 @@ import { onMounted, ref } from 'vue'
 const show = ref(true)
 
 onMounted(() => {
-  // Automatically start fade out after 2 seconds
+  // Automatically start fade out after 3 seconds
   setTimeout(() => {
     show.value = false
-  },1500)
+  }, 3000)
 })
 </script>
 
@@ -85,7 +85,7 @@ onMounted(() => {
   background: #dc2626;
   margin-top: 2rem;
   border-radius: 1px;
-  animation: load 2s linear forwards;
+  animation: load 3s linear forwards;
 }
 
 @keyframes scaleIn {

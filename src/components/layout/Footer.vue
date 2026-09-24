@@ -43,7 +43,7 @@ import logo from '../../assets/logo1.png'
             <li v-for="link in [
               { label: 'Baş sahypa', href: '/' },
               { label: 'Harytlar', href: '/products' },
-              { label: 'Arzanladyşlar we Teklipler', href: '/deals' }
+              // { label: 'Arzanladyşlar we Teklipler', href: '/deals' }
             ]" :key="link.label">
               <router-link :to="link.href" class="text-sm text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1">
                 <el-icon class="text-xs"><ArrowRight /></el-icon>
@@ -54,7 +54,7 @@ import logo from '../../assets/logo1.png'
         </div>
 
         <!-- Customer Service -->
-        <div>
+        <!-- <div>
           <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Müşderi hyzmaty</h4>
           <ul class="space-y-2">
             <li v-for="link in [
@@ -67,7 +67,7 @@ import logo from '../../assets/logo1.png'
               </router-link>
             </li>
           </ul>
-        </div>
+        </div> -->
 
         <!-- Contact -->
         <div>
@@ -80,8 +80,8 @@ import logo from '../../assets/logo1.png'
             <li class="flex items-center gap-3">
               <el-icon class="text-red-500 shrink-0"><Phone /></el-icon>
               <div class="text-sm text-gray-400">
-                <div>+993 64 30-12-57</div>
-                <div>+993 61 24-69-37</div>
+                <div><a href="tel:+99364301257" class="hover:text-white">+993 64 30-12-57</a></div>
+                <div><a href="tel:+99361246937" class="hover:text-white">+993 61 24-69-37</a></div>
               </div>
             </li>
             <li class="flex items-center gap-3">

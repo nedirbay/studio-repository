@@ -7,11 +7,11 @@
       <div class="flex items-center gap-4">
         <span class="flex items-center gap-1">
           <el-icon><Phone /></el-icon>
-          +993 64 30-12-57
+          <a href="tel:+99364301257" class="text-inherit hover:text-white">+993 64 30-12-57</a>
         </span>
         <span class="flex items-center gap-1 ml-2">
           <el-icon><Phone /></el-icon>
-          +993 61 24-69-37
+          <a href="tel:+99361246937" class="text-inherit hover:text-white">+993 61 24-69-37</a>
         </span>
         <span class="hidden md:flex items-center gap-1">
           <el-icon><Message /></el-icon>

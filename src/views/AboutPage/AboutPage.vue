@@ -178,8 +178,8 @@ onMounted(async () => {
               <div class="info-icon"><Phone /></div>
               <div>
                 <div class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Habarlaşmak üçin</div>
-                <div class="text-lg font-bold text-gray-900">+993 64 30-12-57</div>
-                <div class="text-lg font-bold text-gray-900">+993 61 24-69-37</div>
+                <div class="text-lg font-bold text-gray-900"><a href="tel:+99364301257" class="hover:text-red-600">+993 64 30-12-57</a></div>
+                <div class="text-lg font-bold text-gray-900"><a href="tel:+99361246937" class="hover:text-red-600">+993 61 24-69-37</a></div>
               </div>
             </div>
             <div class="info-item">

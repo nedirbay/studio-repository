@@ -28,7 +28,7 @@ function discountPercent(price: number, original: number) {
         <span v-else-if="product.badge === 'sale'" class="badge-sale">
           -{{ discountPercent(product.price, product.originalPrice!) }}%
         </span>
-        <span v-else-if="product.badge === 'hot'" class="badge-hot">GYZGYN</span>
+        <span v-else-if="product.badge === 'hot'" class="badge-hot">Meşhur</span>
       </div>
       <div v-if="!product.inStock" class="absolute inset-0 bg-black/50 flex items-center justify-center">
         <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Ammarda ýok</span>

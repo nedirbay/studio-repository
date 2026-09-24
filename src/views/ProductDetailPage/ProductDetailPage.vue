@@ -124,7 +124,7 @@ watch(productSlug, loadProductDetail)
                 <span v-else-if="product.badge === 'sale'" class="badge-sale text-sm px-3 py-1">
                   -{{ Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) }}%
                 </span>
-                <span v-else-if="product.badge === 'hot'" class="badge-hot text-sm px-3 py-1">GYZGYN</span>
+                <span v-else-if="product.badge === 'hot'" class="badge-hot text-sm px-3 py-1">Meşhur</span>
               </div>
               <div v-if="!product.inStock" class="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <span class="text-white font-semibold bg-gray-800 px-4 py-2 rounded">Ammarda ýok</span>

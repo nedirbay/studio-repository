@@ -60,6 +60,13 @@ function isActiveLink(href: string) {
   return route.path === href
 }
 
+function handleNavClick(item: NavItem) {
+  if (item.label === 'Harytlar') {
+    void actions.fetchProductCatalogue()
+  }
+  mobileMenuOpen.value = false
+}
+
 // Persist active route to localStorage
 watch(() => route.path, (newPath) => {
   localStorage.setItem('last_active_page', newPath)
@@ -168,6 +175,7 @@ watch(() => route.path, (newPath) => {
           >
             <router-link
               :to="item.href"
+              @click="handleNavClick(item)"
               class="flex items-center gap-1 px-4 py-3 text-sm font-medium text-gray-200 hover:text-white hover:bg-red-600 transition-all duration-200"
               :class="{ 'bg-red-600 text-white': isActiveLink(item.href) }"
             >
@@ -206,7 +214,7 @@ watch(() => route.path, (newPath) => {
         <li v-for="item in navItems" :key="item.label">
           <router-link
             :to="item.href"
-            @click="mobileMenuOpen = false"
+            @click="handleNavClick(item)"
             class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 border-b border-gray-100"
             :class="{ 'text-red-600 bg-red-50': isActiveLink(item.href) }"
           >

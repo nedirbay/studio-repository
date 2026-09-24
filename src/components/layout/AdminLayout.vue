@@ -9,19 +9,12 @@ import {
   ArrowLeft,
   User,
   Expand,
-  ShoppingCart,
   Operation,
-  ChatDotRound,
-  Message,
   Picture,
-  Document,
-  Camera,
-  VideoCamera,
-  Present,
   Cellphone,
-  Tools,
   Coin,
-  Memo
+  Memo,
+  Close
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -43,35 +36,17 @@ watch(() => route.path, () => {
 
 const menuGroups = [
   {
-    title: 'Umumy',
+    title: 'Dolandyryş',
     items: [
       { id: 'dashboard', label: 'Hasabat sahypa', path: '/admin/dashboard', icon: Menu },
       { id: 'users', label: 'Ulanyjylary dolandyrmak', path: '/admin/users', icon: User },
       { id: 'logs', label: 'Ulgam loglary', path: '/admin/logs', icon: Memo },
-      { id: 'gifts', label: 'Sowgatlar & Aksiýalar', path: '/admin/gifts', icon: Present },
       { id: 'currencies', label: 'Pul birlikleri', path: '/admin/currencies', icon: Coin },
       { id: 'mobile-apps', label: 'Mobil Goşundy', path: '/admin/mobile-apps', icon: Cellphone },
-    ]
-  },
-  {
-    title: 'Foto merkez',
-    items: [
       { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
       { id: 'brands', label: 'Brendler', path: '/admin/brands', icon: Operation },
       { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
-      { id: 'messages', label: 'Hatlar we Soraglar', path: '/admin/messages', icon: Message },
-      { id: 'reviews', label: 'Teswirler', path: '/admin/reviews', icon: ChatDotRound },
-      { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
       { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
-      { id: 'blogs', label: 'Täzelikler', path: '/admin/blogs', icon: Document },
-    ]
-  },
-  {
-    title: 'Foto studio',
-    items: [
-      { id: 'studio-catalogs', label: 'Studio Sözlükleri', path: '/admin/studio-catalogs', icon: Tools },
-      { id: 'studio-orders', label: 'Studio Sargytlary', path: '/admin/studio-orders', icon: Camera },
-      { id: 'photo-studio', label: 'Foto Studiýa (Reels)', path: '/admin/photo-studio', icon: VideoCamera },
     ]
   }
 ]
@@ -94,7 +69,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-gray-50 overflow-hidden font-sans relative">
+  <div class="admin-shell flex h-screen bg-gray-50 overflow-hidden font-sans relative">
     <!-- Sidebar Overlay (Mobile) -->
     <div 
       v-if="isSidebarOpen" 
@@ -210,6 +185,86 @@ onMounted(() => {
 <!-- Global: cap teleported dialog width on desktop, near-full on phones.
      Shared by the admin studio-orders / photo-studio management dialogs. -->
 <style>
+.admin-shell .el-input__wrapper,
+.admin-shell .el-select__wrapper,
+.admin-shell .el-textarea__inner {
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #9ca3af inset;
+}
+.admin-shell .el-input__wrapper:hover,
+.admin-shell .el-select__wrapper:hover,
+.admin-shell .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #4b5563 inset;
+}
+.admin-shell .el-button {
+  border-radius: 4px;
+  box-shadow: none;
+  font-weight: 500;
+}
+.admin-dialog {
+  max-width: calc(100vw - 32px);
+  border-radius: 8px !important;
+}
+.admin-dialog .el-dialog__header {
+  margin: 0;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.admin-dialog .el-dialog__title {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.admin-dialog .el-dialog__body {
+  padding: 20px 24px;
+}
+.admin-dialog .el-dialog__footer {
+  padding: 12px 24px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+.admin-dialog .el-form-item__label,
+.admin-dialog label {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 20px;
+  text-transform: none;
+}
+.admin-dialog .el-input__wrapper,
+.admin-dialog .el-textarea__inner,
+.admin-dialog .el-input-number {
+  border-radius: 4px !important;
+  background: #fff;
+  box-shadow: 0 0 0 1px #9ca3af inset;
+}
+.admin-dialog .el-input__wrapper:hover,
+.admin-dialog .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #4b5563 inset;
+}
+.admin-dialog .el-button {
+  border-radius: 4px;
+  box-shadow: none;
+  font-weight: 500;
+}
+.admin-dialog .el-upload-dragger {
+  border: 1px dashed #9ca3af;
+  border-radius: 4px;
+  background: #fff;
+}
+@media (max-width: 640px) {
+  .admin-dialog .el-dialog__header,
+  .admin-dialog .el-dialog__body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .admin-dialog .el-dialog__footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
 .studio-order-dialog {
   max-width: 900px;
 }

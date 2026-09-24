@@ -49,51 +49,15 @@ const handleSave = () => {
       <el-form-item label="Slug (URL üçin)">
         <el-input v-model="form.slug" placeholder="Mysal üçin: laptops" />
       </el-form-item>
-      <el-form-item label="Sekizburçluk / Ikonka">
+      <el-form-item label="Ikonka (islege görä)">
         <el-input v-model="form.icon" placeholder="Emoji ýada şekil (💻)" />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="flex gap-3 justify-end mt-4">
-        <el-button @click="dialogVisible = false" class="!rounded-xl">Bes et</el-button>
-        <el-button type="primary" @click="handleSave" class="!rounded-xl !px-6">Sakla</el-button>
+        <el-button @click="dialogVisible = false">Ýatyr</el-button>
+        <el-button type="primary" @click="handleSave">Sakla</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
-
-<style scoped>
-:deep(.admin-dialog) {
-  border-radius: 2rem;
-  overflow: hidden;
-}
-:deep(.admin-dialog .el-dialog__header) {
-  padding-top: 2rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  margin-bottom: 0;
-}
-:deep(.admin-dialog .el-dialog__title) {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-}
-:deep(.admin-dialog .el-dialog__body) {
-  padding: 2rem;
-}
-:deep(.admin-dialog .el-form-item__label) {
-  font-weight: 900;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
-}
-:deep(.admin-dialog .el-input__wrapper) {
-  border-radius: 0.75rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: none;
-  background-color: #f9fafb;
-}
-</style>

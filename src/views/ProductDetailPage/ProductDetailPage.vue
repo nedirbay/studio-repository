@@ -1,25 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { store, actions, formatPrice } from '../../store'
-import type { ProductReview } from '../../types'
-import { ElMessage } from 'element-plus'
+import { actions, formatPrice } from '../../store'
 import { 
   ZoomIn, 
   CircleCheck, 
   CircleClose, 
-  Minus, 
-  Plus, 
-  ShoppingCart, 
-  Star, 
   Document, 
-  ChatDotRound, 
-  CaretTop, 
   Warning, 
   Close, 
   ArrowLeft, 
-  ArrowRight,
-  Message 
+  ArrowRight
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -29,11 +20,6 @@ const productSlug = computed(() => route.params.slug as string)
 const product = ref<any>(null)
 const loadingProduct = ref(false)
 const errorProduct = ref(false)
-
-const comments = computed(() => store.reviews)
-
-// Active tab
-const activeTab = ref<'specifications' | 'reviews'>('specifications')
 
 // Image gallery
 const selectedImage = ref(0)
@@ -72,86 +58,7 @@ function nextImage() {
   modalImageIndex.value = modalImageIndex.value === images.value.length - 1 ? 0 : modalImageIndex.value + 1
 }
 
-// Quantity
-const quantity = ref(1)
-
-function increaseQuantity() {
-  quantity.value++
-}
-
-function decreaseQuantity() {
-  if (quantity.value > 1) quantity.value--
-}
-
-// Review form
-const showReviewForm = ref(false)
-const isSubmitting = ref(false)
-const reviewForm = ref({
-  rating: 5,
-  title: '',
-  content: ''
-})
-
-async function submitReview() {
-  if (!store.isAuthenticated) {
-    ElMessage.warning('Teswir ýazmak üçin ilki bilen ulgama giriň')
-    router.push('/login')
-    return
-  }
-
-  if (!reviewForm.value.content) {
-    ElMessage.warning('Teswir ýazyň')
-    return
-  }
-
-  isSubmitting.value = true
-  try {
-    await actions.submitReview(product.value.id, {
-      rating: reviewForm.value.rating,
-      title: reviewForm.value.title,
-      content: reviewForm.value.content
-    })
-    ElMessage.success('Synyňyz üstünlikli kabul edildi!')
-    showReviewForm.value = false
-    reviewForm.value = { rating: 5, title: '', content: '' }
-  } catch (error) {
-    ElMessage.error('Syn ugratmakda näsazlyk ýüze çykdy')
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-// Ask question form
-const showAskQuestion = ref(false)
-const isSubmittingQuestion = ref(false)
-const questionForm = ref({
-  message: ''
-})
-
-async function submitQuestion() {
-  if (!questionForm.value.message) {
-    ElMessage.warning('Soragyňyzy ýazyň')
-    return
-  }
-
-  isSubmittingQuestion.value = true
-  try {
-    await actions.sendMessage({
-      subject: `Haryt soragy: ${product.value?.name}`,
-      message: questionForm.value.message,
-      product: product.value.id
-    })
-    ElMessage.success('Soragyňyz üstünlikli ugradyldy! Tizden jogap bereris.')
-    showAskQuestion.value = false
-    questionForm.value.message = ''
-  } catch (error) {
-    ElMessage.error('Sorag ugratmakda näsazlyk ýüze çykdy. Içeri girendigiňizi barlaň.')
-  } finally {
-    isSubmittingQuestion.value = false
-  }
-}
-
-// Fetch reviews & product
+// Fetch product details
 async function loadProductDetail() {
   if (!productSlug.value) return
   loadingProduct.value = true
@@ -159,9 +66,6 @@ async function loadProductDetail() {
   try {
     const fetchedProduct = await actions.fetchProductBySlug(productSlug.value)
     product.value = fetchedProduct
-    if (fetchedProduct.id) {
-      await actions.fetchReviews(fetchedProduct.id)
-    }
   } catch (error) {
     console.error('Failed to load product detail:', error)
     errorProduct.value = true
@@ -174,31 +78,6 @@ async function loadProductDetail() {
 onMounted(loadProductDetail)
 watch(productSlug, loadProductDetail)
 
-const isInCart = computed(() => {
-  if (!product.value) return false
-  return store.cart.some((item: any) => item.product.id === product.value.id)
-})
-
-function handleCartClick() {
-  if (!product.value) return
-  if (isInCart.value) {
-    actions.removeFromCart(product.value.id)
-  } else {
-    actions.addToCart(product.value, quantity.value, false)
-  }
-}
-
-// Helpful votes
-function markHelpful(comment: ProductReview) {
-  comment.helpful++
-}
-
-// Format date
-function formatDate(dateStr: string) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('tk-TM', { year: 'numeric', month: 'long', day: 'numeric' })
-}
 </script>
 
 <template>
@@ -209,8 +88,17 @@ function formatDate(dateStr: string) {
     </div>
 
     <div class="max-w-7xl mx-auto px-4 py-6" v-else-if="product">
+      <button
+        type="button"
+        class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
+        @click="router.back()"
+      >
+        <el-icon><ArrowLeft /></el-icon>
+        Yza
+      </button>
+
       <!-- Breadcrumb -->
-      <nav class="flex items-center gap-2 text-sm mb-6">
+      <!-- <nav class="flex items-center gap-2 text-sm mb-6">
         <router-link to="/" class="text-gray-500 hover:text-red-600">Baş sahypa</router-link>
         <span class="text-gray-400">/</span>
         <router-link to="/products" class="text-gray-500 hover:text-red-600">Harytlar</router-link>
@@ -218,7 +106,7 @@ function formatDate(dateStr: string) {
         <span class="text-gray-700">{{ product.category }}</span>
         <span class="text-gray-400">/</span>
         <span class="text-gray-900 font-medium">{{ product.name }}</span>
-      </nav>
+      </nav> -->
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
         <!-- Image Gallery -->
@@ -270,11 +158,6 @@ function formatDate(dateStr: string) {
             <div class="text-sm text-gray-500 mb-1">{{ product.brand }} · {{ product.category }}</div>
             <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ product.name }}</h1>
             
-            <!-- Rating -->
-            <div v-if="product.reviews > 0" class="flex items-center gap-3">
-              <el-rate :model-value="product.rating" disabled show-score text-color="#ff9900" />
-              <span class="text-sm text-gray-500">({{ product.reviews }} syn)</span>
-            </div>
           </div>
 
           <!-- Price -->
@@ -294,118 +177,17 @@ function formatDate(dateStr: string) {
             <p class="text-gray-600 leading-relaxed">{{ product.description }}</p>
           </div>
 
-
-          <!-- Quantity & Add to Cart -->
-          <div class="flex flex-col sm:flex-row gap-4">
-            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-              <button 
-                @click="decreaseQuantity" 
-                class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                :disabled="quantity <= 1"
-              >
-                <el-icon><Minus /></el-icon>
-              </button>
-              <span class="w-12 h-10 flex items-center justify-center font-semibold">{{ quantity }}</span>
-              <button 
-                @click="increaseQuantity" 
-                class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-              >
-                <el-icon><Plus /></el-icon>
-              </button>
-            </div>
-            
-            <button
-              :disabled="!product.inStock"
-              @click="handleCartClick"
-              :class="[
-                'flex-1 flex items-center justify-center gap-2 font-semibold py-2.5 rounded-lg transition-colors',
-                !product.inStock
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : isInCart
-                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    : 'bg-red-600 text-white hover:bg-red-700'
-              ]"
-            >
-              <el-icon><ShoppingCart /></el-icon>
-              {{ isInCart ? 'Sebetden aýyr' : 'Sebede goş' }}
-            </button>
-            
-            <button class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-red-600 hover:text-red-600 transition-colors">
-              <el-icon><Star /></el-icon>
-            </button>
-          </div>
-
-          <el-button 
-            @click="showAskQuestion = true" 
-            class="w-full !rounded-xl !h-12 !text-gray-600 border-gray-200 hover:!border-gray-400 hover:!text-gray-900 transition-all shadow-sm" 
-            plain 
-            :icon="Message"
-          >
-            Haryt barada sorag bermek
-          </el-button>
-
-          <!-- Availability -->
-          <div class="flex items-center gap-2">
-            <el-icon :class="product.inStock ? 'text-green-600' : 'text-red-600'">
-              <CircleCheck v-if="product.inStock" />
-              <CircleClose v-else />
-            </el-icon>
-            <span :class="product.inStock ? 'text-green-600' : 'text-red-600'" class="font-medium">
-              {{ product.inStock ? 'Ammarda bar' : 'Ammarda ýok' }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabs Section -->
-      <div class="bg-white rounded-xl shadow-sm mb-8">
-        <!-- Tab Headers -->
-        <div class="flex border-b border-gray-200">
-          <button
-            @click="activeTab = 'specifications'"
-            :class="[
-              'flex-1 py-4 px-6 text-center font-semibold transition-colors relative',
-              activeTab === 'specifications' 
-                ? 'text-red-600' 
-                : 'text-gray-500 hover:text-gray-700'
-            ]"
-          >
-            Tehniki aýratynlyklar
-            <span 
-              v-if="activeTab === 'specifications'" 
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
-            ></span>
-          </button>
-          <button
-            @click="activeTab = 'reviews'"
-            :class="[
-              'flex-1 py-4 px-6 text-center font-semibold transition-colors relative',
-              activeTab === 'reviews' 
-                ? 'text-red-600' 
-                : 'text-gray-500 hover:text-gray-700'
-            ]"
-          >
-            Müşderi synlary
-            <span class="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{{ comments.length }}</span>
-            <span 
-              v-if="activeTab === 'reviews'" 
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"
-            ></span>
-          </button>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="p-6">
-          <!-- Specifications Tab -->
-          <div v-if="activeTab === 'specifications'">
+          <div class="bg-white rounded-xl p-5 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Tehniki aýratynlyklar</h2>
             <div v-if="product.specifications" class="space-y-3">
-              <div 
-                v-for="(value, key) in product.specifications" 
-                :key="key" 
-                class="flex justify-between py-3 border-b border-gray-100 last:border-0"
+              <div
+                v-for="(value, key) in product.specifications"
+                :key="key"
+                class="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0"
               >
-                <dt class="text-gray-500 font-medium">{{ key }}</dt>
-                <dd class="text-gray-900 font-semibold">{{ value }}</dd>
+                <dt class="flex-1 text-gray-500 font-medium">{{ key }}</dt>
+                <span class="h-5 border-l border-gray-300" aria-hidden="true"></span>
+                <dd class="flex-1 text-right text-gray-900 font-semibold">{{ value }}</dd>
               </div>
             </div>
             <div v-else class="text-center py-8">
@@ -414,97 +196,19 @@ function formatDate(dateStr: string) {
             </div>
           </div>
 
-          <!-- Reviews Tab -->
-          <div v-if="activeTab === 'reviews'">
-            <div v-if="comments.length > 0" class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <div class="text-3xl font-bold text-gray-900">{{ product.rating }}</div>
-                <div>
-                  <el-rate :model-value="product.rating" disabled size="large" />
-                  <div class="text-sm text-gray-500">{{ product.reviews }} syn</div>
-                </div>
-              </div>
-              <button 
-                v-if="store.isAuthenticated"
-                @click="showReviewForm = true" 
-                class="btn-primary text-sm"
-              >
-                Syn ýaz
-              </button>
-            </div>
-
-            <!-- Review Form Modal -->
-            <el-dialog v-model="showReviewForm" title="Syn ýazyň" width="500px">
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Reýting</label>
-                  <el-rate v-model="reviewForm.rating" size="large" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Sözbaşy</label>
-                  <el-input v-model="reviewForm.title" placeholder="Synyňyzy gysgaça beýan ediň" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Syn</label>
-                  <el-input 
-                    v-model="reviewForm.content" 
-                    type="textarea" 
-                    :rows="4" 
-                    placeholder="Bu haryt baradaky tejribäňiz bilen paýlaşyň" 
-                  />
-                </div>
-              </div>
-              <template #footer>
-                <el-button @click="showReviewForm = false">Goýbolsun et</el-button>
-                <el-button type="primary" @click="submitReview">Syny ugrat</el-button>
-              </template>
-            </el-dialog>
-
-            <!-- Comments List -->
-            <div v-if="comments.length === 0" class="text-center py-8">
-              <el-icon class="text-5xl text-gray-300 mb-3"><ChatDotRound /></el-icon>
-              <p class="text-gray-500 mb-4">Entek syn ýok. Bu haryt üçin ilkinji syny ýazyň!</p>
-              <div v-if="!store.isAuthenticated" class="flex flex-col items-center gap-3">
-                <p class="text-gray-500 mb-2 font-medium">Syn ýazmak üçin login bolmaly</p>
-                <router-link to="/register" class="btn-primary px-8">Agza bol</router-link>
-              </div>
-              <button v-else @click="showReviewForm = true" class="btn-primary">Syn ýaz</button>
-            </div>
-
-            <div v-else class="space-y-6">
-              <div 
-                v-for="comment in comments" 
-                :key="comment.id" 
-                class="border-b border-gray-100 pb-6 last:border-0 last:pb-0"
-              >
-                <div class="flex items-start gap-4">
-                  <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold shrink-0">
-                    {{ comment.userName.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
-                      <span class="font-semibold text-gray-900">{{ comment.userName }}</span>
-                      <el-rate :model-value="comment.rating" disabled size="small" />
-                    </div>
-                    <h4 class="font-medium text-gray-800 mb-1">{{ comment.title }}</h4>
-                    <p class="text-gray-600 text-sm mb-3">{{ comment.content }}</p>
-                    <div class="flex items-center gap-4 text-sm">
-                      <span class="text-gray-400">{{ formatDate(comment.createdAt) }}</span>
-                      <button 
-                        @click="markHelpful(comment)" 
-                        class="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors"
-                      >
-                        <el-icon><CaretTop /></el-icon>
-                        Peýdaly ({{ comment.helpful }})
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Availability -->
+          <!-- <div class="flex items-center gap-2">
+            <el-icon :class="product.inStock ? 'text-green-600' : 'text-red-600'">
+              <CircleCheck v-if="product.inStock" />
+              <CircleClose v-else />
+            </el-icon>
+            <span :class="product.inStock ? 'text-green-600' : 'text-red-600'" class="font-medium">
+              {{ product.inStock ? 'Ammarda bar' : 'Ammarda ýok' }}
+            </span>
+          </div> -->
         </div>
       </div>
+
     </div>
 
     <!-- Product Not Found -->
@@ -576,24 +280,6 @@ function formatDate(dateStr: string) {
       </Transition>
     </Teleport>
 
-    <!-- Ask Question Modal -->
-    <el-dialog v-model="showAskQuestion" title="Haryt barada sorag bermek" width="500px">
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Soragyňyz</label>
-          <el-input 
-            v-model="questionForm.message" 
-            type="textarea" 
-            :rows="4" 
-            placeholder="Şu haryt barasynda nähili soragyňyz bar? Bize ýazyň..." 
-          />
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="showAskQuestion = false">Goýbolsun et</el-button>
-        <el-button type="primary" @click="submitQuestion" :loading="isSubmittingQuestion">Ugrat</el-button>
-      </template>
-    </el-dialog>
   </main>
 </template>
 

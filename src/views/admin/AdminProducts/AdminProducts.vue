@@ -308,63 +308,12 @@ const handleDelete = (id: number) => {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
-.admin-search-input :deep(.el-input__wrapper),
-.admin-select :deep(.el-input__wrapper) {
-  border-radius: 1rem !important;
-  height: 3rem;
-  box-shadow: none;
-  border: 1px solid #e5e7eb;
-  background-color: white;
-  transition: all 0.2s;
-}
-.admin-search-input :deep(.el-input__wrapper:hover),
-.admin-select :deep(.el-input__wrapper:hover) {
-  border-color: #fecaca;
-}
-
 .animate-fade-in {
   animation: fadeIn 0.6s ease-out;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-:deep(.admin-dialog) {
-  border-radius: 2.5rem; /* rounded-[40px] */
-  overflow: hidden;
-}
-:deep(.admin-dialog .el-dialog__header) {
-  padding-top: 2.5rem;
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
-  margin-bottom: 0;
-}
-:deep(.admin-dialog .el-dialog__title) {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-}
-:deep(.admin-dialog .el-dialog__body) {
-  padding-top: 1rem;
-}
-:deep(.admin-dialog .el-form-item__label) {
-  font-weight: 900;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
-}
-:deep(.admin-dialog .el-input__wrapper),
-:deep(.admin-dialog .el-textarea__inner),
-:deep(.admin-dialog .el-input-number) {
-  border-radius: 0.75rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: none;
-  background-color: #f9fafb;
-  padding: 0.5rem;
 }
 
 

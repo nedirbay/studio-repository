@@ -209,8 +209,8 @@ const handleSave = () => {
     class="admin-dialog"
     align-center
   >
-    <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar" v-loading="loadingProduct">
-      <el-form :model="form" label-position="top" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+    <div class="max-h-[70vh] overflow-y-auto custom-scrollbar" v-loading="loadingProduct">
+      <el-form :model="form" label-position="top" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
         <el-form-item label="Haryt ady" class="md:col-span-2">
           <el-input v-model="form.name" placeholder="Harydyň doly ady" />
         </el-form-item>
@@ -297,7 +297,7 @@ const handleSave = () => {
           </p>
         </el-form-item>
         
-        <el-form-item label="Badge (Bellik)">
+        <el-form-item label="Bellik">
           <el-select v-model="form.badge" placeholder="Saýlamaly däl" clearable class="w-full">
             <el-option label="Sale (Arzanladyş)" value="sale" />
             <el-option label="New (Täze)" value="new" />
@@ -305,7 +305,7 @@ const handleSave = () => {
           </el-select>
         </el-form-item>
         
-        <el-form-item label="Satyşda barmy?">
+        <el-form-item label="Ammarda barmy?">
           <el-switch v-model="form.inStock" active-text="Bar" inactive-text="Ýok" active-color="#22c55e" />
         </el-form-item>
         
@@ -314,7 +314,7 @@ const handleSave = () => {
         </el-form-item>
 
         <!-- Specifications (key-value dict) -->
-        <el-form-item label="Tehniki häsiýetnamalar (Specifications)" class="md:col-span-2">
+        <el-form-item label="Tehniki häsiýetnamalar" class="md:col-span-2">
           <div class="spec-block">
             <!-- existing entries -->
             <div
@@ -368,9 +368,9 @@ const handleSave = () => {
     </div>
     
     <template #footer>
-      <div class="flex gap-3 justify-end mt-4 px-4 pb-4">
-        <el-button @click="dialogVisible = false" class="!rounded-xl">Bes et</el-button>
-        <el-button type="primary" @click="handleSave" class="!rounded-xl !px-10 !font-black h-12">Harydy sakla</el-button>
+      <div class="flex gap-2 justify-end mt-2">
+        <el-button @click="dialogVisible = false">Ýatyr</el-button>
+        <el-button type="primary" @click="handleSave">Harydy sakla</el-button>
       </div>
     </template>
   </el-dialog>
@@ -401,13 +401,9 @@ const handleSave = () => {
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  background: var(--el-fill-color-light, #f5f7fa);
+  background: #fff;
   border-radius: 6px;
-  border: 1px solid var(--el-border-color-lighter, #ebeef5);
-  transition: border-color 0.2s;
-}
-.spec-row:hover {
-  border-color: var(--el-color-primary-light-5, #a0cfff);
+  border: 1px solid #d1d5db;
 }
 
 .spec-key {
@@ -416,8 +412,8 @@ const handleSave = () => {
 }
 
 .spec-sep {
-  font-weight: 700;
-  color: var(--el-color-primary, #409eff);
+  font-weight: 500;
+  color: #6b7280;
   flex-shrink: 0;
   padding: 0 2px;
 }
@@ -427,13 +423,9 @@ const handleSave = () => {
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border: 1px dashed var(--el-border-color, #dcdfe6);
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   background: transparent;
-  transition: border-color 0.2s;
-}
-.spec-add-row:hover {
-  border-color: var(--el-color-primary, #409eff);
 }
 
 /* ── Media Grid (drag-and-drop) ─────────────────── */

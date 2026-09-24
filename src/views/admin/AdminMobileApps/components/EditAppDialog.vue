@@ -81,14 +81,14 @@ const handleEditSubmit = () => {
     v-model="dialogVisible"
     title="Wersiýany redaktirlemek"
     width="550px"
-    class="!rounded-3xl"
+    class="admin-dialog"
     append-to-body
   >
     <div v-loading="saving" element-loading-text="Wersiýa maglumatlary täzelenýär...">
-      <div class="space-y-6 text-slate-900">
+      <div class="space-y-4 text-gray-900">
         <!-- Optional APK file replacement -->
         <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">APK faýlyny täzelemek (Islege bagly)</label>
+          <label class="block mb-2">APK faýlyny täzelemek (islege bagly)</label>
           <el-upload
             class="apk-uploader"
             drag
@@ -111,82 +111,41 @@ const handleEditSubmit = () => {
           </el-upload>
         </div>
         
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Wersiýa ady (Version Name)</label>
-            <el-input v-model="editForm.version_name" placeholder="Mysal üçin: 1.0.2" class="!rounded-xl"></el-input>
+            <label class="block mb-2">Wersiýa ady</label>
+            <el-input v-model="editForm.version_name" placeholder="Mysal üçin: 1.0.2" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Wersiýa kody (Version Code)</label>
-            <el-input-number v-model="editForm.version_code" :min="1" placeholder="Mysal üçin: 3" class="w-full"></el-input-number>
+            <label class="block mb-2">Wersiýa kody</label>
+            <el-input-number v-model="editForm.version_code" :min="1" placeholder="Mysal üçin: 3" class="w-full" />
           </div>
         </div>
         
         <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ýazgy / Täzelikler (Release Notes)</label>
+          <label class="block mb-2">Ýazgy / Täzelikler</label>
           <el-input
             v-model="editForm.description"
             type="textarea"
             :rows="4"
             placeholder="Bu wersiýada girizilen üýtgeşmeler barada ýazyň..."
-            class="!rounded-xl"
           ></el-input>
         </div>
         
-        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+        <div class="flex items-center justify-between gap-4 py-3 border-t border-gray-200">
           <div>
-            <div class="text-sm font-bold text-slate-850">Işjeňleşdir</div>
-            <div class="text-xs text-gray-400">Bu wersiýany ulanyjylar üçin aktiw et.</div>
+            <div class="text-sm font-medium text-gray-900">Işjeňleşdir</div>
+            <div class="text-sm text-gray-600">Bu wersiýa ulanyjylar üçin elýeterli bolar.</div>
           </div>
           <el-switch v-model="editForm.is_active" active-color="#dc2626"></el-switch>
         </div>
       </div>
       
       <!-- Dialog Footer -->
-      <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-        <button 
-          type="button"
-          @click="dialogVisible = false"
-          class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
-        >
-          Ýatyr
-        </button>
-        <button 
-          type="button"
-          @click="handleEditSubmit"
-          class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-red-600/10 cursor-pointer"
-        >
-          Sakla
-        </button>
+      <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-gray-200">
+        <el-button @click="dialogVisible = false">Ýatyr</el-button>
+        <el-button type="primary" :loading="saving" @click="handleEditSubmit">Sakla</el-button>
       </div>
     </div>
   </el-dialog>
 </template>
-
-<style scoped>
-/* Custom Upload Styling override */
-:deep(.apk-uploader .el-upload-dragger) {
-  border-radius: 1.5rem;
-  border: 2px dashed #e2e8f0;
-  background-color: #f8fafc;
-  transition: all 0.3s ease;
-  padding: 2rem;
-}
-
-:deep(.apk-uploader .el-upload-dragger:hover) {
-  border-color: #dc2626;
-  background-color: #fef2f2;
-}
-
-:deep(.el-input__wrapper, .el-textarea__inner, .el-input-number) {
-  border-radius: 0.75rem !important;
-}
-
-:deep(.el-input-number .el-input-number__decrease),
-:deep(.el-input-number .el-input-number__increase) {
-  border-radius: 0.75rem !important;
-}
-.w-full {
-  width: 100%;
-}
-</style>

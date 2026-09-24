@@ -9,7 +9,7 @@ export const productsPageStore = reactive({
     inStockOnly: false,
     minPrice: 0,
     maxPrice: 0,
-    sort: 'popular' as 'popular' | 'price-asc' | 'price-desc' | 'rating',
+    sort: 'popular' as 'popular' | 'price-asc' | 'price-desc',
   },
   visibleProducts: [] as Product[],
 })

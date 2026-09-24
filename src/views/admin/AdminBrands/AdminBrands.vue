@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { store, actions } from '../../../store'
 import { Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { baseMediaURL } from '../../../utils/request'
 import BrandDialog from './components/BrandDialog.vue'
 
 const windowWidth = ref(window.innerWidth)
@@ -14,22 +13,13 @@ onMounted(async () => {
 })
 onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
-const getImageUrl = (url: string) => {
-  if (!url) return ''
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url
-  }
-  return baseMediaURL + url
-}
-
 const searchQuery = ref('')
 const dialogVisible = ref(false)
 const isEditing = ref(false)
 const form = ref({
   id: 0,
   name: '',
-  slug: '',
-  logo_url: ''
+  slug: ''
 })
 
 // Pagination
@@ -58,13 +48,13 @@ watch(searchQuery, () => {
 
 const openAdd = () => {
   isEditing.value = false
-  form.value = { id: 0, name: '', slug: '', logo_url: '' }
+  form.value = { id: 0, name: '', slug: '' }
   dialogVisible.value = true
 }
 
 const openEdit = (brand: any) => {
   isEditing.value = true
-  form.value = { ...brand }
+  form.value = { id: brand.id, name: brand.name, slug: brand.slug || '' }
   dialogVisible.value = true
 }
 
@@ -143,15 +133,6 @@ const handleDelete = (id: number) => {
         class="admin-table"
         header-cell-class-name="admin-table-header"
       >
-        <el-table-column width="100" label="Logosy">
-          <template #default="scope">
-            <div class="w-16 h-12 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center p-1">
-              <img v-if="scope.row.logo_url" :src="getImageUrl(scope.row.logo_url)" class="w-full h-full object-contain" />
-              <span v-else class="text-[9px] text-gray-400 font-bold uppercase">LOGO</span>
-            </div>
-          </template>
-        </el-table-column>
-        
         <el-table-column prop="name" label="Ady" min-width="150" sortable>
           <template #default="scope">
             <span class="font-black text-slate-900">{{ scope.row.name }}</span>
@@ -231,21 +212,6 @@ const handleDelete = (id: number) => {
   background-color: rgba(249, 250, 251, 0.5);
   cursor: default;
 }
-.admin-search-input :deep(.el-input__wrapper) {
-  border-radius: 1rem !important;
-  height: 3rem;
-  box-shadow: none;
-  border: 1px solid #e5e7eb;
-  background-color: white;
-  transition: all 0.2s;
-}
-.admin-search-input :deep(.el-input__wrapper:hover) {
-  border-color: #fecaca;
-}
-.admin-search-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #dc2626;
-}
-
 .animate-fade-in {
   animation: fadeIn 0.6s ease-out;
 }

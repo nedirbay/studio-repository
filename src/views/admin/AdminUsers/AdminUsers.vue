@@ -215,7 +215,7 @@ async function handleSave(payload: any) {
     </div>
 
     <!-- Filters & Search -->
-    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
+    <div class="bg-white p-4 rounded-md border border-gray-200 flex flex-col sm:flex-row gap-4">
       <el-input
         v-model="searchQuery"
         placeholder="Ulanyjy ady ýa-da e-poçta boýunça gözleg..."
@@ -346,63 +346,3 @@ async function handleSave(payload: any) {
     />
   </div>
 </template>
-
-<style scoped>
-
-
-:deep(.search-input .el-input__wrapper) {
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
-  border: none;
-  box-shadow: none;
-}
-:deep(.search-input .el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px #fee2e2; /* approximate red-100 ring */
-}
-
-:deep(.admin-dialog) {
-  border-radius: 24px;
-  overflow: hidden;
-}
-:deep(.admin-dialog .el-dialog__header) {
-  padding: 24px 24px 20px;
-  margin: 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-:deep(.admin-dialog .el-dialog__title) {
-  font-weight: 900;
-  color: #0f172a;
-}
-:deep(.admin-dialog .el-dialog__body) {
-  padding: 24px;
-}
-:deep(.admin-dialog .el-dialog__footer) {
-  padding: 16px 24px;
-  background-color: #f8fafc;
-  border-top: 1px solid #f3f4f6;
-}
-
-/* Form Styles */
-:deep(.el-form-item__label) {
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
-  margin-bottom: 8px;
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px #e5e7eb inset;
-  padding: 0 16px;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #0f172a inset;
-}
-
-:deep(.el-select .el-input__wrapper) {
-  border-radius: 12px;
-}
-</style>

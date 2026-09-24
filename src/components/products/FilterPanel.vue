@@ -6,7 +6,6 @@ const props = defineProps<{
   selectedCategories: string[]
   selectedBrands: string[]
   priceRange: [number, number]
-  selectedRatings: number[]
   inStockOnly: boolean
   onSaleOnly: boolean
   activeFiltersCount: number
@@ -16,7 +15,6 @@ const emit = defineEmits<{
   'update:categories': [value: string[]]
   'update:brands': [value: string[]]
   'update:price': [value: [number, number]]
-  'update:ratings': [value: number[]]
   'update:inStock': [value: boolean]
   'update:onSale': [value: boolean]
   'clear-all': []
@@ -44,20 +42,11 @@ const brandOptions = computed(() =>
   }))
 )
 
-// Rating options
-const ratingOptions = [
-  { value: 4, label: '4 ýyldyz we ýokary' },
-  { value: 3, label: '3 ýyldyz we ýokary' },
-  { value: 2, label: '2 ýyldyz we ýokary' },
-  { value: 1, label: '1 ýyldyz we ýokary' }
-]
-
 // Expanded sections
 const expandedSections = ref({
-  categories: true,
-  brands: true,
-  price: true,
-  ratings: false,
+  categories: false,
+  brands: false,
+  price: false,
   availability: false
 })
 
@@ -83,12 +72,6 @@ function handlePriceChange() {
   emit('update:price', localPriceRange.value)
 }
 
-function handleRatingChange(rating: number) {
-  const newRatings = props.selectedRatings.includes(rating)
-    ? props.selectedRatings.filter(r => r !== rating)
-    : [...props.selectedRatings, rating]
-  emit('update:ratings', newRatings)
-}
 </script>
 
 <template>
@@ -204,40 +187,6 @@ function handleRatingChange(rating: number) {
             <template #prepend>$</template>
           </el-input>
         </div>
-      </div>
-    </div>
-
-    <!-- Ratings -->
-    <div class="filter-section">
-      <button
-        @click="toggleSection('ratings')"
-        class="filter-header"
-      >
-        <span class="font-medium text-gray-700">Reýtingler</span>
-        <el-icon :class="['transition-transform', expandedSections.ratings && 'rotate-180']">
-          <ArrowDown />
-        </el-icon>
-      </button>
-      <div v-show="expandedSections.ratings" class="filter-content">
-        <label
-          v-for="option in ratingOptions"
-          :key="option.value"
-          class="filter-checkbox"
-        >
-          <el-checkbox
-            :model-value="selectedRatings.includes(option.value)"
-            @change="handleRatingChange(option.value)"
-          />
-          <div class="flex items-center gap-1">
-            <el-rate
-              :model-value="option.value"
-              disabled
-              :colors="['#f59e0b', '#f59e0b', '#f59e0b']"
-              size="small"
-            />
-            <span class="text-xs text-gray-500">we ýokary</span>
-          </div>
-        </label>
       </div>
     </div>
 

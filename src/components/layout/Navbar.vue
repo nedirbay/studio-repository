@@ -7,13 +7,13 @@ import type { NavItem } from '../../types'
 // Navigation menu structure. The "Kategoriýalar" children are populated
 // at runtime from API-fetched store.categories.
 const baseNavItems: NavItem[] = [
-  { label: 'Baş sahypa', href: '/home' },
-  { label: 'Kategoriýalar', href: '/products', children: [] },
-  { label: 'Täze gelenler', href: '/new-arrivals' },
-  { label: 'Täzelikler', href: '/blog' },
-  { label: 'FotoStudio', href: '/studio' },
-  { label: 'Studio Sargyt', href: '/studio-order' },
-  { label: 'Sowgatlar', href: '/gifts' },
+  { label: 'Baş sahypa', href: '/' },
+  { label: 'Harytlar', href: '/products', children: [] },
+  // { label: 'Täze gelenler', href: '/new-arrivals' },
+  // { label: 'Täzelikler', href: '/blog' },
+  // { label: 'FotoStudio', href: '/studio' },
+  // { label: 'Studio Sargyt', href: '/studio-order' },
+  // { label: 'Sowgatlar', href: '/gifts' },
   { label: 'Biz barada', href: '/about' },
 ]
 import NotificationDropdown from '../shared/NotificationDropdown.vue'
@@ -82,7 +82,7 @@ watch(() => route.path, (newPath) => {
         </button>
 
         <!-- Logo/Branding -->
-        <router-link to="/home" @click="mobileMenuOpen = false" class="flex items-center group no-underline shrink-0">
+        <router-link to="/" @click="mobileMenuOpen = false" class="flex items-center group no-underline shrink-0">
           <div class="leading-tight">
             <div class="text-lg md:text-xl font-black text-gray-900 tracking-tight">Doganlar</div>
             <div class="text-[9px] md:text-[10px] text-red-600 font-bold -mt-0.5 tracking-[0.2em] uppercase">foto merkezi</div>
@@ -172,7 +172,7 @@ watch(() => route.path, (newPath) => {
               :class="{ 'bg-red-600 text-white': isActiveLink(item.href) }"
             >
               {{ item.label }}
-              <el-icon v-if="item.children" class="text-sm ml-0.5"><ArrowDown /></el-icon>
+              <el-icon v-if="item.children && item.children.length > 0" class="text-sm ml-0.5"><ArrowDown /></el-icon>
             </router-link>
             <div
               v-if="item.children && activeDropdown === item.label"

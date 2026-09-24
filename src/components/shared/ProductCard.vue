@@ -1,23 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { store, actions, formatPrice } from '../../store'
+import { formatPrice } from '../../store'
 import type { Product } from '../../types'
 
 const props = defineProps<{ product: Product }>()
 const router = useRouter()
-
-const isInCart = computed(() => {
-  return store.cart.some(item => item.product.id === props.product.id)
-})
-
-function handleCartClick() {
-  if (isInCart.value) {
-    actions.removeFromCart(props.product.id)
-  } else {
-    actions.addToCart(props.product, 1, false)
-  }
-}
 
 function goToProduct() {
   router.push(`/product/${props.product.slug}`)
@@ -56,13 +43,6 @@ function discountPercent(price: number, original: number) {
         >
           <el-icon class="text-sm"><View /></el-icon>
         </button>
-        <button 
-          class="w-8 h-8 rounded-full shadow flex items-center justify-center transition-colors"
-          :class="isInCart ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-gray-700 hover:bg-red-600 hover:text-white'"
-          @click.prevent="handleCartClick"
-        >
-          <el-icon class="text-sm"><ShoppingCart /></el-icon>
-        </button>
       </div>
     </div>
 
@@ -72,19 +52,6 @@ function discountPercent(price: number, original: number) {
         {{ product.name }}
       </h3>
 
-      <div class="flex items-center gap-1 mb-2">
-        <el-rate
-          :model-value="product.rating"
-          disabled
-          show-score
-          text-color="#ff9900"
-          score-template="{value}"
-          size="small"
-          style="--el-rate-fill-color: #f59e0b;"
-        />
-        <span class="text-xs text-gray-400">({{ product.reviews }})</span>
-      </div>
-
       <div class="flex items-center justify-between mt-3">
         <div>
           <span class="text-lg font-bold text-red-600">{{ formatPrice(product.price) }}</span>
@@ -92,15 +59,6 @@ function discountPercent(price: number, original: number) {
             {{ formatPrice(product.originalPrice) }}
           </span>
         </div>
-        <button
-          class="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          :class="isInCart ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-red-600 text-white hover:bg-red-700'"
-          :disabled="!product.inStock"
-          @click.prevent="handleCartClick"
-        >
-          <el-icon><ShoppingCart /></el-icon>
-          {{ isInCart ? 'Aýyr' : 'Goş' }}
-        </button>
       </div>
     </div>
   </router-link>

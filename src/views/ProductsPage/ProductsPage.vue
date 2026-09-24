@@ -17,7 +17,6 @@ const showMobileFilter = ref(false)
 const selectedCategories = ref<string[]>([])
 const selectedBrands = ref<string[]>([])
 const priceRange = ref<[number, number]>([0, 3000])
-const selectedRatings = ref<number[]>([])
 const inStockOnly = ref(false)
 const onSaleOnly = ref(false)
 
@@ -61,13 +60,6 @@ const filteredProducts = computed(() => {
     p.price >= priceRange.value[0] && p.price <= priceRange.value[1]
   )
 
-  // Rating filter
-  if (selectedRatings.value.length > 0) {
-    products = products.filter(p => 
-      selectedRatings.value.some(r => Math.floor(p.rating) >= r)
-    )
-  }
-
   // Stock filter
   if (inStockOnly.value) {
     products = products.filter(p => p.inStock)
@@ -85,9 +77,6 @@ const filteredProducts = computed(() => {
       break
     case 'price-high':
       products.sort((a, b) => b.price - a.price)
-      break
-    case 'rating':
-      products.sort((a, b) => b.rating - a.rating)
       break
     case 'newest':
       products.sort((a, b) => (b.badge === 'new' ? 1 : 0) - (a.badge === 'new' ? 1 : 0))
@@ -118,7 +107,6 @@ const activeFiltersCount = computed(() => {
   count += selectedCategories.value.length
   count += selectedBrands.value.length
   if (priceRange.value[0] > 0 || priceRange.value[1] < 3000) count++
-  count += selectedRatings.value.length
   if (inStockOnly.value) count++
   if (onSaleOnly.value) count++
   return count
@@ -129,7 +117,6 @@ function clearAllFilters() {
   selectedCategories.value = []
   selectedBrands.value = []
   priceRange.value = [0, 3000]
-  selectedRatings.value = []
   inStockOnly.value = false
   onSaleOnly.value = false
   searchQuery.value = ''
@@ -155,11 +142,6 @@ function handleBrandChange(brands: string[]) {
 
 function handlePriceChange(range: [number, number]) {
   priceRange.value = range
-  currentPage.value = 1
-}
-
-function handleRatingChange(ratings: number[]) {
-  selectedRatings.value = ratings
   currentPage.value = 1
 }
 
@@ -228,14 +210,12 @@ watch(() => route.query.brand, (brandName) => {
             :selected-categories="selectedCategories"
             :selected-brands="selectedBrands"
             :price-range="priceRange"
-            :selected-ratings="selectedRatings"
             :in-stock-only="inStockOnly"
             :on-sale-only="onSaleOnly"
             :active-filters-count="activeFiltersCount"
             @update:categories="handleCategoryChange"
             @update:brands="handleBrandChange"
             @update:price="handlePriceChange"
-            @update:ratings="handleRatingChange"
             @update:in-stock="(val: boolean) => inStockOnly = val"
             @update:on-sale="(val: boolean) => onSaleOnly = val"
             @clear-all="clearAllFilters"
@@ -301,7 +281,6 @@ watch(() => route.query.brand, (brandName) => {
                   <el-option label="Täzeler" value="newest" />
                   <el-option label="Baha: Arzandan gymmada" value="price-low" />
                   <el-option label="Baha: Gymmatdan arzana" value="price-high" />
-                  <el-option label="Iň gowy reýtingli" value="rating" />
                   <el-option label="Ady boýunça (A-Z)" value="name" />
                 </el-select>
 
@@ -390,14 +369,12 @@ watch(() => route.query.brand, (brandName) => {
         :selected-categories="selectedCategories"
         :selected-brands="selectedBrands"
         :price-range="priceRange"
-        :selected-ratings="selectedRatings"
         :in-stock-only="inStockOnly"
         :on-sale-only="onSaleOnly"
         :active-filters-count="activeFiltersCount"
         @update:categories="handleCategoryChange"
         @update:brands="handleBrandChange"
         @update:price="handlePriceChange"
-        @update:ratings="handleRatingChange"
         @update:in-stock="(val: boolean) => inStockOnly = val"
         @update:on-sale="(val: boolean) => onSaleOnly = val"
         @clear-all="clearAllFilters"

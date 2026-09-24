@@ -84,13 +84,13 @@ const colorOptions = [
     class="admin-dialog"
     align-center
   >
-    <div class="max-h-[70vh] overflow-y-auto px-4 custom-scrollbar">
+    <div class="max-h-[70vh] overflow-y-auto custom-scrollbar">
       <el-form :model="form" label-position="top" class="space-y-4">
-        <el-form-item label="Sözbaşy (Title)">
+        <el-form-item label="Sözbaşy">
           <el-input v-model="form.title" placeholder="Esasy sözbaşy" />
         </el-form-item>
         
-        <el-form-item label="Kiçi sözbaşy (Subtitle)">
+        <el-form-item label="Kiçi sözbaşy">
           <el-input v-model="form.subtitle" placeholder="Gözüňe ilýän kiçi ýazgy" />
         </el-form-item>
         
@@ -98,11 +98,11 @@ const colorOptions = [
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Gysgaça düşündiriş..." />
         </el-form-item>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <el-form-item label="Düwmäniň ýazgysy">
             <el-input v-model="form.ctaText" />
           </el-form-item>
-          <el-form-item label="Arka tarapyň reňki">
+          <el-form-item label="Banneriň reňki">
             <el-select v-model="form.bgColor" class="w-full">
               <el-option 
                 v-for="opt in colorOptions" 
@@ -114,7 +114,7 @@ const colorOptions = [
           </el-form-item>
         </div>
 
-        <el-form-item label="Baglanjak haryt (Product)">
+        <el-form-item label="Baglanjak haryt">
           <el-select 
             v-model="form.product_id" 
             placeholder="Haryt saýlaň (hökman däl)" 
@@ -133,12 +133,12 @@ const colorOptions = [
         
         <el-form-item label="Banner suraty">
           <div class="space-y-4 w-full">
-            <div v-if="form.image" class="relative w-full h-40 rounded-xl overflow-hidden border border-gray-200">
+              <div v-if="form.image" class="relative w-full h-40 rounded-md overflow-hidden border border-gray-200">
               <img :src="getImageUrl(form.image)" class="w-full h-full object-cover" />
               <button 
                 type="button"
                 @click="form.image = ''" 
-                class="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-xl shadow-lg hover:bg-red-700 transition-colors"
+                class="absolute top-2 right-2 p-2 bg-white text-red-700 rounded border border-gray-300 hover:bg-gray-50 transition-colors"
               >
                 <el-icon><Delete /></el-icon>
               </button>
@@ -162,51 +162,15 @@ const colorOptions = [
     </div>
     
     <template #footer>
-      <div class="flex gap-3 justify-end mt-4 px-4 pb-4">
-        <el-button @click="dialogVisible = false" class="!rounded-lg">Bes et</el-button>
-        <el-button type="primary" @click="handleSave" class="!rounded-lg !px-10 !font-black h-12 shadow-lg shadow-red-600/20">Banneri sakla</el-button>
+      <div class="flex gap-2 justify-end mt-2">
+        <el-button @click="dialogVisible = false">Ýatyr</el-button>
+        <el-button type="primary" @click="handleSave">Banneri sakla</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <style scoped>
-:deep(.admin-dialog) {
-  border-radius: 1rem;
-  overflow: hidden;
-}
-:deep(.admin-dialog .el-dialog__header) {
-  padding-top: 2.5rem;
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
-  margin-bottom: 0;
-}
-:deep(.admin-dialog .el-dialog__title) {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #0f172a;
-}
-:deep(.admin-dialog .el-form-item__label) {
-  font-weight: 900;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
-}
-:deep(.admin-dialog .el-input__wrapper),
-:deep(.admin-dialog .el-textarea__inner) {
-  border-radius: 0.5rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: none;
-  background-color: #f9fafb;
-  padding: 0.5rem 1rem;
-}
-:deep(.admin-dialog .el-upload-dragger) {
-  border-radius: 1rem;
-  border: 2px dashed #e5e7eb;
-  background-color: #f9fafb;
-}
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

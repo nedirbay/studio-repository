@@ -111,7 +111,7 @@ function handleSave() {
         />
       </el-form-item>
       
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <el-form-item label="Roly">
           <el-select v-model="form.role_name" class="w-full">
             <el-option label="Ulanyjy (User)" value="User" />
@@ -129,8 +129,8 @@ function handleSave() {
     
     <template #footer>
       <div class="flex gap-3 justify-end mt-4">
-        <el-button @click="dialogVisible = false" class="!rounded-xl" :disabled="submitting">Bes et</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSave" class="!rounded-xl !px-6 !bg-slate-900 !border-slate-900 border-none hover:!bg-slate-800">
+        <el-button @click="dialogVisible = false" :disabled="submitting">Ýatyr</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSave">
           Sakla
         </el-button>
       </div>

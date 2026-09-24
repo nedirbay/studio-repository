@@ -101,35 +101,31 @@ const handleActivate = async (id: number) => {
       <div>
         <p class="text-xs text-gray-500 mt-0.5">Ulgamdaky pul birliklerini goşup, aýryp we haýsysynyň işjeň bolmalydygyny saýlap bilersiňiz.</p>
       </div>
-      <button 
-        @click="openAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-red-600/20 cursor-pointer"
-      >
+      <el-button type="primary" @click="openAdd">
         <el-icon><Plus /></el-icon>
         Täze pul birligini goş
-      </button>
+      </el-button>
     </div>
 
     <!-- Active Overview Banner -->
-    <div class="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-slate-900 via-slate-950 to-red-950 p-8 text-white shadow-xl border border-white/5">
-      <div class="absolute -right-20 -top-20 w-64 h-64 bg-red-600/15 rounded-full blur-[80px] pointer-events-none"></div>
-      <div class="relative z-10">
-        <h3 class="text-xs font-bold text-red-400 uppercase tracking-widest mb-2">Häzirki işjeň pul birligi</h3>
+    <div class="bg-white rounded-md border border-gray-200 p-5">
+      <div>
+        <h3 class="text-sm font-medium text-gray-600 mb-2">Häzirki işjeň pul birligi</h3>
         <div v-if="store.activeCurrency" class="flex items-baseline gap-3">
-          <span class="text-4xl font-black text-white">{{ store.activeCurrency.name }}</span>
-          <span class="text-xl font-bold text-gray-400">({{ store.activeCurrency.code }} - "{{ store.activeCurrency.symbol }}")</span>
+          <span class="text-2xl font-semibold text-gray-900">{{ store.activeCurrency.name }}</span>
+          <span class="text-base text-gray-600">({{ store.activeCurrency.code }} - "{{ store.activeCurrency.symbol }}")</span>
         </div>
-        <div v-else class="text-xl font-bold text-gray-300">Işjeň pul birligi ýok (Manat fallback hökmünde ulanylýar)</div>
+        <div v-else class="text-base text-gray-700">Işjeň pul birligi ýok (Manat ulanylýar)</div>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+    <div class="bg-white p-4 md:p-5 rounded-md border border-gray-200">
       <el-table 
         v-loading="loading"
         :data="store.currencies" 
         style="width: 100%"
-        class="rounded-2xl border border-gray-100 overflow-hidden"
+      class="rounded-md border border-gray-200 overflow-hidden"
       >
         <el-table-column label="Ady" prop="name">
           <template #default="{ row }">
@@ -199,56 +195,35 @@ const handleActivate = async (id: number) => {
       v-model="dialogVisible"
       :title="isEditing ? 'Pul birligini redaktirlemek' : 'Täze pul birligi goşmak'"
       width="500px"
-      class="!rounded-3xl"
+      class="admin-dialog"
       append-to-body
     >
-      <div v-loading="loading" class="space-y-6 text-slate-900">
-        <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Pul birliginiň ady</label>
-          <el-input v-model="form.name" placeholder="Mysal üçin: Manat, Dollar" class="!rounded-xl"></el-input>
+      <el-form :model="form" label-position="top" v-loading="loading">
+        <el-form-item label="Pul birliginiň ady">
+          <el-input v-model="form.name" placeholder="Mysal üçin: Manat ýa-da Dollar" />
+        </el-form-item>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+          <el-form-item label="Kody">
+            <el-input v-model="form.code" placeholder="Mysal üçin: TMT ýa-da USD" />
+          </el-form-item>
+          <el-form-item label="Belgisi">
+            <el-input v-model="form.symbol" placeholder="Mysal üçin: m. ýa-da $" />
+          </el-form-item>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center justify-between py-3 border-t border-gray-200">
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Kody (Code)</label>
-            <el-input v-model="form.code" placeholder="Mysal üçin: TMT, USD" class="!rounded-xl"></el-input>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Belgisi (Symbol)</label>
-            <el-input v-model="form.symbol" placeholder="Mysal üçin: m., $" class="!rounded-xl"></el-input>
-          </div>
-        </div>
-        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-          <div>
-            <div class="text-sm font-bold text-slate-850">Gönümel işjeňleşdir</div>
-            <div class="text-xs text-gray-400">Bu pul birligini häzirki işjeň pul birligi hökmünde belle.</div>
+            <div class="text-sm font-medium text-gray-900">Işjeň pul birligi edip belle</div>
+            <div class="text-sm text-gray-600">Bu saýlaw öňki işjeň pul birligini çalyşar.</div>
           </div>
           <el-switch v-model="form.is_active" active-color="#dc2626"></el-switch>
         </div>
-      </div>
+      </el-form>
       <template #footer>
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-          <button 
-            type="button"
-            @click="dialogVisible = false"
-            class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
-          >
-            Ýatyr
-          </button>
-          <button 
-            type="button"
-            @click="onSave"
-            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-red-600/10 cursor-pointer"
-          >
-            Sakla
-          </button>
+        <div class="flex justify-end gap-2">
+          <el-button @click="dialogVisible = false">Ýatyr</el-button>
+          <el-button type="primary" :loading="loading" @click="onSave">Sakla</el-button>
         </div>
       </template>
     </el-dialog>
   </div>
 </template>
-
-<style scoped>
-:deep(.el-input__wrapper, .el-textarea__inner) {
-  border-radius: 0.75rem !important;
-}
-</style>

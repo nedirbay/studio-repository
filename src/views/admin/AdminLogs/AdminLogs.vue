@@ -350,7 +350,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Filters & Search -->
-    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
+    <div class="bg-white p-4 rounded-md border border-gray-200 flex flex-col sm:flex-row gap-4">
       <el-input
         v-model="searchQuery"
         placeholder="Ulanyjy ady ýa-da API ýoly boýunça..."
@@ -528,7 +528,7 @@ onUnmounted(() => {
       destroy-on-close
     >
       <div class="space-y-4">
-        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Pozulmaly sene aralygyny saýlaň:</p>
+        <p class="text-sm text-gray-700">Pozulmaly sene aralygyny saýlaň:</p>
         <el-date-picker
           v-model="deleteDateRange"
           type="daterange"
@@ -541,8 +541,8 @@ onUnmounted(() => {
       </div>
       <template #footer>
         <span class="dialog-footer flex gap-3 justify-end">
-          <el-button @click="dateRangeDeleteVisible = false" class="!rounded-xl">Ýap</el-button>
-          <el-button type="danger" @click="deleteLogsByDateRange" class="!rounded-xl font-bold">Loglary poz</el-button>
+          <el-button @click="dateRangeDeleteVisible = false">Ýatyr</el-button>
+          <el-button type="danger" @click="deleteLogsByDateRange">Loglary poz</el-button>
         </span>
       </template>
     </el-dialog>
@@ -639,53 +639,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-:deep(.search-input .el-input__wrapper) {
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
-  border: none;
-  box-shadow: none;
-}
-:deep(.search-input .el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px #fee2e2;
-}
-
-:deep(.admin-dialog) {
-  border-radius: 24px;
-  overflow: hidden;
-  max-width: 600px;
-}
-:deep(.admin-dialog .el-dialog__header) {
-  padding: 24px 24px 20px;
-  margin: 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-:deep(.admin-dialog .el-dialog__title) {
-  font-weight: 900;
-  color: #0f172a;
-}
-:deep(.admin-dialog .el-dialog__body) {
-  padding: 24px;
-}
-:deep(.admin-dialog .el-dialog__footer) {
-  padding: 16px 24px;
-  background-color: #f8fafc;
-  border-top: 1px solid #f3f4f6;
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px #e5e7eb inset;
-  padding: 0 16px;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #0f172a inset;
-}
-
-:deep(.el-select .el-input__wrapper) {
-  border-radius: 12px;
-}
-
 .admin-table :deep(.admin-table-header) {
   background-color: #f8fafc !important;
   color: #94a3b8;

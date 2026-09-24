@@ -101,11 +101,11 @@ watch(dialogVisible, (newVal) => {
     v-model="dialogVisible"
     title="Täze wersiýa goşmak"
     width="550px"
-    class="!rounded-3xl"
+    class="admin-dialog"
     append-to-body
   >
     <div v-loading="uploading" element-loading-text="Apk faýl serwere ýüklenýär...">
-      <div class="space-y-6 text-slate-900">
+      <div class="space-y-4 text-gray-900">
         <el-upload
           class="apk-uploader"
           drag
@@ -127,82 +127,41 @@ watch(dialogVisible, (newVal) => {
           </template>
         </el-upload>
         
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Wersiýa ady (Version Name)</label>
-            <el-input v-model="uploadForm.version_name" placeholder="Mysal üçin: 1.0.2" class="!rounded-xl"></el-input>
+            <label class="block mb-2">Wersiýa ady</label>
+            <el-input v-model="uploadForm.version_name" placeholder="Mysal üçin: 1.0.2" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Wersiýa kody (Version Code)</label>
-            <el-input-number v-model="uploadForm.version_code" :min="1" placeholder="Mysal üçin: 3" class="w-full"></el-input-number>
+            <label class="block mb-2">Wersiýa kody</label>
+            <el-input-number v-model="uploadForm.version_code" :min="1" placeholder="Mysal üçin: 3" class="w-full" />
           </div>
         </div>
         
         <div>
-          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ýazgy / Täzelikler (Release Notes)</label>
+          <label class="block mb-2">Ýazgy / Täzelikler</label>
           <el-input
             v-model="uploadForm.description"
             type="textarea"
             :rows="4"
             placeholder="Bu wersiýada girizilen üýtgeşmeler barada ýazyň..."
-            class="!rounded-xl"
           ></el-input>
         </div>
         
-        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+        <div class="flex items-center justify-between gap-4 py-3 border-t border-gray-200">
           <div>
-            <div class="text-sm font-bold text-slate-850">Gönümel işjeňleşdir</div>
-            <div class="text-xs text-gray-400">Ýüklenen badyna wersiýany ulanyjylar üçin aktiw et.</div>
+            <div class="text-sm font-medium text-gray-900">Ýüklenen badyna işjeňleşdir</div>
+            <div class="text-sm text-gray-600">Wersiýa ulanyjylar üçin derrew elýeterli bolar.</div>
           </div>
           <el-switch v-model="uploadForm.is_active" active-color="#dc2626"></el-switch>
         </div>
       </div>
       
       <!-- Dialog Footer -->
-      <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-        <button 
-          type="button"
-          @click="dialogVisible = false"
-          class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
-        >
-          Ýatyr
-        </button>
-        <button 
-          type="button"
-          @click="handleUploadSubmit"
-          class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-red-600/10 cursor-pointer"
-        >
-          Ýükle
-        </button>
+      <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-gray-200">
+        <el-button @click="dialogVisible = false">Ýatyr</el-button>
+        <el-button type="primary" :loading="uploading" @click="handleUploadSubmit">Ýükle</el-button>
       </div>
     </div>
   </el-dialog>
 </template>
-
-<style scoped>
-/* Custom Upload Styling override */
-:deep(.apk-uploader .el-upload-dragger) {
-  border-radius: 1.5rem;
-  border: 2px dashed #e2e8f0;
-  background-color: #f8fafc;
-  transition: all 0.3s ease;
-  padding: 2rem;
-}
-
-:deep(.apk-uploader .el-upload-dragger:hover) {
-  border-color: #dc2626;
-  background-color: #fef2f2;
-}
-
-:deep(.el-input__wrapper, .el-textarea__inner, .el-input-number) {
-  border-radius: 0.75rem !important;
-}
-
-:deep(.el-input-number .el-input-number__decrease),
-:deep(.el-input-number .el-input-number__increase) {
-  border-radius: 0.75rem !important;
-}
-.w-full {
-  width: 100%;
-}
-</style>

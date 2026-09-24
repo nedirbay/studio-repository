@@ -6,6 +6,7 @@ const props = defineProps<{
   selectedCategories: string[]
   selectedBrands: string[]
   priceRange: [number, number]
+  priceMax: number
   inStockOnly: boolean
   onSaleOnly: boolean
   activeFiltersCount: number
@@ -23,6 +24,9 @@ const emit = defineEmits<{
 
 // Local price range for slider
 const localPriceRange = ref<[number, number]>(props.priceRange)
+watch(() => props.priceRange, (value) => {
+  localPriceRange.value = [...value]
+}, { deep: true })
 
 // Category options from store
 const categoryOptions = computed(() => 
@@ -161,7 +165,7 @@ function handlePriceChange() {
             v-model="localPriceRange"
             range
             :min="0"
-            :max="3000"
+            :max="priceMax"
             :step="50"
             @change="handlePriceChange"
           />

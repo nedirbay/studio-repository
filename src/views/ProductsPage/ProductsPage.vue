@@ -21,6 +21,15 @@ const showMobileFilter = ref(false)
 const selectedCategories = ref<string[]>([])
 const selectedBrands = ref<string[]>([])
 const priceRange = ref<[number, number]>([0, 3000])
+const priceMax = computed(() => Math.max(
+  3000,
+  ...store.products.map(product => Number(product.price) || 0)
+))
+watch(priceMax, (nextMax, previousMax) => {
+  if (priceRange.value[1] >= previousMax) {
+    priceRange.value = [priceRange.value[0], nextMax]
+  }
+})
 const inStockOnly = ref(false)
 const onSaleOnly = ref(false)
 
@@ -110,7 +119,7 @@ const activeFiltersCount = computed(() => {
   let count = 0
   count += selectedCategories.value.length
   count += selectedBrands.value.length
-  if (priceRange.value[0] > 0 || priceRange.value[1] < 3000) count++
+  if (priceRange.value[0] > 0 || priceRange.value[1] < priceMax.value) count++
   if (inStockOnly.value) count++
   if (onSaleOnly.value) count++
   return count
@@ -120,7 +129,7 @@ const activeFiltersCount = computed(() => {
 function clearAllFilters() {
   selectedCategories.value = []
   selectedBrands.value = []
-  priceRange.value = [0, 3000]
+  priceRange.value = [0, priceMax.value]
   inStockOnly.value = false
   onSaleOnly.value = false
   searchQuery.value = ''
@@ -214,6 +223,7 @@ watch(() => route.query.brand, (brandName) => {
             :selected-categories="selectedCategories"
             :selected-brands="selectedBrands"
             :price-range="priceRange"
+            :price-max="priceMax"
             :in-stock-only="inStockOnly"
             :on-sale-only="onSaleOnly"
             :active-filters-count="activeFiltersCount"
@@ -373,6 +383,7 @@ watch(() => route.query.brand, (brandName) => {
         :selected-categories="selectedCategories"
         :selected-brands="selectedBrands"
         :price-range="priceRange"
+        :price-max="priceMax"
         :in-stock-only="inStockOnly"
         :on-sale-only="onSaleOnly"
         :active-filters-count="activeFiltersCount"

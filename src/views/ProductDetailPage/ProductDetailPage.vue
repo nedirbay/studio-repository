@@ -237,7 +237,8 @@ watch(productSlug, loadProductDetail)
           <!-- Previous Button -->
           <button 
             @click.stop="prevImage" 
-            class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            aria-label="Öňki surat"
+            class="image-modal-nav image-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full text-white transition-colors"
           >
             <el-icon class="text-3xl"><ArrowLeft /></el-icon>
           </button>
@@ -245,7 +246,8 @@ watch(productSlug, loadProductDetail)
           <!-- Next Button -->
           <button 
             @click.stop="nextImage" 
-            class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            aria-label="Indiki surat"
+            class="image-modal-nav image-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full text-white transition-colors"
           >
             <el-icon class="text-3xl"><ArrowRight /></el-icon>
           </button>
@@ -334,5 +336,31 @@ watch(productSlug, loadProductDetail)
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.image-modal-nav {
+  background: rgb(0 0 0 / 65%);
+  border: 1px solid rgb(255 255 255 / 75%);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 55%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.image-modal-nav:hover {
+  background: rgb(0 0 0 / 85%);
+}
+
+@media (max-width: 640px) {
+  .image-modal-nav {
+    width: 48px;
+    height: 48px;
+  }
+
+  .image-modal-prev {
+    left: max(8px, env(safe-area-inset-left));
+  }
+
+  .image-modal-next {
+    right: max(8px, env(safe-area-inset-right));
+  }
 }
 </style>

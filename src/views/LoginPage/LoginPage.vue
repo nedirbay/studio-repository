@@ -37,10 +37,10 @@
           />
         </el-form-item>
         
-        <div class="flex items-center justify-between mb-6">
+        <!-- <div class="flex items-center justify-between mb-6">
           <el-checkbox v-model="rememberMe">Meni ýatda sakla</el-checkbox>
           <router-link to="/forgot-password" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">Paroly ýatdan çykardyňyzmy?</router-link>
-        </div>
+        </div> -->
         
         <el-button 
           type="primary" 
@@ -59,12 +59,12 @@
 
         <div ref="googleBtnEl" class="w-full flex justify-center"></div>
         
-        <div class="text-center mt-6">
+        <!-- <div class="text-center mt-6">
           <p class="text-gray-600">
             Hasabyňyz ýokmy? 
             <router-link to="/register" class="text-blue-600 font-semibold hover:underline">Hasap açyň</router-link>
           </p>
-        </div>
+        </div> -->
       </el-form>
     </div>
   </div>

@@ -131,7 +131,7 @@ watch(() => route.path, (newPath) => {
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
           <!-- Cart Icon -->
-          <button
+          <!-- <button
             @click="actions.toggleCartDrawer(true)"
             class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
           >
@@ -142,14 +142,14 @@ watch(() => route.path, (newPath) => {
             >
               {{ cartCount }}
             </span>
-          </button>
+          </button> -->
 
-          <NotificationDropdown />
+          <!-- <NotificationDropdown /> -->
           
           <!-- User Menu -->
-          <div class="user-menu-wrapper ml-1">
+          <!-- <div class="user-menu-wrapper ml-1">
             <UserDropdown />
-          </div>
+          </div> -->
         </div>
        
       </div>

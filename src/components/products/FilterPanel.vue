@@ -7,6 +7,7 @@ const props = defineProps<{
   selectedBrands: string[]
   priceRange: [number, number]
   priceMax: number
+  priceFilterActive?: boolean
   inStockOnly: boolean
   onSaleOnly: boolean
   activeFiltersCount: number
@@ -16,11 +17,14 @@ const emit = defineEmits<{
   'update:categories': [value: string[]]
   'update:brands': [value: string[]]
   'update:price': [value: [number, number]]
+  'update:priceActive': [value: boolean]
   'update:inStock': [value: boolean]
   'update:onSale': [value: boolean]
   'clear-all': []
   'apply': []
 }>()
+
+const currencySymbol = computed(() => store.activeCurrency?.symbol || 'TMT')
 
 // Local price range for slider
 const localPriceRange = ref<[number, number]>(props.priceRange)
@@ -74,8 +78,17 @@ function handleBrandChange(brand: string) {
 
 function handlePriceChange() {
   emit('update:price', localPriceRange.value)
+  if (!props.priceFilterActive) {
+    emit('update:priceActive', true)
+  }
 }
 
+function handlePriceActiveToggle(val: boolean) {
+  emit('update:priceActive', val)
+  if (val) {
+    emit('update:price', localPriceRange.value)
+  }
+}
 </script>
 
 <template>
@@ -155,12 +168,26 @@ function handlePriceChange() {
         class="filter-header"
       >
         <span class="font-medium text-gray-700">Baha aralygy</span>
-        <el-icon :class="['transition-transform', expandedSections.price && 'rotate-180']">
-          <ArrowDown />
-        </el-icon>
+        <div class="flex items-center gap-2">
+          <span
+            v-if="priceFilterActive"
+            class="w-2 h-2 rounded-full bg-red-600 inline-block"
+            title="Baha filteri aktiw"
+          />
+          <el-icon :class="['transition-transform', expandedSections.price && 'rotate-180']">
+            <ArrowDown />
+          </el-icon>
+        </div>
       </button>
       <div v-show="expandedSections.price" class="filter-content">
-        <div class="mb-4">
+        <label class="filter-checkbox">
+          <el-checkbox
+            :model-value="priceFilterActive"
+            @change="(val: boolean) => handlePriceActiveToggle(val)"
+          />
+          <span class="text-sm font-medium text-gray-700">Baha boýunça filterle</span>
+        </label>
+        <div class="mb-4 mt-1" :class="{ 'opacity-60': !priceFilterActive }">
           <el-slider
             v-model="localPriceRange"
             range
@@ -170,7 +197,7 @@ function handlePriceChange() {
             @change="handlePriceChange"
           />
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2" :class="{ 'opacity-60': !priceFilterActive }">
           <el-input
             :model-value="localPriceRange[0]"
             @input="(val: string) => localPriceRange[0] = Number(val)"
@@ -178,7 +205,7 @@ function handlePriceChange() {
             size="small"
             class="price-input"
           >
-            <template #prepend>$</template>
+            <template #prepend>{{ currencySymbol }}</template>
           </el-input>
           <span class="text-gray-400">-</span>
           <el-input
@@ -188,7 +215,7 @@ function handlePriceChange() {
             size="small"
             class="price-input"
           >
-            <template #prepend>$</template>
+            <template #prepend>{{ currencySymbol }}</template>
           </el-input>
         </div>
       </div>

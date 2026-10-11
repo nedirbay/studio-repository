@@ -16,16 +16,19 @@ const showMobileFilter = ref(false)
 // Filter state
 const selectedCategories = ref<string[]>([])
 const selectedBrands = ref<string[]>([])
+const isPriceFilterActive = ref(false)
 const priceRange = ref<[number, number]>([0, 3000])
 const priceMax = computed(() => Math.max(
   3000,
   ...store.products.map(product => Number(product.price) || 0)
 ))
 watch(priceMax, (nextMax, previousMax) => {
-  if (priceRange.value[1] >= previousMax) {
+  if (!isPriceFilterActive.value) {
+    priceRange.value = [0, nextMax]
+  } else if (previousMax !== undefined && priceRange.value[1] >= previousMax) {
     priceRange.value = [priceRange.value[0], nextMax]
   }
-})
+}, { immediate: true })
 const inStockOnly = ref(false)
 const onSaleOnly = ref(false)
 
@@ -64,10 +67,12 @@ const filteredProducts = computed(() => {
     )
   }
 
-  // Price filter
-  products = products.filter(p => 
-    p.price >= priceRange.value[0] && p.price <= priceRange.value[1]
-  )
+  // Price filter - diňe ulanyjy aktiw edende işleýär
+  if (isPriceFilterActive.value) {
+    products = products.filter(p => 
+      p.price >= priceRange.value[0] && p.price <= priceRange.value[1]
+    )
+  }
 
   // Stock filter
   if (inStockOnly.value) {
@@ -115,7 +120,7 @@ const activeFiltersCount = computed(() => {
   let count = 0
   count += selectedCategories.value.length
   count += selectedBrands.value.length
-  if (priceRange.value[0] > 0 || priceRange.value[1] < priceMax.value) count++
+  if (isPriceFilterActive.value) count++
   if (inStockOnly.value) count++
   if (onSaleOnly.value) count++
   return count
@@ -125,6 +130,7 @@ const activeFiltersCount = computed(() => {
 function clearAllFilters() {
   selectedCategories.value = []
   selectedBrands.value = []
+  isPriceFilterActive.value = false
   priceRange.value = [0, priceMax.value]
   inStockOnly.value = false
   onSaleOnly.value = false
@@ -151,6 +157,12 @@ function handleBrandChange(brands: string[]) {
 
 function handlePriceChange(range: [number, number]) {
   priceRange.value = range
+  isPriceFilterActive.value = true
+  currentPage.value = 1
+}
+
+function handlePriceActiveChange(active: boolean) {
+  isPriceFilterActive.value = active
   currentPage.value = 1
 }
 
@@ -220,12 +232,14 @@ watch(() => route.query.brand, (brandName) => {
             :selected-brands="selectedBrands"
             :price-range="priceRange"
             :price-max="priceMax"
+            :price-filter-active="isPriceFilterActive"
             :in-stock-only="inStockOnly"
             :on-sale-only="onSaleOnly"
             :active-filters-count="activeFiltersCount"
             @update:categories="handleCategoryChange"
             @update:brands="handleBrandChange"
             @update:price="handlePriceChange"
+            @update:price-active="handlePriceActiveChange"
             @update:in-stock="(val: boolean) => inStockOnly = val"
             @update:on-sale="(val: boolean) => onSaleOnly = val"
             @clear-all="clearAllFilters"
@@ -269,6 +283,14 @@ watch(() => route.query.brand, (brandName) => {
                   class="filter-tag"
                 >
                   {{ brand }}
+                </el-tag>
+                <el-tag
+                  v-if="isPriceFilterActive"
+                  closable
+                  @close="isPriceFilterActive = false"
+                  class="filter-tag"
+                >
+                  Baha: {{ priceRange[0] }} - {{ priceRange[1] }} {{ store.activeCurrency?.symbol || 'TMT' }}
                 </el-tag>
                 <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="filter-tag">
                   Ammarda bar
@@ -380,12 +402,14 @@ watch(() => route.query.brand, (brandName) => {
         :selected-brands="selectedBrands"
         :price-range="priceRange"
         :price-max="priceMax"
+        :price-filter-active="isPriceFilterActive"
         :in-stock-only="inStockOnly"
         :on-sale-only="onSaleOnly"
         :active-filters-count="activeFiltersCount"
         @update:categories="handleCategoryChange"
         @update:brands="handleBrandChange"
         @update:price="handlePriceChange"
+        @update:price-active="handlePriceActiveChange"
         @update:in-stock="(val: boolean) => inStockOnly = val"
         @update:on-sale="(val: boolean) => onSaleOnly = val"
         @clear-all="clearAllFilters"

@@ -133,48 +133,73 @@ const activeFiltersCount = computed(() => {
   return count
 })
 
+const isSyncingToUrl = ref(false)
+
 function initFiltersFromRoute() {
   const q = route.query
   if (q.page) {
     const p = Number(q.page)
-    if (!isNaN(p) && p > 0) currentPage.value = p
+    currentPage.value = (!isNaN(p) && p > 0) ? p : 1
+  } else {
+    currentPage.value = 1
   }
-  if (typeof q.search === 'string') {
-    searchQuery.value = q.search
-  }
-  if (typeof q.sort === 'string') {
-    sortBy.value = q.sort
-  }
+
+  searchQuery.value = typeof q.search === 'string' ? q.search : ''
+  sortBy.value = typeof q.sort === 'string' ? q.sort : 'featured'
+
   if (q.brand) {
     selectedBrands.value = Array.isArray(q.brand)
       ? (q.brand as string[])
       : [q.brand as string]
+  } else {
+    selectedBrands.value = []
   }
-  if (q.inStock === 'true') {
-    inStockOnly.value = true
-  }
-  if (q.onSale === 'true') {
-    onSaleOnly.value = true
-  }
+
+  inStockOnly.value = q.inStock === 'true'
+  onSaleOnly.value = q.onSale === 'true'
+
   if (q.minPrice !== undefined && q.maxPrice !== undefined) {
     const minP = Number(q.minPrice) || 0
     const maxP = Number(q.maxPrice) || priceMax.value
     priceRange.value = [minP, maxP]
     isPriceFilterActive.value = true
+  } else {
+    isPriceFilterActive.value = false
+    priceRange.value = [0, priceMax.value]
   }
 
   // Categories from param or query
   const paramCat = route.params.category as string
   if (paramCat) {
     const cat = store.categories.find(c => c.slug === paramCat || c.name === paramCat)
-    if (cat) {
-      selectedCategories.value = [cat.name]
-    }
+    selectedCategories.value = cat ? [cat.name] : []
   } else if (q.category) {
     selectedCategories.value = Array.isArray(q.category)
       ? (q.category as string[])
       : [q.category as string]
+  } else {
+    selectedCategories.value = []
   }
+}
+
+function areQueriesEqual(q1: Record<string, any>, q2: Record<string, any>): boolean {
+  const keys1 = Object.keys(q1).filter(k => q1[k] !== undefined && q1[k] !== '')
+  const keys2 = Object.keys(q2).filter(k => q2[k] !== undefined && q2[k] !== '')
+  if (keys1.length !== keys2.length) return false
+  for (const key of keys1) {
+    const val1 = q1[key]
+    const val2 = q2[key]
+    if (Array.isArray(val1) || Array.isArray(val2)) {
+      const arr1 = Array.isArray(val1) ? val1 : [val1]
+      const arr2 = Array.isArray(val2) ? val2 : [val2]
+      if (arr1.length !== arr2.length || !arr1.every((v, i) => String(v) === String(arr2[i]))) {
+        return false
+      }
+    } else if (String(val1) !== String(val2)) {
+      return false
+    }
+  }
+  return true
 }
 
 function syncToUrl() {
@@ -204,15 +229,48 @@ function syncToUrl() {
   if (onSaleOnly.value) {
     query.onSale = 'true'
   }
-  if (!route.params.category && selectedCategories.value.length > 0) {
-    query.category = selectedCategories.value.length === 1 ? selectedCategories.value[0] : selectedCategories.value
+
+  // Determine path and category query
+  const paramCat = route.params.category as string | undefined
+  let targetPath = route.path
+
+  if (paramCat) {
+    const matchedCategory = store.categories.find(c => c.slug === paramCat || c.name === paramCat)
+    const isSingleMatchedCategory = !!(
+      matchedCategory &&
+      selectedCategories.value.length === 1 &&
+      selectedCategories.value[0] === matchedCategory.name
+    )
+
+    if (!isSingleMatchedCategory) {
+      targetPath = '/products'
+      if (selectedCategories.value.length > 0) {
+        query.category = selectedCategories.value.length === 1 
+          ? selectedCategories.value[0] 
+          : selectedCategories.value
+      }
+    }
+  } else if (selectedCategories.value.length > 0) {
+    targetPath = '/products'
+    query.category = selectedCategories.value.length === 1 
+      ? selectedCategories.value[0] 
+      : selectedCategories.value
   }
 
-  // Compare with current query
+  // Compare with current query and path
   const currQuery = { ...route.query }
-  const isDifferent = JSON.stringify(query) !== JSON.stringify(currQuery)
-  if (isDifferent) {
-    router.replace({ query }).catch(() => {})
+  const isQueryDifferent = !areQueriesEqual(query, currQuery)
+  const isPathDifferent = route.path !== targetPath
+
+  if (isPathDifferent || isQueryDifferent) {
+    isSyncingToUrl.value = true
+    router.replace({ path: targetPath, query })
+      .catch(() => {})
+      .finally(() => {
+        nextTick(() => {
+          isSyncingToUrl.value = false
+        })
+      })
   }
 }
 
@@ -226,9 +284,39 @@ function clearAllFilters() {
   onSaleOnly.value = false
   searchQuery.value = ''
   currentPage.value = 1
-  if (route.params.category) {
-    router.push('/products')
-  }
+  isSyncingToUrl.value = true
+  router.replace({ path: '/products', query: {} })
+    .catch(() => {})
+    .finally(() => {
+      nextTick(() => {
+        isSyncingToUrl.value = false
+      })
+    })
+}
+
+function removeCategory(cat: string) {
+  selectedCategories.value = selectedCategories.value.filter(c => c !== cat)
+  currentPage.value = 1
+}
+
+function removeBrand(brand: string) {
+  selectedBrands.value = selectedBrands.value.filter(b => b !== brand)
+  currentPage.value = 1
+}
+
+function removePriceFilter() {
+  isPriceFilterActive.value = false
+  currentPage.value = 1
+}
+
+function removeInStockFilter() {
+  inStockOnly.value = false
+  currentPage.value = 1
+}
+
+function removeOnSaleFilter() {
+  onSaleOnly.value = false
+  currentPage.value = 1
 }
 
 function handlePageChange(page: number) {
@@ -259,6 +347,7 @@ function handlePriceActiveChange(active: boolean) {
 
 // Watch category route param and store.categories
 watch([() => route.params.category, () => store.categories], ([catParam, categories]) => {
+  if (isSyncingToUrl.value) return
   if (catParam && categories && categories.length > 0) {
     const found = categories.find(c => c.slug === catParam || c.name === catParam)
     if (found && !selectedCategories.value.includes(found.name)) {
@@ -266,6 +355,12 @@ watch([() => route.params.category, () => store.categories], ([catParam, categor
     }
   }
 }, { immediate: true })
+
+// Watch fullPath to re-init filters on external navigation (e.g. navbar links, back/forward buttons)
+watch(() => route.fullPath, () => {
+  if (isSyncingToUrl.value || isInitializing.value) return
+  initFiltersFromRoute()
+})
 
 // Reset page on search or filter change
 watch(searchQuery, () => {
@@ -385,7 +480,7 @@ onMounted(async () => {
                   v-for="cat in selectedCategories"
                   :key="cat"
                   closable
-                  @close="selectedCategories = selectedCategories.filter(c => c !== cat)"
+                  @close="removeCategory(cat)"
                   class="filter-tag"
                 >
                   {{ cat }}
@@ -394,7 +489,7 @@ onMounted(async () => {
                   v-for="brand in selectedBrands"
                   :key="brand"
                   closable
-                  @close="selectedBrands = selectedBrands.filter(b => b !== brand)"
+                  @close="removeBrand(brand)"
                   class="filter-tag"
                 >
                   {{ brand }}
@@ -402,15 +497,15 @@ onMounted(async () => {
                 <el-tag
                   v-if="isPriceFilterActive"
                   closable
-                  @close="isPriceFilterActive = false"
+                  @close="removePriceFilter"
                   class="filter-tag"
                 >
                   Baha: {{ priceRange[0] }} - {{ priceRange[1] }} {{ store.activeCurrency?.symbol || 'TMT' }}
                 </el-tag>
-                <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="filter-tag">
+                <el-tag v-if="inStockOnly" closable @close="removeInStockFilter" class="filter-tag">
                   Ammarda bar
                 </el-tag>
-                <el-tag v-if="onSaleOnly" closable @close="onSaleOnly = false" class="filter-tag">
+                <el-tag v-if="onSaleOnly" closable @close="removeOnSaleFilter" class="filter-tag">
                   Arzanladyşda
                 </el-tag>
                 <button

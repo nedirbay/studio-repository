@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { actions } from '../store'
 import type { User } from '../types'
 import HomePage from '../views/HomePage/HomePage.vue'
 import ProductsPage from '../views/ProductsPage/ProductsPage.vue'
@@ -50,6 +51,14 @@ const routes = [
     path: '/products/:category',
     name: 'ProductsByCategory',
     component: ProductsPage
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    redirect: () => {
+      actions.toggleCartDrawer(true)
+      return '/products'
+    }
   },
   {
     path: '/product/:slug',

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { actions, formatPrice } from '../../store'
+import { store, actions, formatPrice } from '../../store'
+import ProductCard from '../../components/shared/ProductCard.vue'
 import { 
   ZoomIn, 
   CircleCheck, 
@@ -10,7 +11,11 @@ import {
   Warning, 
   Close, 
   ArrowLeft, 
-  ArrowRight
+  ArrowRight,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Check
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -22,6 +27,10 @@ const loadingProduct = ref(false)
 const errorProduct = ref(false)
 
 // Image gallery
+const quantity = ref(1)
+function increaseQuantity() { quantity.value++ }
+function decreaseQuantity() { if (quantity.value > 1) quantity.value-- }
+
 const selectedImage = ref(0)
 const showImageModal = ref(false)
 const modalImageIndex = ref(0)
@@ -58,14 +67,31 @@ function nextImage() {
   modalImageIndex.value = modalImageIndex.value === images.value.length - 1 ? 0 : modalImageIndex.value + 1
 }
 
+// Related products from the same category
+const relatedProducts = computed(() => {
+  if (!product.value) return []
+  const catId = product.value.category_id || product.value.category?.id
+  const currentId = product.value.id
+  let list = store.products.filter(p => p.id !== currentId && (p.category_id === catId || (product.value.category_name && p.category === product.value.category_name)))
+  if (list.length < 4) {
+    const others = store.products.filter(p => p.id !== currentId && !list.some(item => item.id === p.id))
+    list = [...list, ...others]
+  }
+  return list.slice(0, 4)
+})
+
 // Fetch product details
 async function loadProductDetail() {
   if (!productSlug.value) return
   loadingProduct.value = true
   errorProduct.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   try {
     const fetchedProduct = await actions.fetchProductBySlug(productSlug.value)
     product.value = fetchedProduct
+    if (store.products.length === 0) {
+      actions.fetchProductCatalogue()
+    }
   } catch (error) {
     console.error('Failed to load product detail:', error)
     errorProduct.value = true
@@ -171,6 +197,58 @@ watch(productSlug, loadProductDetail)
             </span>
           </div>
 
+          <!-- Availability & Stock -->
+          <div class="flex items-center gap-2">
+            <span 
+              :class="product.inStock ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+            >
+              <el-icon><component :is="product.inStock ? Check : Close" /></el-icon>
+              {{ product.inStock ? 'Ammarda bar' : 'Ammarda ýok' }}
+            </span>
+          </div>
+
+          <!-- Quantity and Add to Cart -->
+          <div class="flex items-center gap-4 pt-2">
+            <div class="flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
+              <button 
+                type="button"
+                @click="decreaseQuantity" 
+                class="px-3.5 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <el-icon><Minus /></el-icon>
+              </button>
+              <input 
+                type="text" 
+                :value="quantity" 
+                readonly 
+                class="w-12 text-center text-sm font-bold text-gray-800 focus:outline-none"
+              />
+              <button 
+                type="button"
+                @click="increaseQuantity" 
+                class="px-3.5 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <el-icon><Plus /></el-icon>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              :disabled="!product.inStock"
+              @click="actions.addToCart(product, quantity)"
+              :class="[
+                'flex-1 flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-xl transition-all shadow-sm cursor-pointer',
+                product.inStock 
+                  ? 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md active:scale-[0.99]' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              ]"
+            >
+              <el-icon class="text-xl"><ShoppingCart /></el-icon>
+              Sebede goş
+            </button>
+          </div>
+
           <!-- Description -->
           <div v-if="product.description" class="bg-white rounded-xl p-5 shadow-sm">
             <h3 class="text-lg font-semibold text-gray-900 mb-3">Düşündiriş</h3>
@@ -208,6 +286,29 @@ watch(productSlug, loadProductDetail)
           </div> -->
         </div>
       </div>
+
+      <!-- Meňzeş Harytlar (Related Products) -->
+      <section v-if="relatedProducts.length > 0" class="mt-14 border-t border-gray-200 pt-10">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">Meňzeş Harytlar</h2>
+            <p class="text-sm text-gray-500 mt-1">Bu kategoriýadaky beýleki harytlar</p>
+          </div>
+          <router-link 
+            :to="product.category_name ? `/products?category=${encodeURIComponent(product.category_name)}` : '/products'" 
+            class="text-sm font-semibold text-red-600 hover:text-red-700 hover:underline"
+          >
+            Ählisini gör &rarr;
+          </router-link>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <ProductCard
+            v-for="p in relatedProducts"
+            :key="p.id"
+            :product="p"
+          />
+        </div>
+      </section>
 
     </div>
 

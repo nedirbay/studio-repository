@@ -30,7 +30,7 @@ const getImageUrl = (url: string) => {
             <span v-if="promo.badge" class="text-xs font-bold text-white/90 uppercase tracking-wider mb-1">
               {{ promo.badge }}
             </span>
-            <h3 class="text-white text-xl font-bold mb-3" v-html="promo.title.replace(' ', '<br/>')"></h3>
+            <h3 class="text-white text-xl font-bold mb-3 whitespace-pre-line leading-tight">{{ promo.title.replace(' ', '\n') }}</h3>
             <router-link 
               :to="promo.link" 
               class="text-xs font-semibold text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded w-fit transition-colors no-underline text-center"

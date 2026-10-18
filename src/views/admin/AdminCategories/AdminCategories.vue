@@ -79,6 +79,18 @@ const onCategorySave = async (savedForm: any) => {
 }
 
 const handleDelete = (id: number) => {
+  const targetCategory = store.categories.find(c => c.id === id)
+  const productCount = targetCategory?.count || 0
+
+  if (productCount > 0) {
+    ElMessageBox.alert(
+      `Bu kategoriýada häzir ${productCount} sany haryt bar. Ilki bilen şol harytlary başga kategoriýa geçiriň ýa-da pozuň.`,
+      'Pozup bolmaýar',
+      { confirmButtonText: 'Düşnükli', type: 'error' }
+    )
+    return
+  }
+
   ElMessageBox.confirm(
     'Bu kategoriýany pozmak isleýärsiňizmi?',
     'Üns beriň',
@@ -91,8 +103,9 @@ const handleDelete = (id: number) => {
     try {
       await actions.deleteCategory(id)
       ElMessage.success('Kategoriýa pozuldy')
-    } catch (error) {
-      ElMessage.error('Kategoriýany pozup bolmady')
+    } catch (error: any) {
+      const msg = error?.response?.data?.error || 'Kategoriýany pozup bolmady'
+      ElMessage.error(msg)
     }
   })
 }

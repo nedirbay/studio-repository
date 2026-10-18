@@ -14,7 +14,8 @@ import {
   Cellphone,
   Coin,
   Memo,
-  Close
+  Close,
+  ShoppingCart
 } from '@element-plus/icons-vue'
 import UserDropdown from '../shared/UserDropdown.vue'
 
@@ -46,6 +47,7 @@ const menuGroups = [
       { id: 'categories', label: 'Kategoriýalar', path: '/admin/categories', icon: Files },
       { id: 'brands', label: 'Brendler', path: '/admin/brands', icon: Operation },
       { id: 'products', label: 'Harytlar', path: '/admin/products', icon: Box },
+      { id: 'orders', label: 'Sargytlar', path: '/admin/orders', icon: ShoppingCart },
       { id: 'banners', label: 'Bannerler', path: '/admin/banners', icon: Picture },
     ]
   }

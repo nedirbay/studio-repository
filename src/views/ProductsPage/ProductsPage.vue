@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../../components/shared/ProductCard.vue'
 import FilterPanel from '../../components/products/FilterPanel.vue'
-import { store } from '../../store'
+import { store, actions } from '../../store'
+import { Search, Filter, Grid, List } from '@element-plus/icons-vue'
 
 const route = useRoute()
+const router = useRouter()
+
+const isLoading = ref(false)
+const isInitializing = ref(false)
 
 // Search and filter state
 const searchQuery = ref('')
@@ -22,6 +27,7 @@ const priceMax = computed(() => Math.max(
   3000,
   ...store.products.map(product => Number(product.price) || 0)
 ))
+
 watch(priceMax, (nextMax, previousMax) => {
   if (!isPriceFilterActive.value) {
     priceRange.value = [0, nextMax]
@@ -29,6 +35,7 @@ watch(priceMax, (nextMax, previousMax) => {
     priceRange.value = [priceRange.value[0], nextMax]
   }
 }, { immediate: true })
+
 const inStockOnly = ref(false)
 const onSaleOnly = ref(false)
 
@@ -45,11 +52,11 @@ const filteredProducts = computed(() => {
 
   // Search filter
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+    const query = searchQuery.value.toLowerCase().trim()
     products = products.filter(p => 
-      p.name.toLowerCase().includes(query) ||
-      p.brand.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query)
+      (p.name && p.name.toLowerCase().includes(query)) ||
+      (p.brand && p.brand.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query))
     )
   }
 
@@ -67,7 +74,7 @@ const filteredProducts = computed(() => {
     )
   }
 
-  // Price filter - diňe ulanyjy aktiw edende işleýär
+  // Price filter
   if (isPriceFilterActive.value) {
     products = products.filter(p => 
       p.price >= priceRange.value[0] && p.price <= priceRange.value[1]
@@ -112,7 +119,7 @@ const paginatedProducts = computed(() => {
 
 // Total pages
 const totalPages = computed(() => 
-  Math.ceil(filteredProducts.value.length / itemsPerPage)
+  Math.max(1, Math.ceil(filteredProducts.value.length / itemsPerPage))
 )
 
 // Active filters count
@@ -126,6 +133,89 @@ const activeFiltersCount = computed(() => {
   return count
 })
 
+function initFiltersFromRoute() {
+  const q = route.query
+  if (q.page) {
+    const p = Number(q.page)
+    if (!isNaN(p) && p > 0) currentPage.value = p
+  }
+  if (typeof q.search === 'string') {
+    searchQuery.value = q.search
+  }
+  if (typeof q.sort === 'string') {
+    sortBy.value = q.sort
+  }
+  if (q.brand) {
+    selectedBrands.value = Array.isArray(q.brand)
+      ? (q.brand as string[])
+      : [q.brand as string]
+  }
+  if (q.inStock === 'true') {
+    inStockOnly.value = true
+  }
+  if (q.onSale === 'true') {
+    onSaleOnly.value = true
+  }
+  if (q.minPrice !== undefined && q.maxPrice !== undefined) {
+    const minP = Number(q.minPrice) || 0
+    const maxP = Number(q.maxPrice) || priceMax.value
+    priceRange.value = [minP, maxP]
+    isPriceFilterActive.value = true
+  }
+
+  // Categories from param or query
+  const paramCat = route.params.category as string
+  if (paramCat) {
+    const cat = store.categories.find(c => c.slug === paramCat || c.name === paramCat)
+    if (cat) {
+      selectedCategories.value = [cat.name]
+    }
+  } else if (q.category) {
+    selectedCategories.value = Array.isArray(q.category)
+      ? (q.category as string[])
+      : [q.category as string]
+  }
+}
+
+function syncToUrl() {
+  if (isInitializing.value) return
+
+  const query: Record<string, any> = {}
+
+  if (currentPage.value > 1) {
+    query.page = currentPage.value
+  }
+  if (searchQuery.value.trim()) {
+    query.search = searchQuery.value.trim()
+  }
+  if (sortBy.value !== 'featured') {
+    query.sort = sortBy.value
+  }
+  if (selectedBrands.value.length > 0) {
+    query.brand = selectedBrands.value.length === 1 ? selectedBrands.value[0] : selectedBrands.value
+  }
+  if (isPriceFilterActive.value) {
+    query.minPrice = priceRange.value[0]
+    query.maxPrice = priceRange.value[1]
+  }
+  if (inStockOnly.value) {
+    query.inStock = 'true'
+  }
+  if (onSaleOnly.value) {
+    query.onSale = 'true'
+  }
+  if (!route.params.category && selectedCategories.value.length > 0) {
+    query.category = selectedCategories.value.length === 1 ? selectedCategories.value[0] : selectedCategories.value
+  }
+
+  // Compare with current query
+  const currQuery = { ...route.query }
+  const isDifferent = JSON.stringify(query) !== JSON.stringify(currQuery)
+  if (isDifferent) {
+    router.replace({ query }).catch(() => {})
+  }
+}
+
 // Clear all filters
 function clearAllFilters() {
   selectedCategories.value = []
@@ -136,15 +226,16 @@ function clearAllFilters() {
   onSaleOnly.value = false
   searchQuery.value = ''
   currentPage.value = 1
+  if (route.params.category) {
+    router.push('/products')
+  }
 }
 
-// Handle page change
 function handlePageChange(page: number) {
   currentPage.value = page
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Handle filter updates from FilterPanel
 function handleCategoryChange(categories: string[]) {
   selectedCategories.value = categories
   currentPage.value = 1
@@ -166,30 +257,54 @@ function handlePriceActiveChange(active: boolean) {
   currentPage.value = 1
 }
 
-// Category from route
-watch(() => route.params.category, (category) => {
-  if (category) {
-    const cat = store.categories.find(c => c.slug === category)
-    if (cat) {
-      selectedCategories.value = [cat.name]
+// Watch category route param and store.categories
+watch([() => route.params.category, () => store.categories], ([catParam, categories]) => {
+  if (catParam && categories && categories.length > 0) {
+    const found = categories.find(c => c.slug === catParam || c.name === catParam)
+    if (found && !selectedCategories.value.includes(found.name)) {
+      selectedCategories.value = [found.name]
     }
   }
 }, { immediate: true })
 
-// Reset page on search
+// Reset page on search or filter change
 watch(searchQuery, () => {
   currentPage.value = 1
 })
 
-// Brand from query
-watch(() => route.query.brand, (brandName) => {
-  if (brandName && typeof brandName === 'string') {
-    // If brand is in query, ensure it's selected
-    if (!selectedBrands.value.includes(brandName)) {
-      selectedBrands.value = [brandName]
-    }
+// Sync state changes to URL
+watch([
+  currentPage,
+  searchQuery,
+  sortBy,
+  selectedCategories,
+  selectedBrands,
+  isPriceFilterActive,
+  priceRange,
+  inStockOnly,
+  onSaleOnly
+], () => {
+  syncToUrl()
+}, { deep: true })
+
+onMounted(async () => {
+  isInitializing.value = true
+  isLoading.value = true
+  try {
+    await Promise.all([
+      actions.fetchCategories(),
+      actions.fetchProductCatalogue()
+    ])
+  } catch (err) {
+    console.error('Failed to load products on page mount:', err)
+  } finally {
+    isLoading.value = false
   }
-}, { immediate: true })
+
+  initFiltersFromRoute()
+  await nextTick()
+  isInitializing.value = false
+})
 </script>
 
 <template>
@@ -335,8 +450,15 @@ watch(() => route.query.brand, (brandName) => {
             </div>
           </div>
 
+          <!-- Loading Skeleton -->
+          <div v-if="isLoading" class="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="n in 6" :key="n" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <el-skeleton animated :rows="5" />
+            </div>
+          </div>
+
           <!-- No Results -->
-          <div v-if="filteredProducts.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div v-else-if="filteredProducts.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
             <el-icon class="text-6xl text-gray-300 mb-4"><Search /></el-icon>
             <h3 class="text-lg font-semibold text-gray-700 mb-2">Haryt tapylmady</h3>
             <p class="text-gray-500 mb-4">Gözlegiňizi ýa-da filtrleriňizi üýtgedip görüň</p>

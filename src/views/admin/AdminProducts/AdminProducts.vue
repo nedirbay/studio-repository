@@ -91,7 +91,16 @@ const onProductSave = async (savedForm: any) => {
   // Resolve category name → ID before sending to store
   const categoryId = typeof savedForm.category === 'number'
     ? savedForm.category
-    : store.categories.find(c => c.name === savedForm.category)?.id
+    : (
+        store.categories.find(c => c.name === savedForm.category)?.id ??
+        store.categories.find(c => c.name.trim().toLowerCase() === String(savedForm.category).trim().toLowerCase())?.id ??
+        store.categories.find(c => c.slug === savedForm.category)?.id
+      )
+
+  if (!categoryId) {
+    ElMessage.error('Kategoriýa tapylmady. Gaýtadan saýlaň.')
+    return
+  }
 
   const payload = {
     ...savedForm,

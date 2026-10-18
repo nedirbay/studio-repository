@@ -14,10 +14,9 @@ export const baseMediaURL = import.meta.env.PROD
 const ServiceGenerate = () => {
   const service = axios.create({
     baseURL,
-    timeout: 0,
+    timeout: 15000,
   })
   service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data)
     return AuthConfig(config)
   }, ErrorHandler)
   service.interceptors.response.use(

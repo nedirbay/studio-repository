@@ -42,8 +42,8 @@ interface StoreState {
 const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
 
 export const store = reactive<StoreState>({
-  products: [],
-  categories: [],
+  products: savedData.products || [],
+  categories: savedData.categories || [],
   promos: [],
   banners: [],
   brands: [],
@@ -107,6 +107,7 @@ export const actions = {
     try {
       await Promise.all([
         this.fetchCategories(),
+        this.fetchProductCatalogue(),
         this.fetchBanners(),
         this.fetchPromos(),
         this.fetchBrands(),
@@ -445,6 +446,7 @@ export const actions = {
     try {
       await service.post('commerce/products', product)
       await this.fetchProducts()
+      await this.fetchCategories()
     } catch (error) {
       console.error('Failed to add product:', error)
     }
@@ -453,6 +455,7 @@ export const actions = {
     try {
       await service.put(`commerce/products/${product.id}`, product)
       await this.fetchProducts()
+      await this.fetchCategories()
     } catch (error) {
       console.error('Failed to update product:', error)
     }
@@ -461,6 +464,7 @@ export const actions = {
     try {
       await service.delete(`commerce/products/${id}`)
       await this.fetchProducts()
+      await this.fetchCategories()
     } catch (error) {
       console.error('Failed to delete product:', error)
     }

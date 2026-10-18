@@ -1,10 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { formatPrice } from '../../store'
+import { store, actions, formatPrice } from '../../store'
 import type { Product } from '../../types'
+import { ShoppingCart, View } from '@element-plus/icons-vue'
 
 const props = defineProps<{ product: Product }>()
 const router = useRouter()
+
+const isInCart = computed(() => {
+  return store.cart.some(item => item.product.id === props.product.id)
+})
+
+function handleCartClick() {
+  if (isInCart.value) {
+    actions.removeFromCart(props.product.id)
+  } else {
+    actions.addToCart(props.product, 1, false)
+  }
+}
 
 function goToProduct() {
   router.push(`/product/${props.product.slug}`)
@@ -34,14 +48,20 @@ function discountPercent(price: number, original: number) {
         <span class="text-white font-semibold text-sm bg-gray-800 px-3 py-1 rounded">Ammarda ýok</span>
       </div>
       <div class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <!-- <button class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" @click.prevent>
-          <el-icon class="text-sm"><Star /></el-icon>
-        </button> -->
         <button 
-          class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors" 
+          class="w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors cursor-pointer" 
           @click.prevent="goToProduct"
+          title="Giňişleýin görmek"
         >
           <el-icon class="text-sm"><View /></el-icon>
+        </button>
+        <button 
+          class="w-8 h-8 rounded-full shadow flex items-center justify-center transition-colors cursor-pointer"
+          :class="isInCart ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-white text-gray-700 hover:bg-red-600 hover:text-white'"
+          @click.prevent="handleCartClick"
+          :title="isInCart ? 'Sebetden aýyrmak' : 'Sebede goşmak'"
+        >
+          <el-icon class="text-sm"><ShoppingCart /></el-icon>
         </button>
       </div>
     </div>
@@ -59,6 +79,15 @@ function discountPercent(price: number, original: number) {
             {{ formatPrice(product.originalPrice) }}
           </span>
         </div>
+        <button
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+          :class="isInCart ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200' : 'bg-red-600 text-white hover:bg-red-700 hover:shadow'"
+          :disabled="!product.inStock"
+          @click.prevent="handleCartClick"
+        >
+          <el-icon><ShoppingCart /></el-icon>
+          {{ isInCart ? 'Aýyr' : 'Goş' }}
+        </button>
       </div>
     </div>
   </router-link>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { store } from '../../store'
+import { store, actions } from '../../store'
 import { homeService } from '../../views/HomePage/homeService'
 import ProductCard from '../shared/ProductCard.vue'
 
@@ -37,6 +37,9 @@ let timer: ReturnType<typeof setInterval>
 
 onMounted(() => {
   void loadLatestProducts()
+  if (store.products.length === 0) {
+    void actions.fetchProductCatalogue()
+  }
   timer = setInterval(() => {
     if (seconds.value > 0) {
       seconds.value--
@@ -139,6 +142,9 @@ function pad(n: number) {
             </div>
             <p v-if="activeTab === 'featured' && !isLoadingLatest && latestProducts.length === 0" class="py-10 text-center text-gray-500">
               {{ latestProductsFailed ? 'Harytlary ýüklemek başa barmady.' : 'Häzirlikçe görkezmäge haryt ýok.' }}
+            </p>
+            <p v-if="activeTab === 'deals' && store.products.filter(p => p.originalPrice || p.badge === 'sale').length === 0" class="py-10 text-center text-gray-500">
+              Häzirlikçe arzanlaşykda haryt ýok.
             </p>
           </div>
         </Transition>

@@ -46,8 +46,15 @@ function prevStep() {
 }
 
 async function handleCheckout() {
-  if (!customerName.value || !customerPhone.value) {
+  if (!customerName.value.trim() || !customerPhone.value.trim()) {
     ElMessage.warning('Sargydy tamamlamak üçin adyňyzy we telefon belgiňizi giriziň')
+    return
+  }
+
+  const cleanPhone = customerPhone.value.replace(/[\s\-()]/g, '')
+  const phoneRegex = /^(\+993|993)?[67]\d{7}$/
+  if (!phoneRegex.test(cleanPhone)) {
+    ElMessage.warning('Telefon belgiňizi dogry giriziň (mysal: +993 65 123456)')
     return
   }
 

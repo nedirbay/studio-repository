@@ -7,9 +7,9 @@ import { store } from '../../store'
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex items-center justify-between mb-6">
         <h2 class="section-title">Kategoriýalar boýunça</h2>
-        <a href="#" class="text-sm text-red-600 font-semibold hover:text-red-700 flex items-center gap-1">
+        <router-link to="/products" class="text-sm text-red-600 font-semibold hover:text-red-700 flex items-center gap-1">
           Ählisini gör <el-icon><ArrowRight /></el-icon>
-        </a>
+        </router-link>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">

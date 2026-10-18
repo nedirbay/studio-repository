@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { store, actions, cartCount } from '../../store'
 import type { NavItem } from '../../types'
 
@@ -16,24 +16,26 @@ const baseNavItems: NavItem[] = [
   // { label: 'Sowgatlar', href: '/gifts' },
   { label: 'Biz barada', href: '/about' },
 ]
-import NotificationDropdown from '../shared/NotificationDropdown.vue'
 import CartDrawer from '../cart/CartDrawer.vue'
-import { Search, ShoppingCart, ArrowDown, Menu as MenuIcon, Close } from '@element-plus/icons-vue'
-import UserDropdown from '../shared/UserDropdown.vue'
+import { Search, ArrowDown, Menu as MenuIcon, Close, ShoppingCart } from '@element-plus/icons-vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const navItems = computed<NavItem[]>(() => {
   const items = baseNavItems.map(item => ({
     ...item,
     children: item.children ? [...item.children] : undefined,
   }))
-  const catNav = items.find(i => i.label === 'Kategoriýalar')
+  const catNav = items.find(i => i.label === 'Harytlar' || i.label === 'Kategoriýalar')
   if (catNav) {
-    catNav.children = store.categories.map(c => ({
-      label: c.name,
-      href: `/products/${c.slug}`
-    }))
+    catNav.children = [
+      { label: 'Ähli harytlar', href: '/products' },
+      ...store.categories.map(c => ({
+        label: c.name,
+        href: `/products/${c.slug}`
+      }))
+    ]
   }
   return items
 })
@@ -53,7 +55,14 @@ function closeDropdown() {
 }
 
 function handleSearch() {
-  console.log('Searching:', searchQuery.value, 'in category:', searchCategory.value)
+  const trimmed = searchQuery.value.trim()
+  const query: Record<string, any> = {}
+  if (trimmed) query.search = trimmed
+  if (searchCategory.value && searchCategory.value !== 'all') {
+    router.push({ path: `/products/${searchCategory.value}`, query })
+  } else {
+    router.push({ path: '/products', query })
+  }
 }
 
 function isActiveLink(href: string) {
@@ -138,18 +147,19 @@ watch(() => route.path, (newPath) => {
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
           <!-- Cart Icon -->
-          <!-- <button
+          <button
             @click="actions.toggleCartDrawer(true)"
-            class="relative p-2 text-gray-600 hover:text-red-600 transition-colors group"
+            class="relative p-2 text-gray-700 hover:text-red-600 transition-colors group cursor-pointer"
+            title="Sebedim"
           >
-            <el-icon class="text-5xl"><ShoppingCart /></el-icon>
+            <el-icon class="text-2xl"><ShoppingCart /></el-icon>
             <span 
               v-if="cartCount > 0"
               class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white transform translate-x-1 -translate-y-1 shadow-sm group-hover:scale-110 transition-transform"
             >
               {{ cartCount }}
             </span>
-          </button> -->
+          </button>
 
           <!-- <NotificationDropdown /> -->
           
